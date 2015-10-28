@@ -1,0 +1,34 @@
+<!-- 
+================================================================================ 
+	 R01F LOGBACK CONFIG (see r01fbClasses/logback.xml)
+================================================================================
+-->
+<included>
+	<!-- Libraries -->
+	<!-- Avoid some apache commons beanutils logs -->
+	<logger name="org.apache.commons.beanutils" level="WARN" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="datos_app_log" />
+	</logger>
+	<logger name="org.apache.hadoop" level="OFF" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="datos_app_log" />
+	</logger>
+	<!-- R01F -->
+	<logger name="r01f" level="WARN" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="datos_app_log" />
+	</logger>
+	<logger name="r01f.marshalling" level="ERROR" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="datos_app_log" />
+	</logger>
+	<logger name="r01f.reflection" level="WARN" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="datos_app_log" />
+	</logger>
+	<logger name="r01f.lucene" level="TRACE" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="datos_app_log" />
+	</logger>
+</included>

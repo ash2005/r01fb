@@ -1,0 +1,368 @@
+CONFIGURACIÓN JERSEY + SPRING + EclipseLinkJPA + LUCENE
+=========================================================================================
+
+Fichero /WEB-INF/web.xml
+------------------------
+	1.- Configurar el servlet de SPRING para Jersey
+			<servlet>
+				<servlet-name>R01EStructuresRESTEndPoint</servlet-name>
+				<servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
+				<init-param>
+					<param-name>javax.ws.rs.Application</param-name>
+					<param-value>r01e.rest.R01ERESTApp</param-value>
+				</init-param>
+				<!-- Log filter (hace log de los parámetros de las llamadas REST) -->
+			    <init-param>
+			       	<param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
+			       	<param-value>r01f.rest.RESTLogRequestFilter</param-value>
+			   	</init-param>
+				<load-on-startup>1</load-on-startup>
+			</servlet>
+			<servlet-mapping>
+				<servlet-name>R01EStructuresRESTEndPoint</servlet-name>
+				<url-pattern>/r01eStructuresRESTEndPoint/*</url-pattern>
+			</servlet-mapping>
+			
+		Con esta configuración la URL base de los servicios REST será:
+			http://localhost:8080/r01eRESTServicesWar/r01eStructuresRESTEndPoint/
+
+	2.- Configurar un listener de los eventos del contexto de aplicación
+			<listener>
+				<!-- NOTA:
+					 se ha extendido el ContextLoaderListener para tener la oportunidad de liberar
+					 los recursos de indexación de lucene al destruir el contexto
+				 -->
+				<listener-class>r01e.rest.R01ERESTSpringAppServletLifeCycleListener</listener-class>
+				<!-- <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class> -->
+			</listener>
+	3.- Incluir un parámetro de contexto que indica a SPRING dónde se encuentra
+	    el xml de configuración
+			<context-param>
+				<param-name>contextConfigLocation</param-name>
+				<param-value>/WEB-INF/r01eBackEndSpringApplicationContext.xml</param-value>
+			</context-param>
+	
+Aplicación jersey: r01e.rest.R01ERESTApp
+----------------------------------------
+	@Singleton
+	@NoArgsConstructor
+	public class R01ERESTApp 
+	     extends Application {
+	     
+		@Override
+		public Set<Class<?>> getClasses() {
+			Set<Class<?>> s = new HashSet<Class<?>>();
+			
+			// rest resources 
+			s.add(R01ERESTResourceForStructureLabelsBag.class);
+			s.add(R01ERESTResourceForStructure.class);
+			s.add(R01ERESTResourceForStructureLabel.class);
+			
+			// Common resoponse type mappers
+			s.add(BooleanResponseTypeMapper.class);
+			s.add(LongResponseTypeMapper.class);
+			
+			// Response type mappers: transforma Java->XML para los tipos devueltos por los métodos REST
+			s.add(R01EModelObjectRequestTypeMapper.class);
+			
+			// Request type mappers: transforma XML->java para los parametros recibidos vía POST/PUT
+			s.add(R01MResponseTypeMapper.class);
+			
+			// Exception Mappers
+			s.add(R01EPersistenceErrorMapper.class);
+			s.add(R01EUncaughtExceptionMapper.class);
+			
+			return s;
+		}
+	}
+
+Mapeo de BEANS en el fichero de Configuración del Contexto
+de SPRING: WEB-INF/r01eBackEndSpringApplicationContext.xml
+----------------------------------------------------------
+
+	<beans default-autowire="no"
+		xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+		xmlns:jms="http://www.springframework.org/schema/jms"
+		xmlns:p="http://www.springframework.org/schema/p"
+		xsi:schemaLocation="http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-3.2.xsd
+							http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+							http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+	        					
+	
+			<!-- Configuración de beans -->
+	</beans>
+
+	Se definen beans asociados a cada entidad (bolsa de etiquetas, estructura, etiqueta)
+	Para CADA entidad hay que repetir la configuración siguiente cambiando ___ForX por
+	___ForStructureLabelsBag / ____ForStructure / ___ForStructureLabel en cada caso:
+	
+		<!-- **** CAPA DE RESOURCES REST *** -->
+			<bean id="R01ERESTResourceForX" class="r01e.rest.R01ERESTResourceForX" lazy-init="true">
+				<property name="crud" ref="R01ERESTCRUDDelegateForX"/>
+				<property name="crud" ref="R01ERESTSearchDelegateX"/>
+			</bean>
+			<bean id="R01ERESTCRUDDelegateForX" class="r01e.rest.R01ERESTCRUDDelegateForX">
+				<property name="services" ref="R01EServicesCRUDForX"/>
+			</bean>
+			<bean id="R01ERESTSearchDelegateX" class="r01e.rest.R01ERESTSearchDelegateX">
+				<property name="services" ref="R01EServicesSearchForX"/>
+			</bean>
+		
+		<!-- **** CAPA DE SERVICIOS *** -->
+			<bean id="R01EServicesCRUDForX" class="r01e.services.R01EServicesCRUDForX">
+				<property name="persistence" ref="R01EDBPersistenceForX"/>
+				<property name="luceneIndexer" ref="R01ELuceneIndexerForX"/>
+			</bean>
+			<bean id="R01EServicesSearchForX" class="r01e.services.R01EServicesSearchForX">
+				<property name="searcherDBBased" ref="R01EDBSearcherForX"/>
+				<property name="searcherLuceneBased" ref="R01ELuceneSearcherForX"/>
+			</bean>
+			
+		<!-- **** CAPA DE PERSISTENCIA EN BBDD *** -->
+			<bean id="R01EDBPersistenceForX" class="r01e.persistence.R01EDBPersistenceForX">
+				<!-- Aqui se inyecta el EntityManager JPA ya que tiene un miembro anotado con @PersistenceContext -->
+			</bean>
+			<bean id="R01EDBSearcherForX" class="r01e.persistence.R01EDBSearcherForX">
+				<!-- Aqui se inyecta el EntityManager JPA ya que tiene un miembro anotado con @PersistenceContext -->
+			</bean>
+	
+		<!-- **** CAPA DE PERSISTENCIA EN Lucene *** -->
+			<bean id="R01ELuceneIndexerForX" class="r01e.lucene.R01ELuceneIndexerForX">
+				<constructor-arg ref="R01ELuceneFieldsConfigSet"/>
+				<property name="luceneIndex" ref="LuceneIndex"/>
+			</bean>
+			<bean id="R01ELuceneSearcherForX" class="r01e.lucene.R01ELuceneSearcherForX">
+				<constructor-arg ref="R01ELuceneFieldsConfigSet"/>
+				<property name="luceneIndex" ref="LuceneIndex"/>
+			</bean>
+	
+Configuración JPA
+--------------------------------------------
+1.- En el fichero de Configuración del Contexto de SPRING: WEB-INF/r01eBackEndSpringApplicationContext.xml
+
+	a.- Hacer que SPRING soporte la anotación @PersistenceContext para inyectar el EntityManager 
+		    <bean id="JPAPersistenceAnnotationBeanPostProcessor" 
+		          class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor">
+		    </bean>
+		La anotación @PersistenceContext se asocia a los fields tipo EntityManager 
+			@Inject @PersistenceContext
+			private EntityManager _entityManager;
+		ee los tipos:
+			r01e.persistence.R01EDBPersistenceForX
+			r01e.persistence.R01EDBSearcherForX
+	
+	b.- Definir el bean factoría de EntityManager JPA
+			<!-- ver http://www.baeldung.com/2011/12/13/the-persistence-layer-with-spring-3-1-and-jpa/ -->
+			<bean id="JPAEntityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+			    <property name="persistenceUnitName" value="persistenceUnit.r01e" />	<!-- ver META-INF/persistence.xml -->
+				<property name="dataSource" ref="dataSource"/>							<!-- definido mas adelante -->
+			    <property name="jpaVendorAdapter">
+					<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter">
+						<property name="showSql" value="${jpa.show_sql}"/>
+				        <property name="generateDdl" value="${jpa.generateDdl}"/>
+				        <property name="databasePlatform" value="${persistence.dialect}"/>
+					</bean>
+			    </property>
+			    <!-- Activar load-time weaving de eclipselink -->
+				<property name="loadTimeWeaver">
+					<bean class="org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver"/>
+				</property>
+			</bean>
+
+	c.- Añadir soporte a transacciones
+			<bean id="JPATransactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+				<property name="entityManagerFactory" ref="JPAEntityManagerFactory"/>
+			</bean>
+		
+	d.- Activar la anotacion @Transaction para definir la transaccionalidad en los métodos
+		NOTA: Si no incluye este bean, en Tomcat se hace un pesist pero NO comitea
+		
+			<tx:annotation-driven transaction-manager="JPATransactionManager" />
+			
+		Las transacciones se marcan en los métodos necesarios de r01e.services.R01EServicesCRUDBase
+		Ejemplo:
+				@Transactional(readOnly = false, 
+							   propagation = Propagation.REQUIRES_NEW)
+				public R createRecord(final R record) {
+					...	
+				}
+		
+	e.- Definir el DataSource
+		Hay DOS opciones:
+			e1.- Si se utiliza un Servidor de Aplicaciones J2EE (ej: Weblogic) y se define un DataSource
+				 que se puede acceder vía JNDI:
+					<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+						<property name="jndiName" value="${datasource.jndiName}"/>
+					</bean>
+			
+			e2.- Si NO se utiliza un servidor de Aplicaciones J2EE (ej: Tomcat), NO se puden definir DataSources
+				 y hay que utilizar un Apache Commons DBCP (commons pool)
+				 
+					<!-- IMPORTANTE!! Poner el jconector de mysql en $CATALINA_HOME/lib -->
+					<!-- Ver info en http://www.mulesoft.com/tomcat-mysql sobre conexiones bbdd en Tomcat -->
+					<!-- NOTA: Se podría configurar tambien en el fichero persistence.xml, pero se hace aqui
+							   ya que de esta forma se pueden incluir variables dependientes del entorno
+					-->
+					<bean id="dataSource" 
+						  class="org.apache.commons.dbcp.BasicDataSource" 
+						  destroy-method="close">
+						<property name="driverClassName" value="${datasource.driverClassName}" />
+					    <property name="url" value="${datasource.url}" />
+					    <property name="username" value="${datasource.user}" />
+					    <property name="password" value="${datasource.pwd}" />
+					    <property name="testOnBorrow" value="true" />
+					    <property name="defaultAutoCommit" value="false" />
+					    <property name="maxWait" value="5000" />
+					</bean>
+	IMPORTANTE!!!
+		El fichero de configuración de SPRING contiene "placeholders" (variables) que se completan a partir de los 
+		valores definidos en un fichero de propiedades.
+		Para esto:
+			1.- Incluir en el fichero de configuración de contexto de spring el bean:
+					<!-- (ver http://static.springsource.org/spring/docs/3.0.5.RELEASE/reference/beans.html#beans-factory-placeholderconfigurer) -->
+					<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+						<property name="locations" value="classpath:r01e.backend.spring.properties"/>
+					</bean>
+			2.- Incluir el fichero r01e.backend.spring.properties
+					# ::: JPA
+					jpa.show_sql = true
+					jpa.generateDdl = true
+					
+					# ::: DataSource Tomcat local > MySql local 
+					# IMPORTANTE!! Poner el jconector de mysql en $CATALINA_HOME/lib
+					# __________________________________________
+					datasource.driverClassName = com.mysql.jdbc.Driver
+					datasource.url = jdbc:mysql://localhost:3306/r01e
+					datasource.user = r01e
+					datasource.pwd = r01e
+					
+					# ::: JPA
+					# (oracle: org.eclipse.persistence.platform.database.oracle.OraclePlatform)
+					persistence.eclipselink.targetDB = org.eclipse.persistence.platform.database.MySQLPlatform
+					persistence.dialect = org.eclipse.persistence.platform.database.MySQLPlatform
+					
+2.- En el fichero de configuración de JPA (META-INF/persistence.xml)
+
+		<?xml version="1.0" encoding="UTF-8"?>
+		<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+		             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/persistence/persistence_2_1.xsd">
+		              			 
+			<persistence-unit name="persistenceUnit.r01e" transaction-type="RESOURCE_LOCAL">
+		       	<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		
+				<!-- ENTITIES -->
+				<class>r01e.persistence.entities.R01EDBEntityForStructureLabelsBag</class>
+				<class>r01e.persistence.entities.R01EDBEntityForStructure</class>
+				<class>r01e.persistence.entities.R01EDBEntityForStructureLabel</class>
+				
+				<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		
+				<!-- GENERACION AUTOMATICA DE TABLAS (ver https://blogs.oracle.com/arungupta/entry/jpa_2_1_schema_generation) -->
+				<properties>
+					<!-- DATABASE SPEC -->
+					<property name="javax.persistence.database-product-name" value="mysql"/>
+					<property name="javax.persistence.database-major-version" value="5"/>
+					<property name="javax.persistence.database-minor-version" value="6"/>
+				
+					<!-- Generate Schema -->
+					<property name="javax.persistence.schema-generation.create-database-schemas" value="false"/>	<!-- do NOT generate the r01e schema -->
+					<!-- <property name="javax.persistence.schema-generation.connection" value=""/> -->
+					
+					<!-- Drop / Create Tables -->
+		           	<property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>	<!-- none / create / drop-and-create / drop -->
+		           	
+		           	<property name="javax.persistence.schema-generation.create-source" value="metadata"/>			<!-- metadata / script / metadata-then-script / script-then-metadata -->
+		           	<!--<property name="javax.persistence.schema-generation.scripts.create-script-source" value="META-INF/create.jdbc"/>-->
+		           	
+					<property name="javax.persistence.schema-generation.drop-source" value="metadata"/>
+					<!--<property name="javax.persistence.schema-generation.scripts.drop-script-source" value="META-INF/drop.jdbc"/>-->
+					
+					<!--<property name="javax.persistence.sql-load-script-source" value="META-INF/data-load.jdbc"/>-->	
+					
+					<!-- Drop / Create Tables scripts generation -->
+		           	<!-- <property name="javax.persistence.schema-generation.scripts.action" value="drop-and-create"/> -->	<!-- none / create / drop-and-create / drop -->
+					<!-- <property name="javax.persistence.schema-generation.scripts.create-target" value="META-INF/r01eCreate.jdbc" /> -->
+					<!-- <property name="javax.persistence.schema-generation.scripts.drop-target" value="META-INF/r01eDrop.jdbc"/> -->
+					
+					
+					 <!-- CACHING http://wiki.eclipse.org/EclipseLink/Examples/JPA/Caching -->
+					 <!-- Es importante DESHABILITAR el cache en AWS ya que hay multiples instancias del servidor de apps -->
+					 <!-- En caso de HABILITAR el cache en AWS hay que coordinar las caches: http://wiki.eclipse.org/EclipseLink/UserGuide/JPA/sandbox/caching/Cache_Coordination -->
+					<property name="eclipselink.cache.shared.default" value="false"/>
+					
+					
+					<!-- Logging: ver http://wiki.eclipse.org/EclipseLink/Examples/JPA/Logging -->
+					<property name="eclipselink.logging.logger" value="ServerLogger"/>
+					<property name="eclipselink.logging.level" value="ALL"/>			<!-- change to ALL to LOG / INFO -->
+					<property name="eclipselink.logging.timestamp" value="false"/>
+					<property name="eclipselink.logging.session" value="false"/>
+					<property name="eclipselink.logging.thread" value="false"/>
+					<property name="eclipselink.logging.exceptions" value="true"/>
+					<property name="eclipselink.logging.level.sql" value="FINE"/>
+					<property name="eclipselink.logging.parameters" value="true"/>
+					
+					<!-- ORACLE -->
+					<!-- <property name="eclipselink.target-database" value="org.eclipse.persistence.platform.database.oracle.OraclePlatform"/> -->
+					<!-- MySQL -->
+					<property name="eclipselink.target-database" value="org.eclipse.persistence.platform.database.MySQLPlatform"/>
+				</properties>
+				
+				<!-- JPA2.0: Enables the cache and causes entities for which Cacheable(true) is specified to be cached. 
+					 Entities for which Cacheable(true) is not specified or for which Cacheable(false) is specified must not be cached. -->
+				<!-- <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode> -->
+			</persistence-unit>
+		</persistence>
+		
+		
+		
+Configuración Lucene
+--------------------------------------------
+1.- En el fichero de Configuración del Contexto de SPRING: WEB-INF/r01eBackEndSpringApplicationContext.xml
+	
+	a.- Bean que configura los fields de Lucene para cada entidad
+			<!-- **** FieldsConfig  ***** -->
+				<bean id="R01ELuceneFieldsConfigSet" class="R01ELuceneFieldsConfigSet"
+					  factory-bean="R01ELuceneFieldsConfigSetProvider"
+		 	      	  factory-method="get">
+				</bean>
+				<bean id="R01ELuceneFieldsConfigSetProvider"
+		 	           class="r01f.lucene.R01ELuceneGuiceModule$LuceneDirectoryProvider">
+		 		</bean>
+	b.- Indice de lucene
+			<!-- **** Index  ***** -->
+				<!-- Singleton-holder del IndexWriter y el IndexSearcher -->
+			 	<bean id="R01ELuceneIndex" class="r01f.lucene.LuceneIndex">
+					<constructor-arg ref="R01ELuceneFileSystemDirectory"/>
+					<constructor-arg ref="R01EAnalyzer"/>
+			 	</bean>
+			 	<!-- Analyzer especifico para R01E -->
+			 	<bean id="R01EAnalyzer" class="r01e.lucene.R01ELuceneAnalyzer">
+			 		<constructor-arg ref="R01ELuceneFieldsConfigSet"/>
+			 	</bean>
+			 	<!-- Lucene Directory basado de FileSystem -->
+			 	<bean id="R01ELuceneFileSystemDirectory" class="org.apache.lucene.store.Directory"
+			 	      factory-bean="R01ELuceneDirectoryProvider"
+			 	      factory-method="provideFileSystemDirectory">
+					<!-- en este caso como se trata de un provider constructor-arg es un parametro del metodo factoria -->
+			 		<constructor-arg value="${lucene.directory.filesystem.path}"/>
+			 	</bean>
+			 	<bean id="R01ELuceneDirectoryProvider"
+			 	      class="r01f.lucene.directory.LuceneDirectoryProvider">
+			 	</bean>
+
+	IMPORTANTE!!!
+		El fichero de configuración de SPRING contiene "placeholders" (variables) que se completan a partir de los 
+		valores definidos en un fichero de propiedades.
+		Para esto:
+			1.- Incluir en el fichero de configuración de contexto de spring el bean:
+					<!-- (ver http://static.springsource.org/spring/docs/3.0.5.RELEASE/reference/beans.html#beans-factory-placeholderconfigurer) -->
+					<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+						<property name="locations" value="classpath:r01e.backend.spring.properties"/>
+					</bean>
+			2.- Incluir el fichero r01e.backend.spring.properties
+					# ::: Lucene
+					# __________________________________________
+					lucene.directory.filesystem.path = d:/temp_dev/r01e/lucene

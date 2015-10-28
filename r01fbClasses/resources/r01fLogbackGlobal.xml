@@ -1,0 +1,43 @@
+<!-- 
+================================================================================ 
+	 R01F LOGBACK CONFIG (see r01fbClasses/logback.xml)
+================================================================================
+-->
+<included>
+	<!-- Se puede establecer el directorio "a mano" o usar el del usuario -->
+	<!-- <property name="USER_HOME" value="${user.home}" />  -->
+	<property name="DATA_HOME" value="d:/temp_dev/log" />
+	<property name="logPath" value="${DATA_HOME}/${appName}/log" />
+
+	<!-- 1 por día. Nivel DEBUG. 10 días de historia
+		 logger{10} líneas de stacktrace para las excepciones
+	-->
+	<appender name="datos_app_log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>WARN</level>
+		</filter>
+		<File>${logPath}/${appName}.log</File>
+		<encoder>
+		  <pattern>%date %-5level %logger{10} - %message%n %exception{30}</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${logPath}/${appName}.%d{yyyy-MM-dd}.log</FileNamePattern>
+			<MaxHistory>10</MaxHistory>
+		</rollingPolicy>
+	</appender>
+	
+	<!-- sends logs to logback-beagle -->
+	<!-- <consolePlugin /> -->
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- encoders are assigned the type
+		     ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] - %msg%n</pattern>
+		</encoder>
+	</appender>
+	<!-- Root Logger -->
+	<root level="OFF">
+		<appender-ref ref="STDOUT" />
+	</root>
+</included>

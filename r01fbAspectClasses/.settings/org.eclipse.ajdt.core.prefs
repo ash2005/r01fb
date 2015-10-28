@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+org.aspectj.ajdt.core.compiler.weaver.XHasMember=false
+org.aspectj.ajdt.core.compiler.weaver.XNotReweavable=false
+org.aspectj.ajdt.core.compiler.weaver.XSerializableAspects=false
+org.aspectj.ajdt.core.compiler.weaver.outxml=false
+org.aspectj.ajdt.core.compiler.weaver.verbose=false

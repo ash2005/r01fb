@@ -1,0 +1,10 @@
+Instalacion en AWS Beanstalk
+----------------------------
+En el directorio /WebContent/.ebextensions están:
+	- Los jars que hay que copiar en directorio lib de tomcat (driver mysql y instrumentacion aop de spring)
+	- Un fichero x47b.config que contiene instrucciones que se ejecutan durante el despliegue del entorno
+
+NOTA: Por defecto en eclipse los directorios que empiezan con . NO son visibles; hay que deshabilitar el filtro en eclipse
+
+Acceso SSH al entorno beanstalk: http://stackoverflow.com/questions/4742478/ssh-to-elastic-beanstalk-instance
+

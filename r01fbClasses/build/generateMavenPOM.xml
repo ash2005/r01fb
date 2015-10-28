@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="mavenPom" xmlns:ivy="antlib:org.apache.ivy.ant">
+    <target name="mavenPom">
+    	<ivy:makepom ivyfile="${basedir}/../ivy.xml" pomfile="${basedir}/r01f.pom" conf="default,runtime">
+    	   <mapping conf="default" scope="compile"/>
+    	   <mapping conf="runtime" scope="runtime"/>
+    	</ivy:makepom>
+    </target>
+</project>

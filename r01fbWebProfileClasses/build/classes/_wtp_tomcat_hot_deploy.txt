@@ -1,0 +1,19 @@
+Install native DLL for ARP in Windows(http://tomcat.apache.org/tomcat-6.0-doc/apr.html#Windows):
+	Tomcat can use the Apache Portable Runtime to provide superior scalability, performance, and better integration with native server technologies.
+	Download DLL and copy dll into c:\Windows\System32\ directory.
+
+Add these parameters to the tomcat VM
+    -client -Djava.awt.headless=true -Xmx1024m -Xms256m -XX:MaxPermSize=1024m -XX:+CMSClassUnloadingEnabled -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC
+
+
+See how to configure Tomcat to enable hot deploying at:
+    http://ducquoc.wordpress.com/2010/11/06/eclipse-wtp-tomcat-hot-deploy/
+
+    Publishing: Auto publish when resources changes (so as to hot-deploy text resources like .properties, .html, .jsp,... and packaged resources like .jar, .zip ),
+                the interval should be small (1 or 0 sec).
+	Switch to “Modules” tab, since you already added the web app to the server, there should be at least a “module” with the specified context root (path URL).
+	Select that module, then click “Edit” button, uncheck the “Auto reloading enabled” checkbox, click OK.
+
+	Now your module should have “Auto Reload” setting as disabled (equivalence to <Context reloadable=”false” … /> in server.xml/context.xml of Tomcat)
+
+ 	Save the changes (at least make sure the two above has been applied already).

@@ -1,0 +1,104 @@
+Run-time weaving:
+=================
+To avoid the WARNING: Reverting the lazy setting on the OneToOne or ManyToOne attribute [XXX] for the entity class [YYYY] since weaving was not enabled or did not occur.
+-javaagent:D:/tools_workspaces/eclipse/ivy_libs/cache/org.eclipse.persistence/eclipselink/jars/eclipselink-2.5.2-M1.jar
+
+
+JPA Config
+--------------------------------------------
+1.- GUICE Persistence module 
+
+		@Override
+		public void configure(final Binder binder) {
+			// JPA
+			Properties props = new Properties();
+			props.put("javax.persistence.jdbc.user","r01e");
+			props.put("javax.persistence.jdbc.password","r01e");
+			props.put("javax.persistence.jdbc.driver","com.mysql.jdbc.Driver");				// IMPORTANTE!! place mysql jconector at $CATALINA_HOME/lib  
+			props.put("javax.persistence.jdbc.url","jdbc:mysql://localhost:3306/r01e");
+			props.put("eclipselink.target-database","org.eclipse.persistence.platform.database.MySQLPlatform");	// org.eclipse.persistence.platform.database.oracle.OraclePlatform
+			
+			JpaPersistModule jpaModule = new JpaPersistModule("persistenceUnit.r01e");
+			jpaModule.properties(props);
+			
+			binder.install(jpaModule);
+			
+			binder.bind(JPAInitializer.class).asEagerSingleton();
+			
+			.... other bindings ....
+		}
+		NOTE: These properties are get from a config file (ie: foo.properties.xml)
+					
+2.- JPA persistence xml (META-INF/persistence.xml)
+
+		<?xml version="1.0" encoding="UTF-8"?>
+		<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+		             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/persistence/persistence_2_1.xsd">
+		              			 
+			<persistence-unit name="persistenceUnit.foo" transaction-type="RESOURCE_LOCAL">
+		       	<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		
+				<!-- ENTITIES -->
+				<class>foo.persistence.entities.FooDBEntityForStructureLabelsBag</class>
+				<class>baz.persistence.entities.BazDBEntityForStructure</class>
+				<class>...</class>
+				
+				<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		
+				<!-- AUTOMATIC TABLE GEN (ver https://blogs.oracle.com/arungupta/entry/jpa_2_1_schema_generation) -->
+				<properties>
+					<!-- DATABASE SPEC -->
+					<property name="javax.persistence.database-product-name" value="mysql"/>
+					<property name="javax.persistence.database-major-version" value="5"/>
+					<property name="javax.persistence.database-minor-version" value="6"/>
+				
+					<!-- Generate Schema -->
+					<property name="javax.persistence.schema-generation.create-database-schemas" value="false"/>	<!-- do NOT generate the r01e schema -->
+					<!-- <property name="javax.persistence.schema-generation.connection" value=""/> -->
+					
+					<!-- Drop / Create Tables -->
+		           	<property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>	<!-- none / create / drop-and-create / drop -->
+		           	
+		           	<property name="javax.persistence.schema-generation.create-source" value="metadata"/>			<!-- metadata / script / metadata-then-script / script-then-metadata -->
+		           	<!--<property name="javax.persistence.schema-generation.scripts.create-script-source" value="META-INF/create.jdbc"/>-->
+		           	
+					<property name="javax.persistence.schema-generation.drop-source" value="metadata"/>
+					<!--<property name="javax.persistence.schema-generation.scripts.drop-script-source" value="META-INF/drop.jdbc"/>-->
+					
+					<!--<property name="javax.persistence.sql-load-script-source" value="META-INF/data-load.jdbc"/>-->	
+					
+					<!-- Drop / Create Tables scripts generation -->
+		           	<!-- <property name="javax.persistence.schema-generation.scripts.action" value="drop-and-create"/> -->	<!-- none / create / drop-and-create / drop -->
+					<!-- <property name="javax.persistence.schema-generation.scripts.create-target" value="META-INF/r01eCreate.jdbc" /> -->
+					<!-- <property name="javax.persistence.schema-generation.scripts.drop-target" value="META-INF/r01eDrop.jdbc"/> -->
+					
+					
+					 <!-- CACHING http://wiki.eclipse.org/EclipseLink/Examples/JPA/Caching -->
+					 <!-- Es importante DESHABILITAR el cache en AWS ya que hay multiples instancias del servidor de apps -->
+					 <!-- En caso de HABILITAR el cache en AWS hay que coordinar las caches: http://wiki.eclipse.org/EclipseLink/UserGuide/JPA/sandbox/caching/Cache_Coordination -->
+					<property name="eclipselink.cache.shared.default" value="false"/>
+					
+					
+					<!-- Logging: ver http://wiki.eclipse.org/EclipseLink/Examples/JPA/Logging -->
+					<property name="eclipselink.logging.logger" value="ServerLogger"/>
+					<property name="eclipselink.logging.level" value="ALL"/>			<!-- change to ALL to LOG / INFO -->
+					<property name="eclipselink.logging.timestamp" value="false"/>
+					<property name="eclipselink.logging.session" value="false"/>
+					<property name="eclipselink.logging.thread" value="false"/>
+					<property name="eclipselink.logging.exceptions" value="true"/>
+					<property name="eclipselink.logging.level.sql" value="FINE"/>
+					<property name="eclipselink.logging.parameters" value="true"/>
+				</properties>
+				
+				<!-- JPA2.0: Enables the cache and causes entities for which Cacheable(true) is specified to be cached. 
+					 Entities for which Cacheable(true) is not specified or for which Cacheable(false) is specified must not be cached. -->
+				<!-- <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode> -->
+			</persistence-unit>
+		</persistence>
+		
+		
+
+
+
+

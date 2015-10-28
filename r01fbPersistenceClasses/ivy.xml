@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.    
+-->
+<ivy-module version="2.0" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+    <info organisation="com.ejie.r01.r01fb"
+          module="r01fbPersistenceClasses"
+           revision="0.0.5"
+          status="integration">
+	</info>
+	
+	<!-- 
+	IMPORTANT! 
+		see /r01fbClasses/ivy.read.me about how Ivy works 
+	-->
+	<configurations>
+		<conf name="default" description="shortcut to runtime and master dependencies"/>
+		<conf name="compile" description="Used ONLY at compile time" />
+		<conf name="runtime" description="Not required at compile time BUT required for execution and so deployed to a server"/>
+	</configurations>
+	<publications>
+		<artifact name="r01fbPersistenceClasses" type="jar" ext="jar" />
+		<artifact name="r01fbPersistenceClasses" type="pom" ext="pom" />
+	</publications>
+	<dependencies defaultconf="default->default">	
+		<!-- ============================================================================================================================== -->
+		<!-- R01                                                                                                                            -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="com.ejie.r01.r01fb" name="r01fbClasses" rev="0.0.5" conf="default->default;compile->compile;runtime->runtime">
+			<exclude org="com.google.appengine" name="appengine-api-1.0-sdk"/>
+		</dependency>
+
+		<!-- ============================================================================================================================== -->
+		<!-- Lucene                                                                                         -->
+		<!-- ============================================================================================================================== -->		
+		<dependency org="org.apache.lucene" name="lucene-core" rev="4.7.0"/>
+      	<dependency org="org.apache.lucene" name="lucene-queryparser" rev="4.7.0"/>
+		<dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="4.7.0"/>
+		
+		  
+		<!-- ============================================================================================================================== -->
+		<!-- EclipseLink                                                                                                                    -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="org.eclipse.persistence" name="eclipselink" rev="2.5.2">
+			<!-- <exclude org="org.eclipse.persistence" name="commonj.sdo"/>-->
+		</dependency>
+		
+		<!-- ============================================================================================================================== -->
+		<!-- Guice Persist                                                                                                                   -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="com.google.inject.extensions" name="guice-persist" rev="4.0"/>
+
+		<!-- ============================================================================================================================== -->
+		<!-- ORACLE                                                                                                                         -->
+		<!-- Due to some licensing issues it must downloaded MANUALLY from																	-->
+		<!-- http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html														-->
+		<!-- SEE http://stackoverflow.com/questions/9007009/is-there-an-issue-with-the-oracle-dependency								    -->
+		<!-- ============================================================================================================================== -->		
+		<!--<dependency org="com.oracle" name="ojdbc14" rev="10.2.0.4.0" conf="runtime"/>-->
+
+		<!-- ============================================================================================================================== -->
+		<!-- Mail (needed by Spring's MailSender)                                                                                           -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="javax.mail" name="mail" rev="1.5.0-b01"/> 
+		<dependency org="jaf" name="activation" rev="1.0.2"/> 	
+		
+		
+		<!-- ============================================================================================================================== -->
+		<!-- GoogleAPI                                                                                                                      -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="com.google.api-client" name="google-api-client" rev="1.19.1"/>
+		<dependency org="com.google.apis" name="google-api-services-gmail" rev="v1-rev26-1.19.0"/>
+
+		<!-- ============================================================================================================================== -->
+		<!-- Twilio                                                                                                                         -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="com.twilio.sdk" name="twilio-java-sdk" rev="3.7.2"/>
+
+
+		<!-- ============================================================================================================================== -->
+		<!-- Velocity                                                                                          								-->
+		<!-- ============================================================================================================================== -->
+		<dependency org="org.apache.velocity" name="velocity" rev="1.7"/>		
+
+	</dependencies>
+	
+</ivy-module>

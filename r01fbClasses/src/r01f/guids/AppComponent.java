@@ -1,0 +1,40 @@
+package r01f.guids;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+
+
+/**
+ * AppCode component
+ */
+@XmlRootElement(name="appComponent")
+@EqualsAndHashCode(callSuper=true)
+@NoArgsConstructor
+public class AppComponent 
+     extends OIDBaseMutable<String> {
+	
+	private static final long serialVersionUID = 137722031497569807L;
+/////////////////////////////////////////////////////////////////////////////////////////
+//  CONSTANTS
+/////////////////////////////////////////////////////////////////////////////////////////
+	public static final AppComponent DEFAULT = AppComponent.forId("default");
+///////////////////////////////////////////////////////////////////////////////////////////
+//  CONSTRUCTOR
+///////////////////////////////////////////////////////////////////////////////////////////
+	public AppComponent(final String oid) {
+		super(oid);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  BUILDER
+/////////////////////////////////////////////////////////////////////////////////////////	
+	public static AppComponent forId(final String id) {
+		return new AppComponent(id);
+	}
+	public static AppComponent forIdOrNull(final String id) {
+		if (id == null) return null;
+		return new AppComponent(id);
+	}
+}

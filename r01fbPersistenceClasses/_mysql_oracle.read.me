@@ -1,0 +1,26 @@
+Create the BBDD
+===============
+create database r01t
+create user 'r01t'@'localhost' identified by 'r01t';
+grant all on r01t.* to 'r01t'@'localhost' ; 
+
+
+
+MySql in Tomcat
+===============
+1.- Download the mysql jdbc connector from https://www.mysql.com/products/connector/
+2.- Copy the jar file mysql-connector-java-5.1.30-bin to the $CATALINA_HOME/lib
+
+MySql in standalone run
+=======================
+1.- Download the mysql jdbc connector from https://www.mysql.com/products/connector/
+2.- Put the jar file mysql-connector-java-5.1.30-bin in the classpath
+
+
+
+Oracle Driver
+=============	
+	1.- Download the jdbc driver
+			http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html 
+			http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
+	2.- Place ojdbc6.jar at $CATALINA_HOME/lib

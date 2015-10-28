@@ -1,0 +1,8 @@
+@import "styles/shCore.css";
+@import "styles/shCoreDefault.css";
+@import "styles/shThemeDefault.css";
+body {
+	color: #000000;
+	font-family: Liberation Sans,DejaVu Sans,sans-serif,Arial;
+	font-size:100%;
+}

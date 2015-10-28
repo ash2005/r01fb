@@ -1,0 +1,211 @@
+IMPORTANTE!!!
+-------------
+Para flexibilizar el desarrollo en local en el que:
+	- El cliente estático GWT se desarrolla y depura utilizando en Jetty embebido del plugin de eclipse
+	- La capa de servidor del Front-End -los servlets que hacen de "puente" con la capa backEnd- se despliegan como un war en un Tomcat
+	- La capa de backend -la persistencia- se despliega en un Tomcat
+
+para esto, se suele dividir el proyecto en 3 proyectos que se despliegan en Jetty y Tomcat:
+	- Jetty 	>> [xxxFrontEndGWT] -> Código estático GWT
+	
+	- Tomcat	>> [xxxFrontEndWar] -> Servlets de GWT que hacen de puente con el backEnd (invocan a los servicios REST del backEnd)
+				>> [xxxBackEndWar]  -> Servicios REST del BackEnd responsables de la persistencia
+				
+por lo tanto, el proyecto [xxxFrontEndGWT] NO se despliega en servidores, únicamente se utiliza en local para obtener el código estático
+que se despliega en los servidores web
+
+			||/
+	Jetty	||	[xxxFrontEndGWT] (Cliente GWT)
+			||\		 |
+				     |
+			||/	     |___ RPC GWT ____ [xxxFrontEndWar] (frontEnd logic)
+			||	     						- xxxEtxebideBackEndServiceServlet        (xxx.server.xxxEtxebideBackEndServiceImplServlet)
+			||	     						- xxxRehabilitacionBackEndServiceServlet  (xxx.server.xxxRehabilitacionBackEndServiceImplServlet)
+	Tomcat	||	     						          |
+			||	     						          |
+			||	     						          |___HTTPClient____(REST) [xxxBackEndWar] (backEnd logic)
+			||\	     						                                         |
+				     																 |____ [BBDD]
+				     																 |____ [Lucene Index]
+				     																 
+	NOTA: War [xxxFrontEndWar] y [xxxBackEndWar] pueden desplegarse en el mismo tomcat o en instancias separadas
+		  ya que la conexión  [xxxFrontEndWar] -> [xxxBackEndWar] es via REST
+
+
+LANZAMIENTO DE JETTY
+--------------------------------
+[Agumentos del programa java que lanza Jetty]
+	-remoteUI "${gwt_remote_ui_server_port}:${unique_id}" 
+	-logLevel INFO 
+	-codeServerPort 9997 
+	-port 8888 
+	-war D:\tools_workspaces\eclipse\projects\xxx\xxxFrontEndGWT\war 
+	-deploy D:\tools_workspaces\eclipse\projects\xxx\xxxFrontEndGWT\gwt_deploy 
+	-extra D:\tools_workspaces\eclipse\projects\xxx\xxxFrontEndGWT\gwt_extra
+	-workDir d:\temp_dev\gwt xxx.xxxFrontEndGWT
+
+[Argumentos de la máquina virtual]
+	-Xmx512m 
+	-javaagent:D:\tools_config\eclipse\instances\xxx_keppler\plugins\com.google.appengine.eclipse.sdkbundle_1.7.7.1\appengine-java-sdk-1.7.7.1\lib\agent\appengine-agent.jar
+
+LANZAMIENTO DE TOMCAT
+--------------------------------
+1.- Abrir la vista de [Servers]
+2.- Hacer doble click en el servidor tomcat
+3.- Hacer click en [Open Launch Configuration]
+4.- En la pestaña (x)=Arguments -> VM Arguments añadir:   
+ 		-javaagent:D:\tools_workspaces\eclipse\libs\spring-3.2.2\spring-instrument-3.2.2.RELEASE.jar
+
+	
+NOTAS DE LA IMPLEMENTACIÓN PARA EL DESARROLLO LOCAL
+---------------------------------------------------
+IMPORTANTE!		Lo que se detalla a continuación SOLO aplica al desarrollo en LOCAL
+				El despliegue en servidores de prod es mucho más sencillo
+				
+Para hacer posible la "separación" de los Servlets de GWT es necesario:
+	1.- Poner TODO el código estático en una "carpeta de contenido estático" en el proyecto [xxxFrontEndGWT]
+	    que es servida 
+			[xxxFrontEndGWT]
+					|_war
+					|	|_WEB-INF
+					|	|_xxxFrontEndGWT	<- ficheros deployables generados por el compilador GWT	|---Carpetas a desplegar en el WEB
+					|	|_xxxZuzenean 		<- carpeta de contenidos estáticos						|
+					|			|
+					|			|_images	| Código estático de la aplicación
+					|			|_styles	|
+					|_gwt_deploy	<- ficheros de políticas que necesitan los RemoteServlet de GWT para permitir la des-serialización de tipos
+					|_gwt_extra		<- ficheros extra generados
+					|_gwt_unitCache	<- temporales
+	 
+	2.- Hacer que las peticiones a los servlets desde el cliente estático GWT "lleguen" al Tomcat donde está desplegado
+		el war [xxxFrontEndWar]
+							      [Cliente JS GWT]
+										|
+										| http://localhost:8888/xxxFrontEndWar/xxxServlet	
+										|
+							[Jetty embebido eclipse:888]
+							  	   [ProxyServlet]
+							  	        |
+							  	        | http://localhost:8080/xxxFrontEndWar/xxxServlet
+							  	        |
+							  	  [Tomcat:8080]
+								[xxxFrontEndWar]
+		Para hacer esto, como se ve en la figura anterior, es necesario un PROXYServlet en el Jetty embebido que "delege" en el Tomcat
+		todo aquello referido al WAR xxxFrontEndWar para lo que se utiliza un ProxyServlet definido en el web.inf de la aplicación 
+		que se despliega en el Jetty (war/WEB-INF/web.xml):
+				<servlet>
+			        <servlet-name>xxxFrontEndWarProxy</servlet-name>
+			        <servlet-class>r01f.servlet.ProxyServlet</servlet-class>
+			        <init-param>
+			            <param-name>proxyHost</param-name>
+			            <param-value>127.0.0.1</param-value>
+			        </init-param>
+			        <init-param>
+			            <param-name>proxyPort</param-name>
+			            <param-value>8080</param-value>
+			        </init-param>
+			        <init-param>
+			            <param-name>gwtCompiledCodeProxiedWarRelativePath</param-name>	<!-- path relativo al war al que se hace proxy -->
+			            <param-value>/xxxCARPETA_CONTENIDOS/gwt/xxxFrontEndGWT</param-value>		<!-- del código estático compilado de GWT -->
+			        </init-param>
+			    </servlet>
+			
+			    <servlet-mapping>
+			        <servlet-name>xxxFrontEndWarProxy</servlet-name>
+			        <url-pattern>/xxxFrontEndWar/*</url-pattern>	<!-- hace que "salten" a Tomcat TODAS las peticiones para xxxFrontEndWar -->
+			    </servlet-mapping>
+		
+		INSTALACIÓN DEL ProxyServlet
+			En el directorio war/WEB-INF/lib hay que poner A MANO algunas librerías que necesita el ProxyServlet:
+			    	- httpclient-4.2.4.jar
+			    	- httpcore-4.2.4.jar
+			    	- httpmime-4.2.4.jar
+			    	- commons-fileupload-1.3.jar
+			    	- slf4j-api-1.7.5.jar
+			    	- jcl-over-slf4j-1.7.5.jar
+			    	- jul-to-slf4j-1.7.5.jar
+			    	- log4j-over-slf4j-1.7.5.jar
+			    	- logback-classic-1.0.11.jar
+			    	- logback-core-1.0.11.jar
+			 Todas estas librerías están en la carpeta [jetty_libs] así que basta copiar su contenido en war/WEB-INF/lib
+			    	
+			IMPORTANTE!!!!!		Si se habilita GoogleAppEngine en el proyecto [xxxFrontEndGWT] salta un error debido a que 
+								el proxy utiliza las librerías HTTP-Components de APACHE que NO están permitidas en GAE 
+								Hay que deshabilitar GAE en [Project Properties] > [Google] > [AppEngine]
+
+	3.- Desplegar el servlet [xxxFrontEndWar] en Tomcat
+	
+	
+Hasta aquí todo bien, PERO la tecnología GWT de serialización de llamadas RPC cliente JS -> Servlets presenta un problema:
+	Para TODOS los tipos que se van a enviar (serializar) desde el cliente GWT-JS al servlet [xxxFrontEndWar],
+	la compilación GWT genera un fichero de política (una listas blancas para los tipos que PUEDEN ser serializados)
+		Los ficheros de políticas tienen la forma: 8064FCD107C603DF6AEBE45286E609F4.gwt.rpc
+	Estos ficheros de políticas DEBEN estar ACCESIBLES en el Servlet (que implementa RemoteServlet) con las siguientes restricciones:
+		- El Servlet intenta cargar la política de serialización en base a la URL de la petición que llega al RemoteServlet
+		  (método doGetSerializationPolicy del RemoteServlet)
+		- El path de la url desde la que se descarga la política TIENE que coincidir con el path del Servlet, es decir:
+				Si el RemoteServlet tiene una url /xxxFrontEndWar/xxxEtxebideBackEndServiceServlet
+				... la URL del fichero de política DEBE estar en el contexto de /xxxFrontEndWar, por ejemplo,
+				    /xxxFrontEndWar/xxxZuzenean/gwt/xxxFrontEndGWT/...
+		  si NO se cumple esta condición, el RemoteServlet lanza un error:
+				The module path requested, /xxxZuzenean/gwt/xxxFrontEndGWT/, 
+				is not in the same web application as this servlet, /xxxFrontEndWar.  
+				Your module may not be properly configured or your client and server code maybe out of date.
+
+		 Todo el trabajo de descarga de la política en el RemoteServlet se hace en el método:
+			public SerializationPolicy doGetSerializationPolicy(final HttpServletRequest request, 
+																final String moduleBaseURL,final String strongName) {
+    			return super.doGetSerializationPolicy(request,
+    									  			  newModuleBaseUrl,
+    									  			  strongName);
+			}
+		A este método llega:
+				moduleBaseURL	: http://127.0.0.1:8080/xxxFrontEndWar/xxxFrontEndGWT/	<-- Aqui NO se encuentran las políticas
+			    strongName		: 8064FCD107C603DF6AEBE45286E609F4
+		 Para conseguir que se encuentren las políticas en http://127.0.0.1:8080/xxxFrontEndWar/xxxFrontEndGWT/ hay DOS opciones
+				1.- Crear en [xxxFrontEndWar]/WebContent una carpeta xxxFrontEndGWT que sea un link a 
+					la carpeta donde se encuentra el código GWT compilado en el proyecto [xxxFrontEndGWT]:
+						[xxxFrontEndWar]					[xxxFrontEndGWT]
+								|_WebContent					|_war
+									|_WEB-INF						|
+									|_xxxFrontEndGWT	---link---->|_xxxFrontEndGWT
+					para esto en eclipse: [New] > [Folder] > [Advanced] > Link to alternate location
+					
+					Utilizando esta aproximación NO hay que re-escribir el metodo doGetSerializationPolicy
+		
+				2.- Re-escribir la URL de moduleBaseURL
+					Lo que llega es: 
+						moduleBaseURL: http://127.0.0.1:8080/xxxFrontEndWar/xxxFrontEndGWT/	<-- Aquí NO se encuentran las políticas
+													(ver que hace referencia a Tomcat)
+					lo que debería ser es:
+						newModuleBaseURL: http://127.0.0.1:8888/xxxFrontEndGWT/	<-- Aquí SI se encuentran las políticas
+													(ver que hace referencia a Jetty)
+					por lo tanto hay que "re-escribir" el parámetro moduleBaseURL a newModuleBaseURL 
+						Para esta tarea se puede:
+							a.- Hacer a mano la re-escritura sabiendo lo que llega y lo que se quiere obtener
+							    (tiene la pega de que puede requerir cambios de código si se cambian paths del WAR o GWT)
+		
+							b.- Utilizar la cabecer X-gwtCodeRelPath donde el ProxyServlet de R01F pone el PATH del código
+								GWT compilado en el servidor Jetty embebido del plugin GWT de eclipse
+									Esta cabecera X-gwtCodeRelPath se toma desde un parámetro del ProxyServlet en el web.xml
+									del proyecto [xxxFrontEndGWT]
+								(tiene la ventaja de que NO requiere cambios de código si se cambiar paths del WAR o WEB)
+								Lo que habría que hacer en el método doGetSerializationPolicy es:
+									b1.- Obtener el valor de la cabecera X-gwtCodeRelPath desde la request
+									b2.- Re-escribir en base a este valor
+						Lo anerior hay que hacerlo RE-escribiendo el método doGetSerializationPolicy
+						@Overrid
+						public SerializationPolicy doGetSerializationPolicy(final HttpServletRequest request, 
+																final String moduleBaseURL,final String strongName) {
+								// TODO implementar (a) o (b) para obtener newModuleBaseUrl
+				    			return super.doGetSerializationPolicy(request,
+				    									  			  newModuleBaseUrl,
+				    									  			  strongName);
+						}
+						
+
+	  
+
+		
+		
+

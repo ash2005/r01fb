@@ -1,0 +1,13 @@
+Para desarrollar aspectos es recomendable SEPARAR los aspectos del código java; por esta razón, 
+se crean DOS proyectos:
+	- r01fbAspects    		: [proyecto AspectJ] 	 contiene exclusivamente los proyectos
+	- r01fbAspectsCore		: [proyecto Java NORMAL] contiene la implementación de los aspectos (la mayor parte del código java)
+	- r01fbAspectsInterfaces: [proyecto Java normal] contiene las interfaces que se inyectan en los tipos utilizando los aspectos
+	
+IMPORTANTE:
+	- El proyecto r01fbAspects DEPENDE del proyecto r01fbAspectsCore y r01fbAspectsInterfaces
+	- ... PERO NO es una dependencia "normal" ya que los tipos del proyecto r01fbAspectsCore y r01fbAspectsInterfaces NECESITAN 
+		  ser recubierto (woven) por los aspectos de r01fbAspects, así que hay que incluir el proyecto r01fbAspectsImpl en en 
+		  r01fbAspects -> Properties -> AspectJ-Build: [InPath]
+	      (los tipos de InPath son recubiertos por los aspectos de r01fbAspects) 
+	

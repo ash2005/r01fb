@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.    
+-->
+<ivy-module version="2.0" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+    <info organisation="com.ejie.r01.r01fb"
+          module="r01fbClasses"
+           revision="0.0.5"
+          status="integration">
+	</info>
+	<!-- 
+	IMPORTANT! 
+		see /r01fbClasses/ivy.read.me about how Ivy works 
+	-->
+	<configurations>
+		<conf name="default" description="shortcut to runtime and master dependencies"/>
+		<conf name="compile" description="Used ONLY at compile time" />
+		<conf name="runtime" description="Not required at compile time BUT required for execution and so deployed to a server"/>
+		
+		<!-- <conf name="gae" extends="compile" description="Used when deploying to Google AppEngine"/>-->
+	</configurations>
+    <publications>
+		<artifact name="r01fbClasses" type="jar" ext="jar" />
+		<artifact name="r01fbClasses" type="pom" ext="pom" />
+	</publications>	
+	
+	<dependencies defaultconf="default->default"> 
+		<!-- ============================================================================================================================== -->
+		<!-- R01: Aspects                                                                                                                   -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="com.ejie.r01.r01fb" name="r01fbAspectInterfaceClasses" rev="0.0.5" conf="default->default;compile->compile;runtime->runtime"/>
+		
+		<!-- ============================================================================================================================== -->
+		<!-- Lombok                                                                                                                			-->
+		<!-- ============================================================================================================================== -->            
+		<dependency org="org.projectlombok" name="lombok" rev="1.16.6" conf="compile->default" transitive="false"/>	<!-- lombok is ONLY needed at compile config -->
+
+		
+		<!-- ============================================================================================================================== -->
+		<!-- Logging                                                                                                                        -->
+		<!-- ============================================================================================================================== -->
+		<!-- sl4fj API -->
+		<dependency org="org.slf4j" name="slf4j-api" rev="1.7.7" transitive="false"/>			<!-- API is required at compile-time... implementations are only required at runtime -->
+		<!-- Not neeed and any issue in WL <dependency org="org.slf4j" name="slf4j-simple" rev="1.7.7" conf="runtime->default"/>-->	<!-- only required at runtime: see http://stackoverflow.com/questions/7421612/slf4j-failed-to-load-class-org-slf4j-impl-staticloggerbinder -->
+ 
+		
+		<!-- bridges of legacy log libraries over sl4fj -->
+		<dependency org="org.slf4j" name="jcl-over-slf4j" rev="1.7.7"  conf="runtime->default" transitive="false"/>			<!-- java commons log to SLF4J bridge -->
+		<dependency org="org.slf4j" name="log4j-over-slf4j" rev="1.7.7" conf="runtime->default" transitive="false"/>		<!-- log4j to SLF4J bridge -->
+		<dependency org="org.slf4j" name="jul-to-slf4j" rev="1.7.7" conf="runtime->default" transitive="false"/>			<!-- java.util.log to SLF4J bridge -->			
+		<!-- Logback -->
+		<dependency org="ch.qos.logback" name="logback-core" rev="1.1.2" conf="runtime->default" transitive="false"/>		<!-- core part -->
+		<dependency org="ch.qos.logback" name="logback-classic" rev="1.1.2" conf="runtime->default" transitive="false"/>	<!-- logging part, asimilable to log4j -->
+		
+		
+		<!-- ============================================================================================================================== -->
+		<!-- Apache commons                                                                                                                 -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="org.apache.commons" name="commons-compress" rev="1.9" transitive="false" />
+		<dependency org="org.apache.commons" name="commons-lang3" rev="3.3.2" transitive="false" />
+		<dependency org="commons-beanutils" name="commons-beanutils" rev="1.9.2" transitive="false" />
+		<dependency org="commons-collections" name="commons-collections" rev="3.2.1" transitive="false"/>		
+		<dependency org="commons-io" name="commons-io" rev="2.4" transitive="false"/>            
+		<dependency org="commons-codec" name="commons-codec" rev="1.10" transitive="false"/>
+		
+		<!-- ============================================================================================================================== -->
+		<!-- Guava                                                                                                                          -->
+		<!-- ============================================================================================================================== --> 
+		<dependency org="com.google.guava" name="guava" rev="19.0-rc2"/>
+		
+		<!-- ============================================================================================================================== -->
+		<!-- GUICE                                                                                                                          -->
+		<!-- ============================================================================================================================== --> 
+		<dependency org="com.google.inject" name="guice" rev="4.0" />	<!-- dependency to asm, cglib, aopalliance, javax-inject -->
+		<dependency org="com.google.inject.extensions" name="guice-multibindings" rev="4.0" transitive="false"/>
+		<dependency org="com.google.inject.extensions" name="guice-assistedinject" rev="4.0" transitive="false"/>
+         
+        <!-- ============================================================================================================================== -->
+		<!-- SPRING																		                                                    -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="org.springframework" name="spring-beans" rev="4.0.6.RELEASE" transitive="false"/>			
+		<dependency org="org.springframework" name="spring-core" rev="4.0.6.RELEASE" transitive="false"/>
+		<dependency org="org.springframework" name="spring-context" rev="4.0.6.RELEASE" transitive="false"/>
+		<dependency org="org.springframework" name="spring-context-support" rev="4.0.6.RELEASE" transitive="false"/>	<!-- MailSender WTF! -->
+		<!--<dependency org="org.springframework" name="spring-instrument" rev="4.0.6.RELEASE" transitive="false"/>-->
+		
+         
+        <!-- ============================================================================================================================== -->
+		<!-- Apache HttpClient                           								                                                    -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="org.apache.httpcomponents" name="httpclient" rev="4.4.1" transitive="false"/>
+		<dependency org="org.apache.httpcomponents" name="httpcore" rev="4.4.1" transitive="false"/>
+		<dependency org="org.apache.httpcomponents" name="fluent-hc" rev="4.4" transitive="false"/>
+		<dependency org="org.apache.httpcomponents" name="httpmime" rev="4.4.1" transitive="false"/>
+		
+		
+        <!-- ============================================================================================================================== -->
+		<!-- GAE: Google App Engine       [ Warning: rev="1.9.0" not valid for JDK1.6 ]                								                                                -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="com.google.appengine" name="appengine-api-1.0-sdk" rev="1.7.1" conf="compile->default" transitive='false'/>	<!-- gae is needed at compile time appart from gae deployments -->
+		
+         
+        <!-- ============================================================================================================================== -->
+		<!-- Reflections: Java runtime metadata analysis								                                                    -->
+		<!-- ============================================================================================================================== -->	
+		<dependency org="org.reflections" name="reflections" rev="0.9.10" transitive="false">	<!-- dependency to javassist -->
+			<exclude org="dom4j" name="dom4j"/>
+			<exclude org="xml-apis" name="xml-apis" />
+			<exclude org="com.google.guava" name="guava"/>
+			<exclude org="com.google.code.gson" name="gson"/>
+			<exclude org="org.apache.commons" name="commons-vfs2"/>
+			<exclude org="org.apache.maven.scm" />
+		</dependency>
+		<!-- <dependency org="org.javassist" name="javassist" rev="3.18.2-GA" conf="runtime->default"/>-->		
+		<dependency org="org.javassist" name="javassist" rev="3.19.0-GA" conf="default->default" transitive="false"/>
+		
+		
+        <!-- ============================================================================================================================== -->
+		<!-- GentyRef: generic type reflection (used by the marshaller)                                                                     -->
+		<!-- ============================================================================================================================== -->		
+		<dependency org="com.googlecode.gentyref" name="gentyref" rev="1.1.0" transitive="false"/>
+         
+        <!-- ============================================================================================================================== -->
+		<!-- GSON & JACKSON																	                                                    -->
+		<!-- ============================================================================================================================== -->	
+		<dependency org="com.google.code.gson" name="gson" rev="2.2.4" transitive="false"/>
+		<dependency org="org.json" name="json" rev="20140107" transitive="false"/>
+		
+		<dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.6.2" transitive="false"/>
+		<dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.6.2" transitive="false"/>		
+		<dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.6.2" transitive="false"/>
+
+        <!-- ============================================================================================================================== -->
+		<!-- TIKA (used for MimeType detection)																		                        -->
+		<!-- ============================================================================================================================== -->		
+		<dependency org="org.apache.tika" name="tika-core" rev="1.5" transitive="false"/>
+		
+        <!-- ============================================================================================================================== -->
+		<!-- JODA-TIME                          																	                        -->
+		<!-- ============================================================================================================================== -->
+		<dependency org="joda-time" name="joda-time" rev="2.8.1" transitive="false"/>
+
+		<!-- ============================================================================================================================== -->
+		<!-- Excluding dependencies                                                                                                         -->
+		<!-- ============================================================================================================================== -->
+		<!-- exclude apache commons logging if this dependency is needed by any other dependency -->
+		<exclude org="commons-logging" conf="*"/>
+		
+		<!-- exclude server dependencies -->
+		<exclude org="javax.servlet"/>
+		<exclude org="javax.mail"/>
+		<exclude org="javax.activation"/>
+		<exclude org="org.codehaus.groovy"/>
+		<exclude org="org.apache.geronimo.specs"/>
+		<exclude org="org.fusesource.jansi"/>
+		<exclude org="org.codehaus.janino"/>
+	</dependencies>
+	
+</ivy-module>
