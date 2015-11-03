@@ -154,8 +154,8 @@ public abstract class IndexServicesForModelObjectDelegateBase<O extends OID,M ex
 								      		  	  				oid)
 								      		  	  		  .getOrThrow();
 				// Index
-				_indexer.index(userContext,
-						       modelObject);
+				_indexer.updateIndex(userContext,
+						       		 modelObject);
 			} catch(PersistenceException persistEx) {
 				outJob = new EnqueuedJob(this.supplyJobOID(),
 		     	 						 EnqueuedJobStatus.FINALIZED_ERROR,
@@ -219,7 +219,7 @@ public abstract class IndexServicesForModelObjectDelegateBase<O extends OID,M ex
 			int i = 1;
 			for (O oid : all) {
 				log.warn("[{} of {}]: {} a {} record with oid: {}",
-						 all.size(),i,operation,_modelObjectType.getSimpleName(),oid);					
+						 i,all.size(),operation,_modelObjectType.getSimpleName(),oid);					
 				// index / un-index
 				switch(operation) {
 				case REINDEX:

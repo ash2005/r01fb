@@ -4,6 +4,11 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Stopwatch;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import r01f.inject.ServiceHandler;
 import r01f.services.client.ClientAPI;
 import r01f.services.interfaces.IndexManagementServices;
-
-import com.google.common.base.Stopwatch;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.name.Names;
 
 /**
  * JVM arguments:
@@ -132,4 +132,19 @@ public abstract class TestAPIBase<A extends ClientAPI> {
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	protected abstract void _doTest();
+	
+	
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	protected void _giveTimeForBackgroundJobsToFinish(final long milis) {
+		// wait for background jobs to complete (if there's any background job that depends on DB data -like lucene indexing-
+		// 										 if the DB data is deleted BEFORE the background job finish, it'll fail)
+			System.out.println(".... give " + milis + " milis for background jobs (ie lucene index) to complete before deleting created DB records (lucene indexing will fail if the DB record is deleted)");
+		try {
+			Thread.sleep(milis);
+		} catch(Throwable th) {
+			th.printStackTrace(System.out);
+		}
+	}
 }

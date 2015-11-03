@@ -6,26 +6,31 @@ import r01f.aspects.interfaces.dirtytrack.DirtyTrackingStatus;
 
 
 /**
- * Aspecto hace que se pueda detectar si el estado de una clase ha cambiado, es decir,
- * se MONITORIZAN los cambios en los miembros y se "anota" cualquier cambio
- * El uso habitual es:
- * PASO 1: Crear una clase anotada con @ConvertToDirtyStateTrackable
+ * Aspect that makes posible to detect changes in an object's state: all state changes are tracked and recorded 
+ * Usage:
+ * [1]: Annotate the type with @ConvertToDirtyStateTrackable
  * 				@ConvertToDirtyStateTrackable
  * 				public class MyTrackableObj {
  * 				}
- * PASO 2: Establecer el estado del objeto 
+ * 				MyTrackableObj obj = new MyTrackableObj();
+ * 				obj.setXX   <-- this change is NOT taken into account since changes are NOT being tracked
+ * [2]: Start tracking changes
+ * 				assertFalse(DirtyTrackAdapter.adapt(obj)
+ * 											 .isDirty());
+ * 				DirtyTrackAdapter.adapt(obj)
+ * 								 .startTrackingChanges();
+ * [2]: Change the object's state 
  * 				MyTrackableObj obj = new MyTrackableObj();
  * 				obj.setXX
  * 				obj.setYY
- * 				assertFalse(obj.isDirty());
- * 				obj.startTrackingChanges();	<-- empezar a monitorizar cambios en el estado
- * 				obj.setXX 		<-- el estado cambia
- * 				assertTrue(obj.isDirty());	<-- El estado ha cambiado!!
+ * [3]: Check if there's any change
+ * 				assertTrue(DirtyTrackAdapter.adapt(obj)
+ * 											.isDirty());	<-- Must be true since obj state has changed
  */
 privileged public aspect DirtyStateTrackableAspect  
                  extends DirtyStateTrackableAspectBase<DirtyStateTrackable>  {
 /////////////////////////////////////////////////////////////////////////////////////////
-//  INTER-TYPE para inyectar un miembro DirtyTrackingStatusImpl
+//  INTER-TYPE to "inject" a DirtyTrackingStatusImpl field
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Dirty status control

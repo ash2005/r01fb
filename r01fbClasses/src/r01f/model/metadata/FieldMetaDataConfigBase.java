@@ -51,9 +51,9 @@ abstract class FieldMetaDataConfigBase
 		super();
 	}
 	public FieldMetaDataConfigBase(final FieldMetaDataID metaDataId,
-							 final LanguageTexts name,final LanguageTexts description,
-							 final FieldMetaDataSearchEngineIndexingConfig searchEngineIndexingConfig,
-							 final Class<?> dataType) {
+							 	   final LanguageTexts name,final LanguageTexts description,
+							 	   final FieldMetaDataSearchEngineIndexingConfig searchEngineIndexingConfig,
+							 	   final Class<?> dataType) {
 		_fieldId = metaDataId;
 		_name = name;
 		_description = description;	
@@ -86,7 +86,7 @@ abstract class FieldMetaDataConfigBase
 	@Override public boolean isEnumField()                  { return this instanceof FieldMetaDataForEnum; }
 	@Override public boolean isLanguageTextsField()			{ return this instanceof FieldMetaDataForLanguageTexts; }
 	@Override public boolean isSummaryField()               { return this instanceof FieldMetaDataForSummary; }
-	@Override public boolean isCollectionField()            { return this instanceof FieldMetaDataForCollection || this instanceof FieldMetaDataForSummary; }
+	@Override public boolean isCollectionField()            { return this instanceof FieldMetaDataForCollection; }
 	@Override public boolean isMapField()                   { return this instanceof FieldMetaDataForMap; }
 	@Override public boolean isPolymorphicField()			{ return this instanceof FieldMetaDataForPolymorphicType; }
 	@Override public boolean isDependentObjectField()       { return this instanceof FieldMetaDataForDependentObject; }

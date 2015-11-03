@@ -77,16 +77,14 @@ public abstract class CoreIndexServicesForModelObjectBase<O extends OID,M extend
 	@Override @SuppressWarnings("unchecked")
 	public EnqueuedJob index(final UserContext userContext,
 							 final M modelObject) {
-		return this.createDelegateAs(userContext,
-									 IndexServicesForModelObject.class)
+		return this.createDelegateAs(IndexServicesForModelObject.class)
 								.index(userContext,
 									   modelObject);
 	}
 	@Override @SuppressWarnings("unchecked")
 	public EnqueuedJob updateIndex(final UserContext userContext,
 							 	   final M modelObject) {
-		return this.createDelegateAs(userContext,
-									 IndexServicesForModelObject.class)
+		return this.createDelegateAs(IndexServicesForModelObject.class)
 						.updateIndex(userContext,
 									 modelObject);
 	}
@@ -96,22 +94,19 @@ public abstract class CoreIndexServicesForModelObjectBase<O extends OID,M extend
 	@Override @SuppressWarnings("unchecked")
 	public EnqueuedJob removeFromIndex(final UserContext userContext,
 							   		   final O oid) {
-		return this.createDelegateAs(userContext,
-									 IndexServicesForModelObject.class)
+		return this.createDelegateAs(IndexServicesForModelObject.class)
 							.removeFromIndex(userContext,
 						 			 		 oid);
 	}
 	@Override 
 	public EnqueuedJob removeAllFromIndex(final UserContext userContext) {
-		return this.createDelegateAs(userContext,
-									 IndexServicesForModelObject.class)
+		return this.createDelegateAs(IndexServicesForModelObject.class)
 							.removeAllFromIndex(userContext);
 	}
 	@Override @SuppressWarnings("unchecked")
 	public EnqueuedJob removeAllFromIndex(final UserContext userContext,
 								  		  final Collection<O> all) {
-		return this.createDelegateAs(userContext,
-									 IndexServicesForModelObject.class)
+		return this.createDelegateAs(IndexServicesForModelObject.class)
 							.removeAllFromIndex(userContext,
 												all);
 	}
@@ -121,23 +116,20 @@ public abstract class CoreIndexServicesForModelObjectBase<O extends OID,M extend
 	@Override @SuppressWarnings("unchecked")
 	public EnqueuedJob reIndex(final UserContext userContext,
 							 	   final O oid) {
-		return this.createDelegateAs(userContext,
-									 IndexServicesForModelObject.class)
+		return this.createDelegateAs(IndexServicesForModelObject.class)
 							.reIndex(userContext,
 								     oid);
 	}
 	@Override @SuppressWarnings("unchecked")
 	public EnqueuedJob reIndexAll(final UserContext userContext,
-								final Collection<O> all) {
-		return this.createDelegateAs(userContext,
-									 IndexServicesForModelObject.class)
+								  final Collection<O> all) {
+		return this.createDelegateAs(IndexServicesForModelObject.class)
 							.reIndexAll(userContext,
 									  all);
 	}
 	@Override
 	public EnqueuedJob reIndexAll(final UserContext userContext) {
-		return this.createDelegateAs(userContext,
-									 IndexServicesForModelObject.class)
+		return this.createDelegateAs(IndexServicesForModelObject.class)
 								.reIndexAll(userContext);
 	}
 }

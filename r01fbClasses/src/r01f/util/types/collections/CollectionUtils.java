@@ -279,7 +279,7 @@ public class CollectionUtils {
 	public static <T> T pickOneAndOnlyElementOrNull(final Collection<?> theCol,
 											  		final String errMsg,final Object... vars) {
 		if (CollectionUtils.isNullOrEmpty(theCol)) return null;
-		return CollectionUtils.pickOneAndOnlyElement(theCol,errMsg,vars);
+		return CollectionUtils.<T>pickOneAndOnlyElement(theCol,errMsg,vars);
 	}
     /**
      * Picks one element from the collection 
@@ -303,7 +303,7 @@ public class CollectionUtils {
      */
     public static <T> T pickOneElementOrNull(final Collection<?> theCol) {
     	if (CollectionUtils.isNullOrEmpty(theCol)) return null;
-    	return CollectionUtils.pickOneElement(theCol);
+    	return CollectionUtils.<T>pickOneElement(theCol);
     }
     /**
      * Returns the last element 

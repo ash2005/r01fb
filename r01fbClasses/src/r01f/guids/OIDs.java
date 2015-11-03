@@ -3,6 +3,10 @@ package r01f.guids;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import r01f.exceptions.Throwables;
@@ -17,10 +21,6 @@ import r01f.model.metadata.ModelObjectTypeMetaData;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
 import r01f.reflection.ReflectionUtils;
 import r01f.reflection.ReflectionUtils.FieldAnnotated;
-
-import com.google.common.annotations.GwtIncompatible;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
 @GwtIncompatible("uses reflection")
 @NoArgsConstructor(access=AccessLevel.PRIVATE)
@@ -155,6 +155,22 @@ public class OIDs {
 													     "forId",
 													     new Class<?>[] {String.class},
 													     new Object[] {oidAsString});
+		return outOid;
+	}
+	/**
+	 * Creates a versionable OID from it's serialized as {@link String}s value
+	 * @param oidType
+	 * @param versionIndependentOidAsString
+	 * @param versionOidAsString
+	 * @return
+	 */
+	public static <O extends OID> O createVersionableOIDFromString(final Class<O> oidType,
+																   final String versionIndependentOidAsString,
+																   final String versionOidAsString) {
+		O outOid = ReflectionUtils.<O>invokeStaticMethod(oidType,
+													     "forIds",
+													     new Class<?>[] {String.class,String.class},
+													     new Object[] {versionIndependentOidAsString,versionOidAsString});
 		return outOid;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

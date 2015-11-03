@@ -7,17 +7,17 @@ import java.util.Map;
 
 import javax.inject.Provider;
 
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.Term;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.Term;
-
 import r01f.enums.EnumWithCode;
 import r01f.exceptions.Throwables;
 import r01f.guids.OID;
+import r01f.guids.VersionIndependentOID;
 import r01f.guids.VersionOID;
 import r01f.locale.Language;
 import r01f.locale.Languages;
@@ -121,17 +121,29 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 	@Override
 	public void removeFromIndex(final UserContext userContext,
 								final OID oid) {
-		if (this.getModelObjectMetaData().hasFacet(HasVersionableFacet.class)) throw new UnsupportedOperationException(Throwables.message("The model object {} is a versionable object, so removeFromIndex(oid,version) MUST be used",
-																																		  this.getModelObjectType()));
+		if (this.getModelObjectMetaData().hasFacet(HasVersionableFacet.class)) {
+			if (!(oid instanceof OIDForVersionableModelObject)) throw new UnsupportedOperationException(Throwables.message("The model object {} is a versionable object, BUT it's oid type does NOT implements {}",
+																		   												   this.getModelObjectType(),OIDForVersionableModelObject.class));
+			OIDForVersionableModelObject versionableOid = (OIDForVersionableModelObject)oid;
+			_removeFromIndex(userContext,
+							 versionableOid.getOid(),versionableOid.getVersion());
+		} else {
+			_removeFromIndex(userContext,
+							 oid);
+		}
+	}
+	@SuppressWarnings("unused") 
+	private void _removeFromIndex(final UserContext userContext,
+								  final OID oid) {
 		IndexableFieldID docIdFieldId = this.getModelObjectMetaData().getDocumentIDFieldMetaData().getIndexableFieldId();
 		Term idTerm = new Term(docIdFieldId.asString(),
 							   _idFor(oid));
 		// UN-index
 		_luceneIndex.unIndex(idTerm);
 	}
-	@Override
-	public void removeFromIndex(final UserContext userContext,
-								final OID oid,final VersionOID version) {
+	@SuppressWarnings("unused") 
+	private void _removeFromIndex(final UserContext userContext,
+								  final VersionIndependentOID oid,final VersionOID version) {
 		if (!this.getModelObjectMetaData().hasFacet(HasVersionableFacet.class)) throw new UnsupportedOperationException(Throwables.message("The model object {} is NOT a versionable object, so removeFromIndex(oid) MUST be used",
 																																		  this.getModelObjectType()));
 		IndexableFieldID docIdFieldId = this.getModelObjectMetaData().getDocumentIDFieldMetaData().getIndexableFieldId();
@@ -207,9 +219,10 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							.getOid();
 		if (oid instanceof OIDForVersionableModelObject) {
 			OIDForVersionableModelObject vOid = (OIDForVersionableModelObject)oid;
-			VersionOID version = vOid.getVersion();
-			if (version != null) {
-				outIdValue = _idFor(oid,version);
+			VersionIndependentOID versionIndependentOid = vOid.getOid();
+			VersionOID versionOid = vOid.getVersion();
+			if (versionOid != null) {
+				outIdValue = _idFor(versionIndependentOid,versionOid);
 			} else {
 				throw new IllegalStateException(Throwables.message("NO version info in an oid instance of type {}",oid.getClass()));
 			}
@@ -221,7 +234,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 	private static String _idFor(final OID oid) {
 		return oid.asString();
 	}
-	private static String _idFor(final OID oid,final VersionOID versionOid) {
+	private static String _idFor(final VersionIndependentOID oid,final VersionOID versionOid) {
 		return Strings.of("{}_{}")
 					  .customizeWith(oid,versionOid)
 					  .asString();

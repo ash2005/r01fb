@@ -3,6 +3,8 @@ package r01f.model;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 
+import com.google.common.annotations.GwtIncompatible;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,8 +25,7 @@ import r01f.model.metadata.ModelObjectTypeMetaData;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
 import r01f.types.annotations.CompositionRelated;
 
-import com.google.common.annotations.GwtIncompatible;
-
+@ConvertToDirtyStateTrackable
 @Accessors(prefix="_")
 @NoArgsConstructor
 public abstract class PersistableModelObjectBase<O extends OID,

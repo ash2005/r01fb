@@ -1,7 +1,6 @@
 package r01f.persistence.index;
 
 import r01f.guids.OID;
-import r01f.guids.VersionOID;
 import r01f.model.IndexableModelObject;
 import r01f.usercontext.UserContext;
 
@@ -33,13 +32,4 @@ public interface Indexer<M extends IndexableModelObject<? extends OID>> {
 	 */
 	public void removeFromIndex(final UserContext userContext,
 								final OID oid);
-	/**
-	 * Deleted the indexed data for a versionable record
-	 * @param userContext
-	 * @param oid
-	 * @param version
-	 * @throws UnsupportedOperationException if the record is NOT versionable
-	 */
-	public void removeFromIndex(final UserContext userContext,
-								final OID oid,VersionOID version);
 }

@@ -1,5 +1,7 @@
 package r01f.model.builders.facets;
 
+import lombok.AccessLevel;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.patterns.IsBuilder;
 
@@ -7,7 +9,7 @@ import r01f.patterns.IsBuilder;
  * Base type for all content model object's builders
  */
 @Accessors(prefix="_")
-public abstract class FacetBuilderBase<CONTAINER_TYPE,
+public abstract class FacetBuilderBase<NEXT_BUILDER,
 									   T> 
 		   implements IsBuilder { 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -16,7 +18,7 @@ public abstract class FacetBuilderBase<CONTAINER_TYPE,
 	/**
 	 * Parent type containing this facet builder
 	 */
-	protected final CONTAINER_TYPE _parentType;
+	@Setter(AccessLevel.PROTECTED) protected NEXT_BUILDER _nextBuilder;
 	/**
 	 * Model object
 	 */
@@ -24,9 +26,12 @@ public abstract class FacetBuilderBase<CONTAINER_TYPE,
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	public FacetBuilderBase(final CONTAINER_TYPE parentBuilder,
+	public FacetBuilderBase(final T modelObject) {
+		_modelObject = modelObject;
+	}
+	public FacetBuilderBase(final NEXT_BUILDER nextBuilder,
 							final T modelObject) {
-		_parentType = parentBuilder;
+		_nextBuilder = nextBuilder;
 		_modelObject = modelObject;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +40,7 @@ public abstract class FacetBuilderBase<CONTAINER_TYPE,
 	protected T getModelObject() {
 		return _modelObject;
 	}
-	public CONTAINER_TYPE finish() {
-		return _parentType;
+	public NEXT_BUILDER build() {
+		return _nextBuilder;
 	}
 }

@@ -1454,7 +1454,7 @@ public class Strings {
 		 */
 		@GwtIncompatible("marshaller not supported by GWT")
 		public <T> T asObject(final Marshaller m) {
-			return m.beanFromXml(_buffer);
+			return m.<T>beanFromXml(_buffer);
 		}
 		
 	}

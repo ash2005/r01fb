@@ -14,11 +14,16 @@ import javax.persistence.criteria.Root;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 
+import com.google.common.collect.Lists;
+
 import lombok.experimental.Accessors;
 import r01f.guids.CommonOIDs.UserCode;
 import r01f.guids.OID;
 import r01f.guids.OIDs;
+import r01f.guids.VersionIndependentOID;
 import r01f.model.PersistableModelObject;
+import r01f.model.facets.Facetables;
+import r01f.model.facets.Versionable.HasVersionableFacet;
 import r01f.persistence.FindOIDsResult;
 import r01f.persistence.FindOIDsResultBuilder;
 import r01f.persistence.db.entities.DBEntityForModelObject;
@@ -27,8 +32,6 @@ import r01f.types.Range;
 import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.common.collect.Lists;
 
 /**
  * Base type for every persistence layer type
@@ -63,7 +66,12 @@ public abstract class DBFindForModelObjectBase<O extends OID,M extends Persistab
 		// use projections to return ONLY the oid (see http://stackoverflow.com/questions/12618489/jpa-criteria-api-select-only-specific-columns)
 		CriteriaQuery<Tuple> query = builder.createTupleQuery();
 		Root<DB> root = query.from(_DBEntityType);
-		query.multiselect(root.get("_oid"));
+		if (Facetables.hasFacet(_modelObjectType,HasVersionableFacet.class)) {
+			query.multiselect(root.get("_oid"),
+							  root.get("_version"));
+		} else {
+			query.multiselect(root.get("_oid"));
+		}
 		List<Tuple> tupleResult = _entityManager.createQuery(query)
 														.setHint(QueryHints.READ_ONLY,HintValues.TRUE)
 											    .getResultList();
@@ -79,7 +87,12 @@ public abstract class DBFindForModelObjectBase<O extends OID,M extends Persistab
 		// use projections to return ONLY the oid (see http://stackoverflow.com/questions/12618489/jpa-criteria-api-select-only-specific-columns)
 		CriteriaQuery<Tuple> query = builder.createTupleQuery();
 		Root<DB> root = query.from(_DBEntityType);
-		query.multiselect(root.get("_oid"));
+		if (Facetables.hasFacet(_modelObjectType,HasVersionableFacet.class)) {
+			query.multiselect(root.get("_oid"),
+							  root.get("_version"));
+		} else {
+			query.multiselect(root.get("_oid"));
+		}
 		Predicate where = _buildDateRangePredicate(builder,root,"_createDate",
 												   createDate);
 		if (where != null) query.where(where);
@@ -98,7 +111,12 @@ public abstract class DBFindForModelObjectBase<O extends OID,M extends Persistab
 		// use projections to return ONLY the oid (see http://stackoverflow.com/questions/12618489/jpa-criteria-api-select-only-specific-columns)
 		CriteriaQuery<Tuple> query = builder.createTupleQuery();
 		Root<DB> root = query.from(_DBEntityType);
-		query.multiselect(root.get("_oid"));
+		if (Facetables.hasFacet(_modelObjectType,HasVersionableFacet.class)) {
+			query.multiselect(root.get("_oid"),
+							  root.get("_version"));
+		} else {
+			query.multiselect(root.get("_oid"));
+		}
 		Predicate where = _buildDateRangePredicate(builder,root,"_lastUpdateDate",
 												   lastUpdateDate);
 		if (where != null) query.where(where);
@@ -117,7 +135,12 @@ public abstract class DBFindForModelObjectBase<O extends OID,M extends Persistab
 		// use projections to return ONLY the oid (see http://stackoverflow.com/questions/12618489/jpa-criteria-api-select-only-specific-columns)
 		CriteriaQuery<Tuple> query = builder.createTupleQuery();
 		Root<DB> root = query.from(_DBEntityType);
-		query.multiselect(root.get("_oid"));
+		if (Facetables.hasFacet(_modelObjectType,HasVersionableFacet.class)) {
+			query.multiselect(root.get("_oid"),
+							  root.get("_version"));
+		} else {
+			query.multiselect(root.get("_oid"));
+		}
 		Predicate where = _buildUserPredicate(builder,root,"_creator",
 											  creatorUserCode);
 		if (where != null) query.where(where);
@@ -136,7 +159,12 @@ public abstract class DBFindForModelObjectBase<O extends OID,M extends Persistab
 		// use projections to return ONLY the oid (see http://stackoverflow.com/questions/12618489/jpa-criteria-api-select-only-specific-columns)
 		CriteriaQuery<Tuple> query = builder.createTupleQuery();
 		Root<DB> root = query.from(_DBEntityType);
-		query.multiselect(root.get("_oid"));
+		if (Facetables.hasFacet(_modelObjectType,HasVersionableFacet.class)) {
+			query.multiselect(root.get("_oid"),
+							  root.get("_version"));
+		} else {
+			query.multiselect(root.get("_oid"));
+		}
 		Predicate where = _buildUserPredicate(builder,root,"_lastUpdator",
 											  lastUpdatorUserCode);
 		if (where != null) query.where(where);
@@ -156,13 +184,20 @@ public abstract class DBFindForModelObjectBase<O extends OID,M extends Persistab
 		
 		FindOIDsResult<O> outOids = null;
 		if (CollectionUtils.hasData(dbTuples)) {
+			boolean isVersionableOid = Facetables.hasFacet(_modelObjectType,HasVersionableFacet.class);
 			Collection<O> oids = Lists.newArrayListWithExpectedSize(dbTuples.size());
 			for (Tuple tuple : dbTuples) {
-				String oidAsString = (String)tuple.get(0);
-				O oid = OIDs.createOIDFromString(oidType,
-												 oidAsString);
-//				O oid = OIDs.createOIDFor(_modelObjectType,
-//								 		  oidAsString);			// TODO maybe can be optimized
+				O oid = null;
+				if (isVersionableOid) {
+					String versionIndependentOidAsString = (String)tuple.get(0);
+					String versionOid = (String)tuple.get(1);
+					oid = OIDs.createVersionableOIDFromString(oidType,
+							 					 		      versionIndependentOidAsString,versionOid);
+				} else {
+					String oidAsString = (String)tuple.get(0);
+					oid = OIDs.createOIDFromString(oidType,
+												   oidAsString);
+				}
 				oids.add(oid);
 			}
 			outOids = FindOIDsResultBuilder.using(userContext)

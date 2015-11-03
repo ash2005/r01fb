@@ -32,12 +32,12 @@ public class ModelObjectVersionInfo
 	/**
 	 * Version start of use date (the date when this version is set to be active)
 	 */
-	@XmlElement(name="startOfUseDate") @XmlDateFormat("millis")
+	@XmlElement(name="startOfUseDate") @XmlDateFormat("milis")
 	@Getter @Setter private Date _startOfUseDate;
 	/**
 	 * Version end of use date (the date when another version was created and this one becomes obsolete)
 	 */
-	@XmlElement(name="endOfUseDate") @XmlDateFormat("millis")
+	@XmlElement(name="endOfUseDate") @XmlDateFormat("milis")
 	@Getter @Setter private Date _endOfUseDate;
 	/**
 	 * Next version identifier (if this version is not the current version)

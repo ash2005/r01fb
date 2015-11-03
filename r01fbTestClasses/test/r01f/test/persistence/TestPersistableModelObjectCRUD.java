@@ -94,6 +94,8 @@ public class TestPersistableModelObjectCRUD<O extends OID,M extends PersistableM
 //		}
 		
 		// [6] Delete the entity
+		// wait for background jobs to complete (if there's any background job that depends on DB data -like lucene indexing-
+		// 										 if the DB data is deleted BEFORE the background job finish, it'll fail)
 		System.out.println("DELETE THE ENTITY OF TYPE " + _modelObjFactory.getModelObjType() + " WITH oid=" + createdModelObj.getOid() + " _______");
 		_modelObjFactory.tearDownCreatedMockModelObjs();
 		

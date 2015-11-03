@@ -56,31 +56,30 @@ privileged public abstract aspect DirtyStateTrackableAspectBase<D extends DirtyS
 		trck.getTrackingStatus().setThisNew(true);	// El objeto es nuevo...
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
-//	CAPTURA DE LAS MODIFICACIONES SOBRE LOS OBJETOS SIMPLES
-//  QUE IMPLEMENTAN DirtyStateTrackable
+//	HOOK ON SIMPLE STATE MODIFICATIONS
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Advice after: se ejecuta ANTES de establecer el valor de un miembro en un objeto DirtyStateTrackable
+	 * Advice after: this is executed BEFORE setting a field
 	 */
 	before(D trck,Object newValue) : 
 				fieldSetInDirtyStateTrackableObj(trck,newValue) {
-		// Obtener el field que se ha modificado
+		// Get the modified field
 		FieldSignature fs = (FieldSignature)thisJoinPointStaticPart.getSignature();
 		Field field = fs.getField();
 		
-		// ejecutar la lógica del aspecto
+		// run the aspect logic
 		DirtyTrackingStatusImpl._beforeSetMember(trck,field,newValue); 
 	}
 	/**
-	 * Advice after: se ejecuta DESPUES de establecer el valor de un miembro en un objeto DirtyStateTrackable
+	 * Advice after: this is executed AFTER setting a field
 	 */
 	after(D trck,Object newValue) : 
 				fieldSetInDirtyStateTrackableObj(trck,newValue) {
-		// Obtener el field que se ha modificado
+		// Get the modified field
 		FieldSignature fs = (FieldSignature)thisJoinPointStaticPart.getSignature();
 		Field field = fs.getField();
 		
-		// ejecutar la lógica del aspecto
+		// run the aspect logic
 		DirtyTrackingStatusImpl._afterSetMember(trck,field,newValue);
 	}
 
@@ -141,7 +140,7 @@ privileged public abstract aspect DirtyStateTrackableAspectBase<D extends DirtyS
     			get(Map+ D+.*)	// get((!DirtyStateTrackable && Map+) DirtyStateTrackable+.*)
     		 && !within(r01f.types.dirtytrack..*)	// que NO sea de un tipo que está en el paquete r01f.types..
     		 && target(trck) {						// el objeto que tiene el miembro
-		// Obtener el mapa 
+		// Get the map
     	Map theMap = (Map)proceed(trck);			// obtener el mapa subyacente
   
     	// Obtener el field tipo Map que se está accediendo
@@ -155,7 +154,7 @@ privileged public abstract aspect DirtyStateTrackableAspectBase<D extends DirtyS
     			get(Collection+ D+.*) 				// acceso a un miembro tipo Collection de un tipo DirtyStateTrackable
     		 && !within(r01f.types.dirtytrack..*)	// que NO sea de un tipo que está en el paquete r01f.types..
     		 && target(trck) {						// el objeto que tiene el miembro				
-		// Obtener la colección
+		// Get the collection
     	Collection theCol = (Collection)proceed(trck);	// Obtener la colección subyacente
     	
     	// Obtener el field tipo Collection que se está accediendo

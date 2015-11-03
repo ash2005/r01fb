@@ -1,5 +1,8 @@
 package r01f.events.index;
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+
 import lombok.extern.slf4j.Slf4j;
 import r01f.events.PersistenceOperationEvents.PersistenceOperationOKEvent;
 import r01f.events.crud.CRUDOperationOKEventListenerBase;
@@ -12,9 +15,6 @@ import r01f.persistence.CRUDOK;
 import r01f.services.interfaces.IndexServicesForModelObject;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
-
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 
 /**
  * Listener to {@link PersistenceOperationOKEvent}s thrown by the persistence layer through the {@link EventBus}
@@ -96,11 +96,11 @@ abstract class IndexerCRUDOKEventListenerBase<O extends OID,M extends IndexableM
 			if (opOK.hasBeenCreated()) {
 				indexOp = "INDEX";
 				job = _indexServices.index(userContext,
-							   			   (M) entity);	
+							   			   (M)entity);	
 			} else if (opOK.hasBeenUpdated()) {
 				indexOp = "UPDATE INDEX";
 				job = _indexServices.updateIndex(userContext,
-									 		     (M) entity);
+									 		     (M)entity);
 			} else if (opOK.hasBeenDeleted()) {
 				indexOp = "DELETE FROM INDEX";
 				job = _indexServices.removeFromIndex(userContext,

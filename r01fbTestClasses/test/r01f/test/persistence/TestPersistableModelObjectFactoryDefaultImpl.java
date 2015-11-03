@@ -2,6 +2,8 @@ package r01f.test.persistence;
 
 import java.util.Collection;
 
+import com.google.common.collect.Lists;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import r01f.guids.OID;
@@ -9,8 +11,6 @@ import r01f.model.PersistableModelObject;
 import r01f.services.client.api.delegates.ClientAPIDelegateForModelObjectCRUDServices;
 import r01f.types.Factory;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.collect.Lists;
 
 @Accessors(prefix="_")
 public class TestPersistableModelObjectFactoryDefaultImpl<O extends OID,M extends PersistableModelObject<O>>
@@ -21,6 +21,7 @@ public class TestPersistableModelObjectFactoryDefaultImpl<O extends OID,M extend
 	@Getter private final Class<M> _modelObjType;
 	@Getter private final Factory<M> _mockObjectsFactory;
 	@Getter private final ClientAPIDelegateForModelObjectCRUDServices<O,M> _CRUDApi;
+	@Getter private final long _milisToWaitForBackgroundJobs;
 	
 	@Getter private Collection<O> _createdMockModelObjectsOids; 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -28,30 +29,45 @@ public class TestPersistableModelObjectFactoryDefaultImpl<O extends OID,M extend
 /////////////////////////////////////////////////////////////////////////////////////////
 	public TestPersistableModelObjectFactoryDefaultImpl(final Class<M> modelObjType,
 														final Factory<M> mockObjectsFactory,
-												 		final ClientAPIDelegateForModelObjectCRUDServices<O,M> crudAPI) {
+												 		final ClientAPIDelegateForModelObjectCRUDServices<O,M> crudAPI,
+												 		final long milisToWaitForBackgroundJobs) {
 		_modelObjType = modelObjType;
 		_mockObjectsFactory = mockObjectsFactory;
 		_CRUDApi = crudAPI;
+		_milisToWaitForBackgroundJobs = milisToWaitForBackgroundJobs;
 	}
 	public TestPersistableModelObjectFactoryDefaultImpl(final Class<M> modelObjType,
-														final Factory<M> mockObjectsFactory) {
+														final Factory<M> mockObjectsFactory,
+														final long milisToWaitForBackgroundJobs) {
 		this(modelObjType,
 			 mockObjectsFactory,
-			 null);
+			 null,
+			 milisToWaitForBackgroundJobs);
 	}
-	public TestPersistableModelObjectFactoryDefaultImpl(final Class<M> modelObjType) {
+	public TestPersistableModelObjectFactoryDefaultImpl(final Class<M> modelObjType,
+														final long milisToWaitForBackgroundJobs) {
 		this(modelObjType,
 			 null,
-			 null);
+			 null,
+			 milisToWaitForBackgroundJobs);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	public static <O extends OID,M extends PersistableModelObject<O>> TestPersistableModelObjectFactory<O,M> create(final Class<M> modelObjType,
 																													final Factory<M> mockObjectsFactory,
+																													final ClientAPIDelegateForModelObjectCRUDServices<O,M> crudAPI,
+																													final long milisToWaitForBackgroundJobs) {
+		return new TestPersistableModelObjectFactoryDefaultImpl<O,M>(modelObjType,mockObjectsFactory,
+															  		 crudAPI,
+															  		 milisToWaitForBackgroundJobs);
+	}
+	public static <O extends OID,M extends PersistableModelObject<O>> TestPersistableModelObjectFactory<O,M> create(final Class<M> modelObjType,
+																													final Factory<M> mockObjectsFactory,
 																													final ClientAPIDelegateForModelObjectCRUDServices<O,M> crudAPI) {
 		return new TestPersistableModelObjectFactoryDefaultImpl<O,M>(modelObjType,mockObjectsFactory,
-															  		 crudAPI);
+															  		 crudAPI,
+															  		 0L);		// no need to wait for crud-associated background jobs
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -71,14 +87,19 @@ public class TestPersistableModelObjectFactoryDefaultImpl<O extends OID,M extend
 	public void tearDownCreatedMockModelObjs() {
 		if (CollectionUtils.isNullOrEmpty(_createdMockModelObjectsOids)) return;
 		
-		// wait 10s for background jobs to complete
-		try {
-			System.out.println(".... give time for background jobs to complete before deleting created objects");
-			Thread.sleep(10000);		
-		} catch(Throwable th) {
-			/*ignore*/
+		// wait for background jobs to finish
+		// an error in the background job will raise if the DB records are deleted before background jobs finish (ie lucene indexing or notification tasks)
+		long milisToWaitForBackgroundJobs = _createdMockModelObjectsOids.size() * _milisToWaitForBackgroundJobs;
+		if (milisToWaitForBackgroundJobs > 0) {
+			System.out.println(".... give " + milisToWaitForBackgroundJobs + " milis for background jobs (ie lucene index or notifications) to complete before deleting created DB records (lucene indexing or notifications will fail if the DB record is deleted)");
+			try {
+				Thread.sleep(milisToWaitForBackgroundJobs);
+			} catch(Throwable th) {
+				th.printStackTrace(System.out);
+			}
 		}
 		
+		// delete all DB records
 		for (O oid : _createdMockModelObjectsOids) {
 			_CRUDApi.delete(oid);
 			System.out.println("... Deleted " + _modelObjType.getSimpleName() + " mock object with oid=" + oid);

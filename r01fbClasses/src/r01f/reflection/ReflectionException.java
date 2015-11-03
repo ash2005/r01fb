@@ -2,6 +2,7 @@ package r01f.reflection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -202,7 +203,7 @@ public class ReflectionException
 									   ReflectionExceptionType.NO_FIELD);
 	}
 	public static ReflectionException noConstructorException(final Class<?> type,final Class<?>[] constructorArgs) {
-		return new ReflectionException(Strings.customized("Could NOT find constructor with args {} in type {}",CollectionUtils.of(constructorArgs).toStringCommaSeparated(),type),
+		return new ReflectionException(Strings.customized("Could NOT find constructor with args {} in type {}",Arrays.asList(constructorArgs),type),
 									   ReflectionExceptionType.NO_CONSTRUCTOR);
 	}
 	public static ReflectionException noMethodException(final Class<?> type,final String methodName) {
@@ -210,7 +211,7 @@ public class ReflectionException
 									   ReflectionExceptionType.NO_METHOD);
 	}
 	public static ReflectionException noMethodException(final Class<?> type,final String methodName,final Class<?>[] methodArgs) {
-		return new ReflectionException(Strings.customized("Could NOT find method with name {} and arguments {} in type {}",methodName,methodArgs,type),
+		return new ReflectionException(Strings.customized("Could NOT find method with name {} and arguments {} in type {}",methodName,Arrays.asList(methodArgs),type),
 									   ReflectionExceptionType.NO_METHOD);
 	}
 	public static ReflectionException illegalArgumentException(final Class<?> expectedType,final Class<?> providedType) {

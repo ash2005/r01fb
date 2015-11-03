@@ -7,13 +7,19 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 
+import com.google.api.client.util.Maps;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import r01f.enums.EnumWithCode;
 import r01f.enums.Enums.EnumWrapper;
 import r01f.exceptions.Throwables;
@@ -29,6 +35,7 @@ import r01f.model.metadata.FieldMetaData;
 import r01f.model.metadata.FieldMetaDataForCollection;
 import r01f.model.metadata.FieldMetaDataForJavaType;
 import r01f.model.metadata.FieldMetaDataForPolymorphicType;
+import r01f.model.metadata.FieldMetaDataForSummary;
 import r01f.model.metadata.FieldMetaDataID;
 import r01f.model.metadata.ModelObjectTypeMetaData;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
@@ -47,13 +54,6 @@ import r01f.types.weburl.SerializedURL;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.api.client.util.Maps;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
 
 @Slf4j
 @RequiredArgsConstructor(access=AccessLevel.PRIVATE)
@@ -121,8 +121,9 @@ public class LuceneSearchResultDocument
 			Collection<IndexableField> luceneFields = me.getValue();
 			
 			// Security checks
-			if (!fieldMetaData.isCollectionField() && luceneFields.size() > 1) throw new IllegalStateException(Throwables.message("The field with id={} is NOT supposed to be multi-valued BUT multiple values are indexed",
-																														     	  fieldMetaData.getIndexableFieldId()));
+			if (!(fieldMetaData.isCollectionField() || fieldMetaData.isSummaryField()) 
+			 && luceneFields.size() > 1) throw new IllegalStateException(Throwables.message("The field with id={} is NOT supposed to be multi-valued BUT multiple values are indexed",
+																							fieldMetaData.getIndexableFieldId()));
 			if (fieldMetaData.isBooleanField() && luceneFields.size() > 1) throw new IllegalStateException(Throwables.message("The field with id={} is a boolean field and this type of fields cannot be multi-valued",
 																						 							     	  fieldMetaData.getIndexableFieldId()));
 			// transform lucene fields to an IndexDocumentFieldValue
@@ -161,8 +162,8 @@ public class LuceneSearchResultDocument
 			// Transform the single value
 			IndexableField luceneField = CollectionUtils.pickOneAndOnlyElement(luceneFields);
 			T value = LuceneSearchResultDocument.<T>_createValueFromLuceneIndexField(modelObjMetaData,
-													   fieldMetaData,
-													   luceneField);
+													   								 fieldMetaData,
+													   								 luceneField);
 			outValue = IndexDocumentFieldValue.forMetaDataNotCheckingType(fieldMetaData)	// do not check indexed type (it's supposed to be the correct one)
 											  .andValue(value);
 		} 

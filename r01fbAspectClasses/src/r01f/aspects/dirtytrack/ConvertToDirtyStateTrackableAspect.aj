@@ -12,12 +12,10 @@ import r01f.types.dirtytrack.interfaces.ChangesTrackableMap;
 
 
 /**
- * Inyecta el interfaz {@link DirtyStateTrackable} y su comportamiento definidos en el aspecto {@link DirtyStateTrackableAspect},
- * {@link ChangestTrackableMapAspect} y {@link ChangesTrackableCollectionAspect} a todas las clases anotadas con 
- * {@link ConvertToDirtyStateTrackable}
+ * Injects {@link DirtyStateTrackable} interface and it's behavior to every  {@link ConvertToDirtyStateTrackable} annotated types
+ * see {@link DirtyStateTrackableAspect}, {@link ChangestTrackableMapAspect} and {@link ChangesTrackableCollectionAspect} aspects 
  * 
- * Para hacer que un tipo implemente el interfaz {@link DirtyStateTrackable} simplemente hay que anotar la clase 
- * con @ConvertToDirtyStateTrackable 
+ * In order to make a type implements {@link DirtyStateTrackable} interface, simply annotate it with @ConvertToDirtyStateTrackable 
  */
 privileged public aspect ConvertToDirtyStateTrackableAspect {
 	
@@ -26,22 +24,22 @@ privileged public aspect ConvertToDirtyStateTrackableAspect {
 /////////////////////////////////////////////////////////////////////////////////////////	
 //	declare parents : @ConvertToDirtyStateTrackable * implements DirtyStateTrackable;
 	/**
-	 * Hacer que todos los tipos anotados con @ConvertToDirtyStateTrackable y que NO extiendan de Map, List o Set implementen
-	 * el interfaz DirtyStateTrackable (cuyo comportamiento está en {@link DirtyStateTrackableAspect})
+	 * Make every @ConvertToDirtyStateTrackable annotated types that do not extends from Map, List or Set 
+	 * implement {@link DirtyStateTrackable} interface (the behavior impl is at {@link DirtyStateTrackableAspect})
 	 */
 	declare parents : @ConvertToDirtyStateTrackable !(Map+ || List+ || Set+) && !DirtyStateTrackable+ implements DirtyStateTrackable;
 	/**
-	 * Hacer que todos los tipos anotados con @ConvertToDirtyStateTrackable y que extiendan de Map implementen
-	 * el interfaz ChangesTrackableCollection (cuyo comportamiento está en {@link ChangesTrackableCollectionAspect})
+	 * Make every @ConvertToDirtyStateTrackable annotated types that extends from Map 
+	 * implement {@link ChangesTrackableMap} interface (the behavior impl is at {@link ChangesTrackableCollectionAspect})
 	 */
 	declare parents : @ConvertToDirtyStateTrackable Map+ && !ChangesTrackableMap+ implements ChangesTrackableMap;
 	/**
-	 * Hacer que todos los tipos anotados con @ConvertToDirtyStateTrackable y que extiendan de Collection implementen
-	 * el interfaz ChangesTrackableCollection (cuyo comportamiento está en {@link ChangesTrackableCollectionAspect})
+	 * Make ever @ConvertToDirtyStateTrackable annotated type that extends from Collection
+	 * implement {@link ChangesTrackableCollection} (the behavior impl is at {@link ChangesTrackableCollectionAspect})
 	 */
 	declare parents : @ConvertToDirtyStateTrackable Collection+ && !ChangesTrackableCollection+ implements ChangesTrackableCollection;
 	/**
-	 * En caso de colisión los aspectos de los mapas, listas y sets tienen precedencia
+	 * In the event of aspect colision, Maps and Lists have preference
 	 */
 	declare precedence : ChangestTrackableMapAspect,ChangestTrackableCollectionAspect,ChangestTrackableListAspect,DirtyStateTrackableAspect;
 }

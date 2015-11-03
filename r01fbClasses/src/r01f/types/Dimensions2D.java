@@ -12,7 +12,7 @@ import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
 import r01f.types.annotations.Inmutable;
 
 /**
- * Dimensiones de algún objeto (ej: una imagen)
+ * Object dimensions (ie: an image)
  */
 @ConvertToDirtyStateTrackable
 @XmlRootElement(name="dimensions2D")
@@ -22,16 +22,19 @@ import r01f.types.annotations.Inmutable;
 public class Dimensions2D implements Serializable {
 	private static final long serialVersionUID = -7580079139588296207L;
 /////////////////////////////////////////////////////////////////////////////////////////
-//  ESTADO
+//  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Ancho
+	 * width
 	 */
 	@XmlAttribute(name="width")
 	@Getter private final int _width;
 	/**
-	 * Alto
+	 * heigh
 	 */
 	@XmlAttribute(name="height")
 	@Getter private final int _height;
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
 }

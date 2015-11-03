@@ -63,15 +63,15 @@ public abstract class CoreServiceBase
 /////////////////////////////////////////////////////////////////////////////////////////
 	protected abstract Provider<? extends ServiceInterface> getDelegateProvider();
 	
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({ "unchecked","unused" })
 	public <S extends ServiceInterface> S createDelegateAs(final UserContext userContext,
 														   final Class<S> servicesType) {
-		if ( !(this.getDelegateProvider() instanceof ServicesDelegateProvider) ) throw new UnsupportedOperationException(Throwables.message("The services delegate type MUST be an instance of {} in order to use the user context",
-																																			ServicesDelegateProvider.class));
+		if ( !(this.getDelegateProvider() instanceof ServicesDelegateProvider) ) throw new UnsupportedOperationException(Throwables.message("The services delegate {} type MUST be an instance of {} in order to use the user context",
+																																			this.getDelegateProvider().getClass(),ServicesDelegateProvider.class));
 		ServicesDelegateProvider<S> servicesDelegateProvider = (ServicesDelegateProvider<S>)this.getDelegateProvider();
 		return servicesDelegateProvider.get(userContext);
 	}
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({ "unchecked","unused" })
 	public <S extends ServiceInterface> S createDelegateAs(final Class<S> servicesType) {
 		return (S)this.getDelegateProvider().get();
 	}

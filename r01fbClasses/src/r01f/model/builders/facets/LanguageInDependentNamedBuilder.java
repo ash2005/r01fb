@@ -19,6 +19,6 @@ public class LanguageInDependentNamedBuilder<NEXT_BUILD_STEP,
 /////////////////////////////////////////////////////////////////////////////////////////
 	public NEXT_BUILD_STEP withName(final String name) {
 		_modelObject.setName(name);
-    	return _parentType;
+    	return _nextBuilder;
     }
 }

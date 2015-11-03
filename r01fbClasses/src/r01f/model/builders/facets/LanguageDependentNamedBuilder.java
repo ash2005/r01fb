@@ -33,7 +33,7 @@ public class LanguageDependentNamedBuilder<CONTAINER_TYPE,
     		_modelObject.getNamesByLanguage()
     					.add(lang,names.get(lang));
     	}
-    	return _parentType;
+    	return _nextBuilder;
     }
     public CONTAINER_TYPE withNames(final Map<Language,String> names) {
     	if (_modelObject.getNamesByLanguage() == null) _modelObject.ensureNamesByLanguageContainerIsNOTNull();
@@ -41,6 +41,6 @@ public class LanguageDependentNamedBuilder<CONTAINER_TYPE,
     		_modelObject.getNamesByLanguage()
     					.add(lang,names.get(lang));
     	}
-    	return _parentType;
+    	return _nextBuilder;
     }
 }

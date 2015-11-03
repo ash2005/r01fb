@@ -68,6 +68,17 @@ public class LanguageTextsBuilder
 			_langTexts.setDefaultValue(defaultValue);
 			return new LanguageTextsMapBackedBuilderAddStep(_langTexts);
 		}
+		/**
+		 * Sets null as the default text to return when a searched text in a language is not found
+		 */
+		public LanguageTextsMapBackedBuilderAddStep returningNullWhenLangTextMissing() {
+			if (_langTexts.getLangTextNotFoundBehabior() != LangTextNotFoundBehabior.RETURN_NULL) {
+				// ensure the LangTextNotFoundBehabior is RETURN_DEFAULT_VALUE
+				_langTexts.setLangTextNotFoundBehabior(LangTextNotFoundBehabior.RETURN_NULL);
+			}
+			_langTexts.setDefaultValue(null);
+			return new LanguageTextsMapBackedBuilderAddStep(_langTexts);
+		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 	public static class LanguageTextsMapBackedBuilderAddStep {
