@@ -2,11 +2,16 @@ package r01f.locale;
 
 import javax.inject.Inject;
 
+import com.google.inject.MembersInjector;
+import com.google.inject.TypeLiteral;
+import com.google.inject.spi.TypeEncounter;
+import com.google.inject.spi.TypeListener;
+
 import r01f.bundles.ResourceBundleControl;
 import r01f.bundles.ResourceBundleControlBuilder;
 import r01f.bundles.ResourceBundleMissingKeyBehaviour;
-import r01f.guids.AppComponent;
 import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.CommonOIDs.AppComponent;
 import r01f.reflection.ReflectionUtils;
 import r01f.reflection.ReflectionUtils.FieldAnnotated;
 import r01f.resources.ResourcesLoaderDef;
@@ -16,11 +21,6 @@ import r01f.types.Path;
 import r01f.util.types.Strings;
 import r01f.xmlproperties.XMLProperties;
 import r01f.xmlproperties.XMLPropertyLocation;
-
-import com.google.inject.MembersInjector;
-import com.google.inject.TypeLiteral;
-import com.google.inject.spi.TypeEncounter;
-import com.google.inject.spi.TypeListener;
 
 /**
  * Handle que se encarga de escuchar los eventos que lanza Guice justo ANTES de que devuelva un objeto

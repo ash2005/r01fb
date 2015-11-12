@@ -6,15 +6,15 @@ import javax.inject.Provider;
 import com.google.common.eventbus.EventBus;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import r01f.events.HasEventBus;
 import r01f.exceptions.Throwables;
-import r01f.internal.ServicesBootstrapGuiceModuleBase;
+import r01f.internal.BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase;
 import r01f.services.core.CoreService;
 import r01f.services.delegates.ServicesDelegateProvider;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.usercontext.UserContext;
-import r01f.xmlproperties.XMLProperties;
 import r01f.xmlproperties.XMLPropertiesComponent;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
@@ -22,20 +22,18 @@ import r01f.xmlproperties.XMLPropertiesForAppComponent;
  * Core service base
  */
 @Accessors(prefix="_")
+@RequiredArgsConstructor
 public abstract class CoreServiceBase 
   		   implements CoreService,		// it's a core service
   		   			  HasEventBus {		// it contains an event bus
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * The {@link XMLProperties} for the services layer
-	 */
-	@Inject @XMLPropertiesComponent("services") 
+	@Inject @XMLPropertiesComponent("services")
 	@Getter protected XMLPropertiesForAppComponent _serviceProperties;
 	/**
 	 * EventBus 
-	 * IMPORTANT! The event listeners are subscribed at {@link ServicesBootstrapGuiceModuleBase}
+	 * IMPORTANT! The event listeners are subscribed at {@link BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase}
 	 * 			  The subscription takes place when an event listener is configured at the guice moduel (see XXServicesBootstrapGuiceModule)
 	 */
 	@Inject

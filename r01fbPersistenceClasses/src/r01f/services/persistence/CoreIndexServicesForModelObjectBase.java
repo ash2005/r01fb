@@ -38,6 +38,7 @@ public abstract class CoreIndexServicesForModelObjectBase<O extends OID,M extend
 	public CoreIndexServicesForModelObjectBase(final Indexer<M> indexer,
 											   final CRUDServiceByModelObjectOIDTypeProvider crudServiceByModelObjectOidTypeProvider,
 											   final FindServiceByModelObjectTypeProvider findServiceByModelObjectTypeProvider) {
+		super();
 		_indexer = indexer;
 		_crudServiceByModelObjectOidTypeProvider = crudServiceByModelObjectOidTypeProvider;
 		_findServiceByModelObjectTypeProvider = findServiceByModelObjectTypeProvider;
@@ -45,6 +46,7 @@ public abstract class CoreIndexServicesForModelObjectBase<O extends OID,M extend
 	public <P extends PersistableModelObject<O> & IndexableModelObject<O>> CoreIndexServicesForModelObjectBase(final Indexer<M> indexer,
 											   																   final CRUDServicesForModelObject<O,P> crudService,
 											   																   final FindServicesForModelObject<O,P> findService) {
+		super();
 		_indexer = indexer;
 		_crudServiceByModelObjectOidTypeProvider = new CRUDServiceByModelObjectOIDTypeProvider() {
 															@Override @SuppressWarnings("unchecked")

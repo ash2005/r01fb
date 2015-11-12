@@ -1,16 +1,14 @@
 package r01f.inject;
 
+import com.google.inject.Module;
+
 import lombok.extern.slf4j.Slf4j;
-import r01f.guids.AppComponent;
 import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.CommonOIDs.AppComponent;
 import r01f.xmlproperties.XMLProperties;
 import r01f.xmlproperties.XMLPropertiesForApp;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-import r01f.xmlproperties.XMLPropertiesGuiceModule;
 import r01f.xmlproperties.XMLPropertyWrapper;
-
-import com.google.inject.Guice;
-import com.google.inject.Module;
 
 /**
  * Base type for GUICE modules that provides access to {@link XMLProperties}
@@ -48,35 +46,37 @@ public abstract class GuiceModuleWithProperties
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * AppComponent
+	 */
 	protected final AppCode _appCode;
+	/**
+	 * Application module
+	 */
+	private AppComponent _appComponent;
 	/**
 	 * Application properties
 	 */
 	private final XMLPropertiesForApp _props;
-	/**
-	 * Application module
-	 */
-	private AppComponent _propsModule;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
 	public GuiceModuleWithProperties(final AppCode appCode) {
 		_appCode = appCode;
 		// Create a XMLPropertiesManager for the app
-		_props = Guice.createInjector(new XMLPropertiesGuiceModule())
-					  .getInstance(XMLProperties.class)
-					  .forApp(appCode);
+		_props = XMLProperties.createForApp(appCode)
+							  .notUsingCache();
 	}
 	public GuiceModuleWithProperties(final AppCode appCode,final AppComponent propsModule) {
 		this(appCode);
-		_propsModule = propsModule;  
+		_appComponent = propsModule;  
 	}
 	public GuiceModuleWithProperties(final String appCode) {
 		this(AppCode.forId(appCode));
 	}
 	public GuiceModuleWithProperties(final String appCode,final String propsModule) {
 		this(appCode);
-		_propsModule = AppComponent.forId(propsModule);
+		_appComponent = AppComponent.forId(propsModule);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CARGA DE PROPERTIES
@@ -85,7 +85,7 @@ public abstract class GuiceModuleWithProperties
 		return _appCode;
 	}
 	public AppComponent getAppComponent() {
-		return _propsModule;
+		return _appComponent;
 	}
 	/**
 	 * @return the properties for all components
@@ -97,7 +97,7 @@ public abstract class GuiceModuleWithProperties
 	 * @return the component properties
 	 */
 	public XMLPropertiesForAppComponent getComponentProperties() {
-		return _props.forComponent(_propsModule);
+		return _props.forComponent(_appComponent);
 	}
 	/**
 	 * Returns a property for an app's module
@@ -125,8 +125,8 @@ public abstract class GuiceModuleWithProperties
 	 * @return a {@link XMLPropertyWrapper} that provides access to the property
 	 */
 	public XMLPropertyWrapper propertyAt(final String xPath) {
-		if (_propsModule == null) log.warn("The properties module name was NOT given to the {} constructor; 'default' module is assumed",this.getClass().getName());
-		AppComponent thePropsModule = _propsModule != null ? _propsModule
+		if (_appComponent == null) log.warn("The properties module name was NOT given to the {} constructor; 'default' module is assumed",this.getClass().getName());
+		AppComponent thePropsModule = _appComponent != null ? _appComponent
 													 	   : AppComponent.forId("default");
 		return this.getProperty(thePropsModule,xPath);
 	}

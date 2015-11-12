@@ -6,19 +6,19 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import r01f.services.ServicesImpl;
-import r01f.services.core.internal.ServicesCoreBootstrap;
+import r01f.services.core.internal.ServicesCoreBootstrapModulesFinder;
 
 import com.google.inject.BindingAnnotation;
 
 /**
- * Annotation that tells the {@link ServicesCoreBootstrap} type in charge of bootstraping the core
+ * Annotation that tells the {@link ServicesCoreBootstrapModulesFinder} type in charge of bootstraping the core
  * services that a service guice module:
  * <ul>	
- * 		<li>Is for a certain application module (from the ones in r01m.core.properties.xml)</li>
+ * 		<li>Is for a certain application module (from the ones in r01m.client.properties.xml)</li>
  * 		<li>DEPENDS UPON or NEEDS another module</li>
  * </ul>
  * <pre class='brush:java'>
- * 		@ServicesCore(moduleId="myModule",				// The id on r01m.core.properties.xml				
+ * 		@ServicesCore(moduleId="myModule",				// The id on r01m.client.properties.xml				
  * 					  dependsOn={ServicesImpl.Bean})	// The REST module depends on (or needs) the BEAN module
  * 		public class MyServiceBootstrpingModule
  * 			 extends RESTImplementedServicesCoreGuiceModuleBase {

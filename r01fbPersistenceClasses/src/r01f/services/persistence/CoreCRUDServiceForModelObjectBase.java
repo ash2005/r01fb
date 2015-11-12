@@ -51,6 +51,7 @@ import r01f.usercontext.UserContext;
 public abstract class CoreCRUDServiceForModelObjectBase<O extends OID,M extends PersistableModelObject<O>>
 			  extends CorePersistenceServiceBase 
 		   implements CRUDServicesForModelObject<O,M> {
+
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CRUD
 /////////////////////////////////////////////////////////////////////////////////////////

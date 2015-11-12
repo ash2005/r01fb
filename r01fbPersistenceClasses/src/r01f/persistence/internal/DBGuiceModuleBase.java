@@ -7,45 +7,38 @@ import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.w3c.dom.Node;
-
-import r01f.guids.AppComponent;
-import r01f.guids.CommonOIDs.AppCode;
-import r01f.inject.GuiceModuleWithProperties;
-import r01f.inject.ServiceHandler;
-import r01f.util.types.Numbers;
-import r01f.util.types.Strings;
-import r01f.util.types.collections.CollectionUtils;
 
 import com.google.inject.Binder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.jpa.JpaPersistModule;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.CommonOIDs.AppComponent;
+import r01f.inject.GuiceModuleWithProperties;
+import r01f.inject.ServiceHandler;
+import r01f.services.ServicesPackages;
+import r01f.services.core.DBPersistenceGuiceModule;
+import r01f.services.core.internal.ServicesCoreBootstrapGuiceModule;
+import r01f.util.types.Numbers;
+import r01f.util.types.Strings;
+import r01f.util.types.collections.CollectionUtils;
+
 /**
  * Base type for DB guice modules
  */
 @Slf4j
 public abstract class DBGuiceModuleBase 
-     		  extends GuiceModuleWithProperties {
+     		  extends GuiceModuleWithProperties
+     	   implements DBPersistenceGuiceModule {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Sometimes it's an app component (ie: the urlAlias component for the r01t app)
-	 * On these cases:
-	 *		- the persistence properties are going to be looked after as  {appCode}.{appComponent}.persistence.properties.xml
-	 *		- the persistence unit is going to be looked after as persistenceUnit.{appCode}.{appComponent}
-	 * otherwise (no appComponent is set):
-	 *		- the persistence properties are going to be looked after as  {appCode}.persistence.properties.xml
-	 *		- the persistence unit is going to be looked after as persistenceUnit.{appCode} 
-	 */
-	private final AppComponent _appComponent;
 	/**
 	 * Sometimes the BDD AppCode does NOT match the application AppCode
 	 */
@@ -57,40 +50,47 @@ public abstract class DBGuiceModuleBase
 	 * Constructor to be used when it's the db guice module for an app divided into components
 	 * In this case, the app is composed by one or more modules and the properties are going to be looked after at
 	 * [appCode].[appComponent].persistence.properties.xml 
-	 * @param appCode
-	 * @param appComponent
+	 * @param coreBootstrapGuiceModuleType 
 	 * @param bbddAppCode
 	 */
-	public DBGuiceModuleBase(final AppCode appCode,final AppComponent appComponent,
+	public DBGuiceModuleBase(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapGuiceModuleType,
 							 final AppCode bbddAppCode) {
-		super(appCode,
-			  AppComponent.forId(appComponent.asString() + ".dbpersistence"));	// the persistence properties are going to be looked after as {appCode}.{appComponent}.persistence.xml
-		_appComponent = appComponent;
-		_bbddAppCode = bbddAppCode;
+		super(ServicesPackages.appCodeFromCoreBootstrapModuleType(coreBootstrapGuiceModuleType),
+			  AppComponent.forId(ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrThrow(coreBootstrapGuiceModuleType).asString() + ".dbpersistence"));	// the persistence properties are going to be looked after as {appCode}.{appComponent}.persistence.xml
+		_bbddAppCode = bbddAppCode != null ? bbddAppCode 
+										   : this.getAppCode();
 		log.info("...init the {} for appCode/component={}/{}; the persistence properties will be looked after as {}.{}.persistence.properties.xml",
-				 this.getClass().getSimpleName(),appCode,appComponent,appCode,appComponent);
+				 this.getClass().getSimpleName(),this.getAppCode(),this.getAppComponent(),this.getAppCode(),this.getAppComponent());
 	}
 	/**
 	 * Constructor to be used when it's the db guice module for an app divided into components
 	 * In this case, the app is composed by one or more modules and the properties are going to be looked after at
-	 * [appCode].[appComponent].persistence.properties.xml 
-	 * @param appCode
-	 * @param appComponent
+	 * [appCode].[appComponent].persistence.properties.xml
+	 * @param coreBootstrapGuiceModuleType 
 	 */
-	public DBGuiceModuleBase(final AppCode appCode,final AppComponent appComponent) {
-		this(appCode,appComponent,
-			 appCode);
+	public DBGuiceModuleBase(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapGuiceModuleType) {
+		this(coreBootstrapGuiceModuleType,
+			 null);
 	} 
+/////////////////////////////////////////////////////////////////////////////////////////
+//  dirty trick to return the real appcomponent
+/////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public AppComponent getAppComponent() {
+		AppComponent comp = super.getAppComponent();
+		String compStr = comp.asString();
+		return AppComponent.forId(compStr.substring(0,compStr.lastIndexOf(".dbpersistence")));
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  GUICE MODULE
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * If many DBGuiceModules are binded, avoid multiple JPA Persistence manager binding
+	 * 
 	 */
-	private static boolean JPA_PERSISTENCE_MANAGER_BINDED = false;
-	
 	@Override
 	public void configure(final Binder binder) {
+		Binder theBinder = binder;
+		
 		// [0] - JPA
 		// The JPA persistence unit name is composed by:
 		//		- The appCode/component
@@ -101,10 +101,18 @@ public abstract class DBGuiceModuleBase
 													  .asEnumElement(PersistenceUnitType.class,
 															  		 PersistenceUnitType.DRIVER_MANAGER);	// use driverManager by default
 		
-		String defaultPersistenceUnitSuffix = _appComponent == null ? _bbddAppCode.asString()
-																    : Strings.customized("{}.{}",_bbddAppCode,_appComponent);
-		String persistenceUnitName = Strings.customized("persistenceUnit.{}.{}",
-													 	 defaultPersistenceUnitSuffix,persistenceUnitType);	// ie_: "persistenceUnit.r01n.myComponent.dataSource"
+		// Sometimes it's an app component (ie: the urlAlias component for the r01t app)
+		// On these cases:
+		//	- the persistence properties are going to be looked after as  {appCode}.{appComponent}.persistence.properties.xml
+		//	- the persistence unit is going to be looked after as persistenceUnit.{appCode}.{appComponent}
+		//	  otherwise (no appComponent is set):
+		//	- the persistence properties are going to be looked after as  {appCode}.persistence.properties.xml
+		//	- the persistence unit is going to be looked after as persistenceUnit.{appCode} 
+		String jpaServiceName = this.getAppComponent() == null ? _bbddAppCode.asString()
+													  		   : Strings.customized("{}.{}",_bbddAppCode,this.getAppComponent());
+		final String persistenceUnitName = Strings.customized("persistenceUnit.{}.{}",
+													 	 	  jpaServiceName,			// ie: "r01t.urlAlias"
+													 	 	  persistenceUnitType);		// ie: "persistenceUnit.r01n.myComponent.dataSource"
 		
 		// Load properties
 		DBSpec bbddSpec = _loadDataBaseSpec(persistenceUnitType);
@@ -120,7 +128,7 @@ public abstract class DBGuiceModuleBase
 													 persistenceUnitName,
 													 bbddSpec);
 		
-		Properties props = new Properties();
+		final Properties props = new Properties();
 		if (conxProps != null) 				props.putAll(conxProps);
 		if (appServerVendorProps != null) 	props.putAll(appServerVendorProps);
 		if (bbddVendorProps != null) 		props.putAll(bbddVendorProps);
@@ -128,22 +136,32 @@ public abstract class DBGuiceModuleBase
 		if (logProps != null) 				props.putAll(logProps);
 		if (otherProps != null) 			props.putAll(otherProps);
 		
-		// Create the module
-		if (!JPA_PERSISTENCE_MANAGER_BINDED) {
-			JpaPersistModule jpaModule = new JpaPersistModule(persistenceUnitName);	// for an alternative way see http://stackoverflow.com/questions/18101488/does-guice-persist-provide-transaction-scoped-or-application-managed-entitymanag
-			jpaModule.properties(props);
-			
-			binder.install(jpaModule);
-			binder.bind(ServiceHandler.class)					// used to control the Persistence Service (see ServletContextListenerBase)
-				  .annotatedWith(Names.named("r01JPAPersistenceService"))
-				  .to(JPAPersistenceServiceControl.class)
-				  .in(Singleton.class);	//.asEagerSingleton();
-			
-			JPA_PERSISTENCE_MANAGER_BINDED = true;
-		}
+		// Create the module	
+		JpaPersistModule jpaModule = new JpaPersistModule(persistenceUnitName);	// for an alternative way see http://stackoverflow.com/questions/18101488/does-guice-persist-provide-transaction-scoped-or-application-managed-entitymanag
+		jpaModule.properties(props);
+		theBinder.install(jpaModule);
+		
+//		Provider<EntityManager> emProvider = theBinder.getProvider(EntityManager.class);
+//		theBinder.bind(EntityManager.class)
+//				 .annotatedWith(Names.named(jpaServiceName))
+//				 .toProvider(emProvider);
+//		this.expose(EntityManager.class)
+//			.annotatedWith(Names.named(jpaServiceName));
+		
+		
+		// Service handler used to control (start/stop) the Persistence Service (see ServletContextListenerBase)
+		theBinder.bind(ServiceHandler.class)					
+			  	 .annotatedWith(Names.named(jpaServiceName))
+			  	 .to(JPAPersistenceServiceControl.class)
+			  	 .in(Singleton.class);	//.asEagerSingleton();
+//		this.expose(ServiceHandler.class)
+//			.annotatedWith(Names.named(jpaServiceName));
+		
+		
+		log.warn("... binded jpa persistence unit {} whose entity manager is handled by ServiceHandler with name {}",persistenceUnitName,jpaServiceName);
 		
 		// [1] - Custom bindings
-		_doCustomBindings(binder);
+		_doCustomBindings(theBinder);
 	}
 	/**
 	 * Hook for the concrete implementations of this abstract type to do custom bindings
@@ -236,7 +254,7 @@ public abstract class DBGuiceModuleBase
 								"       javax.persistence.jdbc.user: {}\n" + 
 								"   javax.persistence.jdbc.password: {}\n" + 
 								"     javax.persistence.jdbc.driver: {}\n" + 
-								"        javax.persistence.jdbc.url: {}\n") 
+								"        javax.persistence.jdbc.url: {}") 
 							.customizeWith(persistenceUnitName,
 										   props.get(PersistenceUnitProperties.JDBC_USER),
 										   props.get(PersistenceUnitProperties.JDBC_PASSWORD),

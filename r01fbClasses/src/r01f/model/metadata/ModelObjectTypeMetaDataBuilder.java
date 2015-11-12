@@ -24,7 +24,7 @@ import r01f.model.annotations.ModelObjectData;
 import r01f.model.search.SearchFilter;
 import r01f.model.search.SearchResultItemForModelObject;
 import r01f.reflection.ReflectionUtils;
-import r01f.services.client.internal.ServicesClientBootstrapGuiceModule;
+import r01f.services.client.internal.ServicesClientAPIBootstrapGuiceModuleBase;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -54,7 +54,7 @@ public class ModelObjectTypeMetaDataBuilder {
 	
 	/**
 	 * Inits the META_DATA_CACHE for every model object at the provided app code
-	 * This method is called at the CLIENT bootstrapping (see {@link ServicesClientBootstrapGuiceModule})
+	 * This method is called at the CLIENT bootstrapping (see {@link ServicesClientAPIBootstrapGuiceModuleBase})
 	 * @param appCode
 	 */
 	public static void init(final AppCode appCode) {

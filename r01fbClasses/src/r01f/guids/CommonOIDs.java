@@ -64,6 +64,30 @@ public class CommonOIDs {
 			return new AppCode(authActorId.asString());
 		}
 	}
+	/**
+	 * AppCode component
+	 */
+	@XmlRootElement(name="appComponent")
+	@EqualsAndHashCode(callSuper=true)
+	@NoArgsConstructor
+	public static class AppComponent 
+	            extends OIDBaseMutable<String> {
+		
+		private static final long serialVersionUID = 137722031497569807L;
+		
+		public static final AppComponent DEFAULT = AppComponent.forId("default");
+		
+		public AppComponent(final String oid) {
+			super(oid);
+		}
+		public static AppComponent forId(final String id) {
+			return new AppComponent(id);
+		}
+		public static AppComponent forIdOrNull(final String id) {
+			if (id == null) return null;
+			return new AppComponent(id);
+		}
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////

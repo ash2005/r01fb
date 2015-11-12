@@ -1,7 +1,7 @@
 package r01f.xmlproperties;
 
 import lombok.RequiredArgsConstructor;
-import r01f.guids.AppComponent;
+import r01f.guids.CommonOIDs.AppComponent;
 import r01f.util.types.Strings;
 
 /**

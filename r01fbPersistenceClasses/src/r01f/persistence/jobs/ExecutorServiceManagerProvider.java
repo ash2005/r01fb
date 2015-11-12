@@ -2,14 +2,10 @@ package r01f.persistence.jobs;
 
 import java.util.concurrent.ExecutorService;
 
-import javax.inject.Inject;
+import com.google.inject.Provider;
 
 import r01f.concurrent.DaemonExecutorServiceLifeCycleManager;
 import r01f.concurrent.ExecutorServiceManager;
-import r01f.xmlproperties.XMLPropertiesComponent;
-import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.inject.Provider;
 
 /**
  * Provides an {@link ExecutorServiceManager} in charge of the life cycle of the
@@ -20,19 +16,18 @@ public class ExecutorServiceManagerProvider
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Inject @XMLPropertiesComponent("persistence") 
-	private XMLPropertiesForAppComponent _props;
+	private final int _numberOfBackgroundThreads;
 	
+	public ExecutorServiceManagerProvider(final int numberOfBackgroundThreads) {
+		_numberOfBackgroundThreads = numberOfBackgroundThreads;
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public ExecutorServiceManager get() {
-		int numberOfBackgroundThreads = _props.propertyAt("persistence/crudEventsHandling/numberOfThreadsInPool")
-											  .asInteger(1); 	// single threaded by default
-		
 		// Create a daemon executor service life cycle manager
-		ExecutorServiceManager execServiceManager = new DaemonExecutorServiceLifeCycleManager(numberOfBackgroundThreads);
+		ExecutorServiceManager execServiceManager = new DaemonExecutorServiceLifeCycleManager(_numberOfBackgroundThreads);
 		execServiceManager.start();
 
 		return execServiceManager;

@@ -6,6 +6,11 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,11 +18,6 @@ import lombok.experimental.Accessors;
 import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
 import r01f.locale.Language;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 
 /**
  * Contact info
@@ -58,7 +58,7 @@ public class ContactInfo
 	 * The language the user prefers to be used in the interaction with him/her 
 	 */
 	@XmlElement(name="preferredLanguage")
-	@Getter @Setter private Language _preferredLanguage;
+	@Getter @Setter private Language _preferedLanguage;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FACTORY
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -83,6 +83,20 @@ public class ContactInfo
 	public EMail getMailAddress(final ContactInfoUsage usage) {
 		ContactMail mail = _find(_mailAddresses,usage);
 		return mail != null ? mail.getMail() : null;
+	}
+	/**
+	 * Returns an email addess for an intended usage or any if the requested one
+	 * does not exists
+	 * @param usage
+	 * @return
+	 */
+	public EMail getMailAddressOrAny(final ContactInfoUsage usage) {
+		EMail outMail = this.getMailAddress(usage);
+		if (outMail == null && CollectionUtils.hasData(_mailAddresses)) {
+			ContactMail mail = CollectionUtils.pickOneElement(_mailAddresses);
+			if (mail != null) outMail = mail.getMail();
+		}
+		return outMail;
 	}
 	/**
 	 * Returns the default email address

@@ -12,25 +12,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import r01f.generics.TypeRef;
-import r01f.guids.AppComponent;
 import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.CommonOIDs.AppComponent;
 import r01f.internal.BuiltInObjectsMarshaller;
 import r01f.marshalling.Marshaller;
 import r01f.resources.ResourcesLoaderDef;
 import r01f.types.Path;
 import r01f.util.types.Strings;
 import r01f.util.types.Strings.StringExtended;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 
 /**
  * Maneja las properties para un código de aplicación.<br/>

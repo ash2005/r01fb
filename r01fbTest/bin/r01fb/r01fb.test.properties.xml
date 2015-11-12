@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test>
+	<!-- PIF -->
+ 	<pifService>
+ 		<uiConsoleUrl>http://svc.integracion.jakina.ejiedes.net/y31dBoxWAR/appbox</uiConsoleUrl>
+	</pifService>
+	
+	<!-- Signature -->
+  	<signatureService>
+ 		<wsURL>http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/X43FNSHF2?WSDL</wsURL>
+ 		<sessionLoginAppId>R01F</sessionLoginAppId>
+ 		<certificateId>0035</certificateId>
+ 	</signatureService>
+ 	
+ 	<!-- XLNets -->
+	<xlnets loginAppCode='X42T' token='httpProvided'>	<!-- token=file/httpProvided/loginApp -->
+		<!--
+		if token=file: 			...path to a mock xlnets token (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate one)
+		if token=httpProvided:  ...url to the url that provides the token (ie: http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet)
+		if token=loginApp		...not used 
+		-->
+		<sessionToken>http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet</sessionToken>
+	</xlnets>
+	
+	<!-- LATINIA Notifier -->
+	<latinia>
+		<wsURL>http://svc.extra.integracion.jakina.ejiedes.net/ctxapp/W91dSendSms?WSDL</wsURL>
+		<authentication>
+		  <enterprise>
+		    		<login>INNOVUS</login>
+		    		<user>innovus.superusuario</user>
+		    		<password>MARKSTAT</password>
+		  </enterprise>
+		  <clientApp>
+		    		<productId>X47B</productId>
+		    		<contractId>2066</contractId>
+		    		<password>X47B</password>
+		  </clientApp>
+		</authentication>
+	</latinia>
+</test>	

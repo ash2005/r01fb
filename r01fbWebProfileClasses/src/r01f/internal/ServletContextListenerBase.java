@@ -1,7 +1,13 @@
 package r01f.internal;
 
+import java.util.Collection;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+
+import com.google.inject.Key;
+import com.google.inject.name.Names;
+import com.google.inject.servlet.GuiceServletContextListener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,10 +15,7 @@ import r01f.concurrent.ExecutorServiceManager;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.inject.ServiceHandler;
 import r01f.services.interfaces.IndexManagementServices;
-
-import com.google.inject.Key;
-import com.google.inject.name.Names;
-import com.google.inject.servlet.GuiceServletContextListener;
+import r01f.util.types.collections.CollectionUtils;
 
 /**
  * Extends {@link GuiceServletContextListener} (that in turn extends {@link ServletContextListener})
@@ -44,7 +47,7 @@ public abstract class ServletContextListenerBase
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	private final Class<? extends IndexManagementServices> _indexManagementType;
-	private final boolean _dbServiceHandler;		// true if there's a JPA Service to be started & stopped
+	private final Collection<String> _jpaPersistenceUnits;	// the names of the JPA Service to be started & stopped (see persistence.xml)
 	
 	private boolean _injectorCreated = false;
 	
@@ -61,12 +64,14 @@ public abstract class ServletContextListenerBase
 		
 		// Init the jpa's Persistence service
 		// (see https://github.com/google/guice/wiki/ModulesShouldBeFastAndSideEffectFree)
-		if (_dbServiceHandler) {
-			log.warn("\t--Init JPA's PersistenceService....");
-			ServiceHandler jpaServiceHandler = this.getInjector()
-														.getInstance(Key.get(ServiceHandler.class,
-																	  		 Names.named("r01JPAPersistenceService")));
-			jpaServiceHandler.start();
+		if (CollectionUtils.hasData(_jpaPersistenceUnits)) {
+			for (String jpaPersistenceUnit : _jpaPersistenceUnits) {
+				log.warn("\t--Init JPA's PersistenceService....");
+				ServiceHandler jpaServiceHandler = this.getInjector()
+															.getInstance(Key.get(ServiceHandler.class,
+																		  		 Names.named(jpaPersistenceUnit)));
+				jpaServiceHandler.start();
+			}
 		}
 	}
 	@Override
@@ -75,12 +80,15 @@ public abstract class ServletContextListenerBase
 		
 		// Close JPA's Persistence Service
 		// (see https://github.com/google/guice/wiki/ModulesShouldBeFastAndSideEffectFree)
-		if (_dbServiceHandler) {
-			log.warn("\t--Closing JPA's PersistenceService....");
-			ServiceHandler jpaServiceHandler = this.getInjector()
-														.getInstance(Key.get(ServiceHandler.class,
-																			 Names.named("r01JPAPersistenceService")));
-			jpaServiceHandler.stop();
+		if (CollectionUtils.hasData(_jpaPersistenceUnits)) {
+			for (String jpaPersistenceUnit : _jpaPersistenceUnits) {
+				log.warn("\t--Closing JPA's PersistenceService....");
+				ServiceHandler jpaServiceHandler = this.getInjector()
+															.getInstance(Key.get(ServiceHandler.class,
+																				 Names.named(jpaPersistenceUnit)));
+				jpaServiceHandler.stop();
+				log.warn("\t--Closed OK Persistence Servive name {} !!!",jpaPersistenceUnit);
+			}
 		} else {
 			log.warn("\t--NO JPA PersistenceService to close!!");
 		}

@@ -3,17 +3,17 @@ package r01f.xmlproperties;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import r01f.guids.AppComponent;
 import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.CommonOIDs.AppComponent;
 import r01f.xmlproperties.XMLPropertiesForAppCache.DefaultXMLPropertiesForAppCacheFactory;
 import r01f.xmlproperties.XMLPropertiesForAppCache.XMLPropertiesForAppCacheFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Inject;
 
 /**
  * {@link XMLProperties} is the main component of the R01's properties systems

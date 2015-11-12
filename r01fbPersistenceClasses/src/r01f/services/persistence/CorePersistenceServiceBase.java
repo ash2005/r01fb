@@ -25,7 +25,14 @@ public abstract class CorePersistenceServiceBase
 	 */
 	@Inject
 	@Getter protected Provider<EntityManager> _entityManagerProvider;	
-	
+	/**
+	 * The {@link XMLProperties} for the db layer
+	 */ 
+	@Inject @XMLPropertiesComponent("persistence")
+	@Getter protected XMLPropertiesForAppComponent _persistenceProperties;
+/////////////////////////////////////////////////////////////////////////////////////////
+//  METHODS
+/////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public EntityManager getFreshNewEntityManager() {
 		EntityManager outEntityManager = _entityManagerProvider.get();
@@ -36,10 +43,4 @@ public abstract class CorePersistenceServiceBase
 		outEntityManager.setFlushMode(FlushModeType.COMMIT);
 		return outEntityManager;
 	}
-	/**
-	 * The {@link XMLProperties} for the db layer
-	 */
-	@Inject  @XMLPropertiesComponent("persistence") 
-	@Getter protected XMLPropertiesForAppComponent _persistenceProperties;
-	
 }

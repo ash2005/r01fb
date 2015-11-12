@@ -1,6 +1,7 @@
 package r01f.services.persistence;
 
-import lombok.RequiredArgsConstructor;
+import javax.inject.Inject;
+
 import lombok.experimental.Accessors;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.model.jobs.EnqueuedJobStatus;
@@ -16,15 +17,16 @@ import r01f.usercontext.UserContext;
  * Implements {@link IndexManagementServices} 
  */
 @Accessors(prefix="_")
-@RequiredArgsConstructor
 public abstract class CoreIndexManagementServiceBase
               extends CoreServiceBase					  
            implements IndexManagementServices,
            			  SuppliesJobOID {
 /////////////////////////////////////////////////////////////////////////////////////////
-//  
+//  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
-	private final IndexManager _indexManager;
+	@Inject
+	private IndexManager _indexManager;
+
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////

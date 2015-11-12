@@ -4,9 +4,7 @@ import java.util.Collection;
 
 import javax.inject.Inject;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import r01f.guids.OID;
 import r01f.model.search.SearchFilter;
@@ -23,13 +21,12 @@ import r01f.xmlproperties.XMLPropertiesForAppComponent;
  * Core service base for search services
  */
 @Accessors(prefix="_")
-@RequiredArgsConstructor(access=AccessLevel.PROTECTED)
 public abstract class CoreSearchServicesForModelObjectBase<F extends SearchFilter,I extends SearchResultItem> 
      		  extends CoreServiceBase					  
      	   implements SearchServices<F,I>,
   			 		  HasSearcher<F,I> {
 /////////////////////////////////////////////////////////////////////////////////////////
-//	INJECTED FIELDS 
+//	 
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Search component 
@@ -41,6 +38,7 @@ public abstract class CoreSearchServicesForModelObjectBase<F extends SearchFilte
 	 */
 	@Inject @XMLPropertiesComponent("searchpersistence")
 	@Getter protected XMLPropertiesForAppComponent _searchProperties;
+	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SEARCH
 /////////////////////////////////////////////////////////////////////////////////////////

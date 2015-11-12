@@ -5,7 +5,7 @@ import r01f.events.index.IndexerCRUDOKEventListener;
 import com.google.inject.Binder;
 
 /**
- * Interface to be implemented by {@link ServicesBootstrapGuiceModuleBase} subtypes that 
+ * Interface to be implemented by {@link BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase} subtypes that 
  * are interested in binding CRUD event listeners
  */
 public interface ServicesBootstrapGuiceModuleBindsCRUDEventListeners {

@@ -5,25 +5,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import r01f.guids.AppComponent;
-import r01f.guids.CommonOIDs.AppCode;
+import com.google.common.collect.Sets;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.ProvisionException;
+import com.google.inject.Singleton;
+
+import lombok.extern.slf4j.Slf4j;
 import r01f.inject.HasMoreBindings;
 import r01f.persistence.index.IndexManager;
 import r01f.persistence.index.lucene.LuceneIndexManager;
 import r01f.persistence.lucene.LuceneIndex;
 import r01f.persistence.search.lucene.LuceneLanguageDependentAnalyzer;
+import r01f.services.core.internal.ServicesCoreBootstrapGuiceModule;
 import r01f.util.types.Strings;
-
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.ProvisionException;
-import com.google.inject.Singleton;
 
 /**
  * Base {@link Guice} module for search engine (index / search) bindings
@@ -46,29 +45,25 @@ public abstract class LuceneSearchGuiceModuleBase
 	 * Constructor to be used when it's the bean managed services bootstrap guice module for an app divided into components
 	 * In this case, the app is composed by a one or more components and the properties are going to be looked after at
 	 * [appCode].[appComponent].persistence.properties.xml
-	 * @param appCode
-	 * @param appComponent
+	 * @param coreBootstrapGuiceModuleType
 	 * @param searchComponents
 	 */
-	protected LuceneSearchGuiceModuleBase(final AppCode appCode,final AppComponent appComponent,
+	protected LuceneSearchGuiceModuleBase(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapGuiceModuleType,
 								    	  final Set<SearchComponents> searchComponents) {
-		super(appCode,
-			  AppComponent.forId(appComponent.asString()),
+		super(coreBootstrapGuiceModuleType,
 			  searchComponents);
 	}
 	/**
 	 * Constructor to be used when it's the bean managed services bootstrap guice module for an app divided into components
 	 * In this case, the app is composed by a one or more components and the properties are going to be looked after at
 	 * [appCode].[appComponent].persistence.properties.xml
-	 * @param appCode
-	 * @param appComponent
+	 * @param coreBootstrapGuiceModuleType
 	 * @param searchComponents
 	 */
-	protected LuceneSearchGuiceModuleBase(final AppCode appCode,final AppComponent appComponent,
+	protected LuceneSearchGuiceModuleBase(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapGuiceModuleType,
 								    	  final SearchComponents... searchComponents) {
-		super(appCode,
-			  AppComponent.forId(appComponent.asString()),
-			  searchComponents);
+		this(coreBootstrapGuiceModuleType,
+			 Sets.newHashSet(searchComponents));
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -76,8 +71,8 @@ public abstract class LuceneSearchGuiceModuleBase
 	/**
 	 * If many SearchGuiceModules are binded, avoid multiple lucene index binding
 	 */
-	private static boolean LUCENE_ANALYZER_BINDED = false;
-	private static boolean LUCENE_DIRECTORY_BINDED = false;
+	private boolean LUCENE_ANALYZER_BINDED = false;
+	private boolean LUCENE_DIRECTORY_BINDED = false;
 	
 	@Override 
 	public void configure(final Binder binder) {
@@ -102,6 +97,7 @@ public abstract class LuceneSearchGuiceModuleBase
 		binder.bind(IndexManager.class)
 			  .to(LuceneIndexManager.class)
 			  .in(Singleton.class);
+		
 	
 		// Give chance to sub-types to do more bindings
 		if (this instanceof HasMoreBindings) {

@@ -63,7 +63,7 @@ public abstract class DBCRUDForModelObjectBase<O extends OID,M extends Persistab
 	@Override 
 	public CRUDResult<M> update(final UserContext userContext,
 								final M entity) {
-		// some checks to help developers...
+		// some checks to help developers... 
 		if (entity.getEntityVersion() == 0) throw new IllegalStateException(Throwables.message("Cannot update a {} entity because the model object received at the persistence layer received does NOT have the entityVersion attribute. This is a developer's fault; please check that when persisting the model object, the entityVersion is set",
 																							   _modelObjectType));
 

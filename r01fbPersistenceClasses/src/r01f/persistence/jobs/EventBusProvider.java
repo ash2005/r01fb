@@ -2,31 +2,31 @@ package r01f.persistence.jobs;
 
 import java.util.concurrent.ExecutorService;
 
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
+import com.google.inject.Provider;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import r01f.concurrent.ExecutorServiceManager;
 import r01f.types.ExecutionMode;
-import r01f.xmlproperties.XMLPropertiesComponent;
-import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 /**
  * Provides event buses
  * (a provider is used since it's injected and can be used while guice bootstraping)
  */
 @Slf4j
+@RequiredArgsConstructor
 public class EventBusProvider
   implements Provider<EventBus> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  INJECTED FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Inject @XMLPropertiesComponent("services")
-	private XMLPropertiesForAppComponent _props;
+	/**
+	 * Execution mode
+	 */
+	@Getter private final ExecutionMode _execMode;
 	/**
 	 * The jobs executor holder: manages a thread pool in charge of dispatching events
 	 * In a web application environment (ie Tomcat), this thread pool MUST be destroyed
@@ -40,8 +40,7 @@ public class EventBusProvider
 	 * 		This executor service manager is USED at a {@link ServletContextListener}'s destroy()
 	 * 		method to kill the worker threads (ie R01VServletContextListener)
 	 */
-	@Inject(optional=true)		// SYNC eventBus DO NOT need an ExecutorServiceManager
-	@Getter private ExecutorServiceManager _executorServiceManager;
+	@Getter private final ExecutorServiceManager _executorServiceManager;
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //  NOT INJECTED FIELDS
@@ -55,16 +54,8 @@ public class EventBusProvider
 	public EventBus get() {
 		if (_eventBusInstance != null) return _eventBusInstance;
 		
-		// Get from the properties the way CRUD events are to be consumed: synchronously or asynchronously 
-		ExecutionMode execMode = _props.propertyAt("services/crudEventsHandling/@mode").asEnumElement(ExecutionMode.class);
-		if (execMode == null) {
-			log.warn("CRUD Events Handling config could NOT be found at [appCode].[component].services.properties.xml, please ensure that the [appCode].[component].services.properties.xml" +
-					 "contains a 'crudEventsHandling' section; meanwhile SYNC event handling is assumed");
-			execMode = ExecutionMode.SYNC;
-		}
-		
-		log.warn("Creating a {} event bus",execMode); 
-		switch(execMode) {
+		log.warn("Creating a {} event bus",_execMode); 
+		switch(_execMode) {
 		case ASYNC:
 			ExecutorService execService = _executorServiceManager.getExecutorService();
 			if (execService == null) {

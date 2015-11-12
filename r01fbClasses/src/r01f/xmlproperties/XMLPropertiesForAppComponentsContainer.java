@@ -15,20 +15,21 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import com.google.common.base.Throwables;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import r01f.guids.AppComponent;
 import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.CommonOIDs.AppComponent;
 import r01f.guids.CommonOIDs.Environment;
 import r01f.resources.ResourcesLoader;
 import r01f.resources.ResourcesLoaderBuilder;
@@ -37,8 +38,6 @@ import r01f.resources.ResourcesReloadControlBuilder;
 import r01f.resources.ResourcesReloadControlDef;
 import r01f.types.Path;
 import r01f.xml.XMLDocumentBuilder;
-
-import com.google.common.base.Throwables;
 
 
 /**

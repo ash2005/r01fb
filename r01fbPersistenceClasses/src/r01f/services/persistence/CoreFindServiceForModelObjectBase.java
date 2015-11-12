@@ -11,7 +11,6 @@ import r01f.guids.CommonOIDs.UserCode;
 import r01f.guids.OID;
 import r01f.model.PersistableModelObject;
 import r01f.persistence.FindOIDsResult;
-import r01f.persistence.db.HasEntityManagerProvider;
 import r01f.services.interfaces.FindServicesForModelObject;
 import r01f.types.Range;
 import r01f.usercontext.UserContext;
@@ -53,8 +52,7 @@ import r01f.usercontext.UserContext;
 @Accessors(prefix="_")
 public abstract class CoreFindServiceForModelObjectBase<O extends OID,M extends PersistableModelObject<O>>
 			  extends CorePersistenceServiceBase 
-		   implements FindServicesForModelObject<O,M>,
-					  HasEntityManagerProvider {
+		   implements FindServicesForModelObject<O,M> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIND
 /////////////////////////////////////////////////////////////////////////////////////////
