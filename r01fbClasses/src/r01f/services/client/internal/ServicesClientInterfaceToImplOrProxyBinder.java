@@ -1,8 +1,5 @@
 package r01f.services.client.internal;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -16,10 +13,8 @@ import com.google.inject.Singleton;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import r01f.exceptions.Throwables;
 import r01f.guids.AppAndComponent;
 import r01f.services.ServicesImpl;
-import r01f.services.core.ServicesCoreImplementation;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.services.interfaces.ServiceProxyImpl;
 import r01f.util.types.collections.CollectionUtils;
@@ -85,27 +80,11 @@ public class ServicesClientInterfaceToImplOrProxyBinder {
 			binder.bind(serviceToImplDef.getBeanServiceImplType())
 			  	  .in(Singleton.class);							// the service impl as singleton
 			binder.bind(serviceToImplDef.getInterfaceType())
-				  .to(serviceImplOrProxyType);					// not annotated binding
-			binder.bind(serviceToImplDef.getInterfaceType())
-				  .annotatedWith(ServicesCoreImplementation.class)
-				  .to(serviceImplOrProxyType);					// annotated binding to service core						
+				  .to(serviceImplOrProxyType);					// not annotated binding					
 		}
 		// [2] The bean implementation is NOT available: use the configured (REST, EJB...) proxy impl
 		else {			
-			// a) bind the service interface annotated with @ServicesCoreImplementation with a fake implementation 
-			//	  that simply throws an illegal state exception telling the developer that the implementation is NOT available
-			binder.bind(serviceToImplDef.getInterfaceType())
-			 	  .annotatedWith(ServicesCoreImplementation.class)
-			 	  .toInstance((S)Proxy.newProxyInstance(serviceToImplDef.getInterfaceType().getClassLoader(),
-			  					 					    new Class<?>[] {serviceToImplDef.getInterfaceType()},
-			  					 					    new InvocationHandler() {
-																@Override
-																public Object invoke(final Object proxy,final Method method,final Object[] args) throws Throwable {
-																	throw new IllegalStateException(Throwables.message("The {} implementation is NOT available in the classpath",
-																													   serviceToImplDef.getInterfaceType()));
-																}
-														 }));
-			// b) bind the service interface default proxy or any other if the default one is NOT present
+			// bind the service interface default proxy or any other if the default one is NOT present
 			ServicesImpl defaultServiceImpl = serviceToImplDef.getConfiguredDefaultProxyImpl(); 
 						
 			if (serviceToImplDef.getServiceProxyImplTypeOrNullFor(defaultServiceImpl) != null) {

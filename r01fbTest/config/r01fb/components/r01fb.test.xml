@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<componentDef>
-	<numberOfPropertiesEstimation>100</numberOfPropertiesEstimation>
-	<resourcesLoader type='CLASSPATH'/>
-	<propertiesFileURI>r01fb/r01fb.test.properties.xml</propertiesFileURI>	<!-- OJO! con el ClassPathLoader utilizar rutas RELATIVAS -->
-</componentDef>

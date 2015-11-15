@@ -27,7 +27,7 @@ import r01f.persistence.internal.DBGuiceModuleBase;
 import r01f.persistence.internal.SearchGuiceModuleBase;
 import r01f.persistence.jobs.EventBusProvider;
 import r01f.persistence.jobs.ExecutorServiceManagerProvider;
-import r01f.services.core.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
+import r01f.services.core.internal.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
 import r01f.types.ExecutionMode;
 import r01f.xmlproperties.XMLPropertiesComponentImpl;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;

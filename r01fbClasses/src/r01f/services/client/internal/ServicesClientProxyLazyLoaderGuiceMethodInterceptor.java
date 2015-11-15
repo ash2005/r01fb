@@ -24,9 +24,9 @@ import r01f.guids.CommonOIDs.AppCode;
 import r01f.patterns.Memoized;
 import r01f.reflection.ReflectionUtils;
 import r01f.reflection.ReflectionUtils.FieldAnnotated;
-import r01f.services.ServicesForAppModulePrivateGuiceModule;
 import r01f.services.ServicesImpl;
 import r01f.services.client.ServiceProxiesAggregator;
+import r01f.services.core.internal.ServicesCoreForAppModulePrivateGuiceModule;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
@@ -61,9 +61,9 @@ public class ServicesClientProxyLazyLoaderGuiceMethodInterceptor
 	 * concrete instance of the service interface bean impl or proxy to be used
 	 * 		- if the service bean implementation is available, the service interface is binded to the bean impl directly
 	 *		- otherwise, the best suitable proxy to the service implementation is binded
-	 * Those Map member are {@link MapBinder}s injected at {@link ServicesForAppModulePrivateGuiceModule}{@link #_bindServiceProxiesAggregators(Binder)} method
+	 * Those Map member are {@link MapBinder}s injected at {@link ServicesCoreForAppModulePrivateGuiceModule}{@link #_bindServiceProxiesAggregators(Binder)} method
 	 * 
-	 * Since there's a {@link ServicesForAppModulePrivateGuiceModule} private module for every core appCode / module,
+	 * Since there's a {@link ServicesCoreForAppModulePrivateGuiceModule} private module for every core appCode / module,
 	 * this type has a Map member for every core appCode / module
 	 */
 	@Inject 

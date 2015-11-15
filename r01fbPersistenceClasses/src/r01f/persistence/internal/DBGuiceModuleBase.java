@@ -23,7 +23,7 @@ import r01f.guids.CommonOIDs.AppComponent;
 import r01f.inject.GuiceModuleWithProperties;
 import r01f.inject.ServiceHandler;
 import r01f.services.ServicesPackages;
-import r01f.services.core.DBPersistenceGuiceModule;
+import r01f.services.core.internal.DBPersistenceGuiceModule;
 import r01f.services.core.internal.ServicesCoreBootstrapGuiceModule;
 import r01f.util.types.Numbers;
 import r01f.util.types.Strings;

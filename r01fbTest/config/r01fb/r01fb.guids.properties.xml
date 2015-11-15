@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<guidGenerator>
-	<sequence name='default'>
-		<uniqueId>lc</uniqueId>   <!-- loc=lc,sb_des=sd,sb_pru=sp,des=ds,pru=pr,pro=pd -->
-		<factoryBindingId>simpleGUIDDispenser</factoryBindingId>
-		<length>36</length>
-	</sequence>
-</guidGenerator>

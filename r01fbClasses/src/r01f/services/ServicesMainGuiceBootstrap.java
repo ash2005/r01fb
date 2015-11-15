@@ -9,6 +9,7 @@ import org.w3c.dom.Node;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
+import com.google.inject.Binder;
 import com.google.inject.Module;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +20,15 @@ import r01f.internal.R01FBootstrapGuiceModule;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.client.internal.ServiceToImplAndProxyDef;
 import r01f.services.client.internal.ServicesClientAPIBootstrapGuiceModuleBase;
-import r01f.services.client.internal.ServicesClientBindingsGuiceModule;
 import r01f.services.client.internal.ServicesClientBootstrapModulesFinder;
 import r01f.services.client.internal.ServicesClientInterfaceToImplAndProxyFinder;
-import r01f.services.core.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
-import r01f.services.core.EJBImplementedServicesCoreGuiceModuleBase;
-import r01f.services.core.RESTImplementedServicesCoreGuiceModuleBase;
-import r01f.services.core.ServletImplementedServicesCoreGuiceModuleBase;
+import r01f.services.core.internal.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
+import r01f.services.core.internal.EJBImplementedServicesCoreGuiceModuleBase;
+import r01f.services.core.internal.RESTImplementedServicesCoreGuiceModuleBase;
 import r01f.services.core.internal.ServicesCoreBootstrapGuiceModule;
 import r01f.services.core.internal.ServicesCoreBootstrapModulesFinder;
+import r01f.services.core.internal.ServicesCoreForAppModulePrivateGuiceModule;
+import r01f.services.core.internal.ServletImplementedServicesCoreGuiceModuleBase;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
@@ -38,11 +39,91 @@ import r01f.xmlproperties.XMLPropertiesForApp;
 
 /**
  * Bootstraps a service-oriented guice-based application
- * (see R01MInjector type)
+ * Usage:
+ * <pre class='brush:java'>
+ *		Collection<Module> bootstrapModuleInstances = ServicesMainGuiceBootstrap.createForApi(R01MAppCode.API.code())
+ *																				.loadBootstrapModuleInstances();
+ *		Injector injector = Guice.createInjector(bootstrapModuleInstances);
+ * </pre>
+ * A service-oriented application has two types of guice modules:
  * <ul>
- * 		<li>Core services implementation (a core service is ONLY bootstrapped if it's guice module is available in the classpath)</li>
- * 		<li>Client services proxy for the core services implementation</li>
+ * 		<li>The modules that bootstrap the client</li>
+ * 		<li>The modules that bootstrap the core (server)<li>
  * </ul>
+ * 
+ * 
+ * If xx is the client appCode and yy is the core appCode (they can be the same appCode)
+ * 
+ * Client bootstraping
+ * ===================
+ * at the java package xx.client.internal create two types:
+ * 1.- A type that will get injected with the {@link ServiceInterface} to bean impl or proxy
+ * 	   	- if the {@link ServiceInterface} bean impl is available the system will bind the interface to this impl
+ * 		- if not, the {@link ServiceInterface} will be binded to a proxy set at xx.client.properties.xml, 
+ * 		  for example a proxy to the REST {@link ServiceInterface} impl
+ * 	    <pre class='brush:java'>
+ *			public class XXServiceInterfaceTypesToImplOrProxyMappings 
+ *			  implements ServiceInterfaceTypesToImplOrProxyMappings {
+ *			  
+ *				@Inject @Named("yy.mymodule") @SuppressWarnings({ "rawtypes" })
+ *				private Map<Class,ServiceInterface> _grantedBenefitsServiceInterfaceTypesToImplOrProxy;
+ *			}			
+ * 		</pre> 
+ * 	   Is important that:
+ * 			- There MUST exist a Map<Class,ServiceInterface> field for every core appCode / module combination
+ * 			  set at xx.client.properties.xml
+ * 			- Each Map<Class,ServiceInterface> field MUST be annotated with @Named("yy.my_module") where yy.my_module is 
+ * 			  the proxy's appCode/id at xx.client.properties.xml 
+ * 			  <pre class='brush:xml'>
+ *				<proxies>
+ *					<proxy appCode="yy" id="my_module" impl="REST">My Module</proxy>
+ *					<proxy appCode="yy" id="my_otherModule" impl="REST">My other module</proxy>
+ *				</proxies>
+ * 			  </pre>
+ * 
+ * 2.- A bootstrap guice module extending {@link ServicesClientAPIBootstrapGuiceModuleBase}
+ * 		<pre class='brush:java'>
+ *			public class XXClientBootstrapGuiceModule 
+ *			  	 extends ServicesClientAPIBootstrapGuiceModuleBase {	// this is a client guice bindings module
+ *				
+ *				public XXClientBootstrapGuiceModule() {
+ *					super(XXAppCode.API.code(),
+ *						  new XXServiceInterfaceTypesToImplOrProxyMappings());
+ *				}
+ *				@Override
+ *				protected void _configure(final Binder binder) {
+ *					_bindModelObjectsMarshaller(binder);
+ *					_bindModelObjectExtensionsModule(binder);
+ *				}
+ *				@Override @SuppressWarnings("unchecked")
+ *				protected <U extends UserContext> U _provideUserContext() {
+ *					XXMockUserContextProvider provider = new XXMockUserContextProvider();
+ *					return (U)provider.get();
+ *				}
+ *			}
+ * 		</pre> 
+ * 
+ * SERVER/CORE BOOTSTRAPING
+ * ========================
+ * At the java package yy.internal there MUST exist a type extending {@link BeanImplementedServicesCoreBootstrapGuiceModuleBase}
+ * that bootstraps the core side.
+ * This guice module type contains the core's bindings, usually installing other guice modules as db persistence, searching, notifier, etc
+ * For convenience, if the core is in charge of the DB persistence, the type might extend {@link BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase}
+ * This type MUST be annotated with @ServicesCore with the core's module id
+ * <pre class='brush:java'> 
+ *		@ServicesCore(moduleId="my_module",dependsOn=ServicesImpl.NULL) 	// see xx.client.properties.xml
+ *		@EqualsAndHashCode(callSuper=true)									// This is important for guice modules
+ *		public class YYServicesBootstrapGuiceModule
+ *		     extends BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase {
+ *		  
+ *			public YYServicesBootstrapGuiceModule() {
+ *				super(XXAppCode.API.code(),
+ *					  new YYDBGuiceModule(YYServicesBootstrapGuiceModule.class),			// DB
+ *					  new YYSearchGuiceModule(YYServicesBootstrapGuiceModule.class),		// search
+ *					  Lists.<Module>newArrayList(new YYNotifierGuiceModule(YYServicesBootstrapGuiceModule.class)));	
+ *			}
+ *		}
+ * </pre>
  */
 @Slf4j
 public class ServicesMainGuiceBootstrap {
@@ -65,7 +146,7 @@ public class ServicesMainGuiceBootstrap {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	private ServicesMainGuiceBootstrap(final AppCode... apiAppCodes) {
+	public ServicesMainGuiceBootstrap(final AppCode... apiAppCodes) {
 		_apiAppCodes = Lists.newArrayList(apiAppCodes);
 		_coreAppAndModulesDefProxy = Maps.newHashMapWithExpectedSize(_apiAppCodes.size());
 		_coreAppAndModules = Maps.newHashMapWithExpectedSize(_apiAppCodes.size());
@@ -108,7 +189,7 @@ public class ServicesMainGuiceBootstrap {
 			_coreAppAndModulesDefProxy.put(apiAppCode,coreAppAndModulesDefProxy);
 			
 			_coreAppAndModules.put(apiAppCode,coreAppAndModulesDefProxy.keySet());
-		}
+		} // for
 	}
 	public static ServicesMainGuiceBootstrap createForApi(final AppCode apiAppCode) {
 		return new ServicesMainGuiceBootstrap(apiAppCode);
@@ -120,7 +201,25 @@ public class ServicesMainGuiceBootstrap {
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Entry point for guice module loading
+	 * Install all guice modules for every api appCode
+	 * @param binder
+	 */
+	public void installBootstrapModuleInstances(final Binder binder) {
+		// Load bootstrap module instances
+		Collection<Module> modulesToInstall = this.loadBootstrapModuleInstances();
+		
+		// Install the modules
+		if (CollectionUtils.hasData(modulesToInstall)) {
+			for (Module mod : modulesToInstall) {
+				binder.install(mod);
+			}
+		}
+	}
+	/**
+  	 * Load bootstrap module instances
+	 *	- If there's more than a single api appCode a private module for every api appCode is returned so 
+	 *	  there's NO conflict between each api appCode
+	 *	- If there's a single api appCode there's no need to isolate every api appcode in it's own private module
 	 * @return
 	 */
 	public Collection<Module> loadBootstrapModuleInstances() {
@@ -128,8 +227,8 @@ public class ServicesMainGuiceBootstrap {
 		
 		// find the modules
 		for (AppCode apiAppCode : _apiAppCodes) {
-			Collection<Module> currApiModules = _loadBootstrapModuleInstances(apiAppCode);
-			if (CollectionUtils.hasData(currApiModules)) outModules.addAll(currApiModules);
+			Module currApiModule = _bootstrapGuiceModuleFor(apiAppCode);
+			if (currApiModule != null) outModules.add(currApiModule);
 		}
 		
 		// Add the mandatory R01F guice modules
@@ -137,24 +236,23 @@ public class ServicesMainGuiceBootstrap {
 		
 		return outModules;
 	}
-	
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////	
 	/**
-	 * Entry point for guice module loading
+	 * Creates a guice module that encapsulates all bindings for an api app code
 	 * @param apiAppCode
 	 * @return
 	 */
-	private Collection<Module> _loadBootstrapModuleInstances(final AppCode apiAppCode) {
+	private Module _bootstrapGuiceModuleFor(final AppCode apiAppCode) {
 		// [1] - Find the CLIENT API BOOTSTRAP guice module types
     	log.warn("[START]-Find CLIENT binding modules====================================================================================");
     	ServicesClientBootstrapModulesFinder clientBootstrapModulesFinder = new ServicesClientBootstrapModulesFinder(apiAppCode);
     	
     	// The client bootstrap modules
-		Collection<Class<? extends ServicesClientAPIBootstrapGuiceModuleBase>> clientAPIBootstrapModulesTypes = clientBootstrapModulesFinder.findProxyBingingsGuiceModuleTypes();
-		// other client bindings
-		Collection<Class<? extends ServicesClientBindingsGuiceModule>> clientBindingsModulesTypes = clientBootstrapModulesFinder.findOtherBindingsGuiceModuleTypes();
+		final Collection<Class<? extends ServicesClientAPIBootstrapGuiceModuleBase>> clientAPIBootstrapModulesTypes = clientBootstrapModulesFinder.findProxyBingingsGuiceModuleTypes();
 		
 		ServicesClientBootstrapModulesFinder.logFoundModules(clientAPIBootstrapModulesTypes);
-		ServicesClientBootstrapModulesFinder.logFoundModules(clientBindingsModulesTypes);
 		log.warn("  [END]-Find CLIENT binding modules====================================================================================");
 		
 		
@@ -162,7 +260,8 @@ public class ServicesMainGuiceBootstrap {
     	log.warn("[START]-Find CORE binding modules======================================================================================");
     	ServicesCoreBootstrapModulesFinder coreBootstrapModulesFinder = new ServicesCoreBootstrapModulesFinder(apiAppCode,
     																										   _coreAppAndModules.get(apiAppCode));
-		Map<AppAndComponent,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> coreBootstrapModulesTypesByAppAndModule = coreBootstrapModulesFinder.findBootstrapGuiceModuleTypes();
+		final Map<AppAndComponent,
+				  Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> coreBootstrapModulesTypesByAppAndModule = coreBootstrapModulesFinder.findBootstrapGuiceModuleTypes();
 		log.warn("  [END]-Find CORE binding modules======================================================================================");
 
 		
@@ -171,51 +270,54 @@ public class ServicesMainGuiceBootstrap {
 		ServicesClientInterfaceToImplAndProxyFinder serviceIfaceToImplAndProxiesFinder = new ServicesClientInterfaceToImplAndProxyFinder(apiAppCode,
 																											   				        	 _coreAppAndModulesDefProxy.get(apiAppCode));
 		Collection<AppCode> coreAppCodes = _coreServicesAppCodes(_coreAppAndModulesDefProxy.get(apiAppCode).keySet());
-		Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceIfacesToImplAndProxiesByAppModule = serviceIfaceToImplAndProxiesFinder.findServiceInterfacesToImplAndProxiesBindings(coreAppCodes);
+		final Map<AppAndComponent,
+				  Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceIfacesToImplAndProxiesByAppModule = serviceIfaceToImplAndProxiesFinder.findServiceInterfacesToImplAndProxiesBindings(coreAppCodes);
 		log.warn("  [END]-Find ServiceInterface to bean impl and proxy matchings =========================================================");
 
 		
-		// [3] - Create a collection with the guice modules
-		List<Module> bootstrapModuleInstances = Lists.newArrayList();
-		
-
-		// 3.1 - Add the CLIENT bootstrap guice modules
-		for (Class<? extends ServicesClientAPIBootstrapGuiceModuleBase> clientAPIBootstrapModule : clientAPIBootstrapModulesTypes) {
-			Module clientModule = ServiceBootstrapGuiceModuleUtils.createGuiceModuleInstance(clientAPIBootstrapModule);
-			((ServicesClientAPIBootstrapGuiceModuleBase)clientModule).setCoreAppAndModules(_coreAppAndModules.get(apiAppCode));
-			
-			bootstrapModuleInstances.add(0,clientModule);	// insert first!
-		}		
-		
-		// 3.2 - Add a private module for each appCode / module stack: service interface --> proxy --> impl (rest / bean / etc)
-		//		 this way, each appCode / module is independent (isolated)
-		Collection<ServiceBootstrapDef> coreBootstrapGuiceModuleDefs = _bootstrapGuiceModuleDefsFrom(apiAppCode,
-																									 coreBootstrapModulesTypesByAppAndModule,
-																								     serviceIfacesToImplAndProxiesByAppModule);
-		for (ServiceBootstrapDef bootstrapCoreModDef : coreBootstrapGuiceModuleDefs) {
-			// Each core bootstrap modules (the ones implementing BeanImplementedServicesCoreGuiceModuleBase) for every core appCode / module
-			// SHOULD reside in it's own private guice module in order to avoid bindings collisions
-			// (ie JPA's guice persist modules MUST reside in separate private guice modules -see https://github.com/google/guice/wiki/GuicePersistMultiModules-)
-			Module coreAppAndModulePrivateGuiceModule = new ServicesForAppModulePrivateGuiceModule(bootstrapCoreModDef);
-			bootstrapModuleInstances.add(coreAppAndModulePrivateGuiceModule);
-			
-			// ... BUT the REST or Servlet core bootstrap modules (the ones extending RESTImplementedServicesCoreGuiceModuleBase) MUST be binded here 
-			// in order to let the world see (specially the Guice Servlet filter) see the REST resources bindings
-			Collection<? extends ServicesCoreBootstrapGuiceModule> restCoreAppAndModuleGuiceModules = bootstrapCoreModDef.getPublicBootstrapGuiceModuleInstances();
-			bootstrapModuleInstances.addAll(restCoreAppAndModuleGuiceModules);
-		}
-		
-		
-		// 3.3 - Add the CLIENT BINDINGS guice modules
-		if (CollectionUtils.hasData(clientBindingsModulesTypes)) {
-			for (Class<? extends ServicesClientBindingsGuiceModule> clientBindingsModule : clientBindingsModulesTypes) {
-				Module clientModule = ServiceBootstrapGuiceModuleUtils.createGuiceModuleInstance(clientBindingsModule);		
-				bootstrapModuleInstances.add(clientModule);	// no matter if it's first or last
-			}
-		}
-		
-		// [4] - Return the modules
-		return bootstrapModuleInstances;
+		// [3] - Create a module for the API appCode that gets installed with:
+		//			- A module with the client API bindins
+		//			- A private module with the core bindings for each core app module
+		return new Module() {
+					@Override
+					public void configure(final Binder binder) {
+						List<Module> bootstrapModuleInstances = Lists.newArrayList();
+						
+						// 3.1 - Add the CLIENT bootstrap guice modules
+						for (Class<? extends ServicesClientAPIBootstrapGuiceModuleBase> clientAPIBootstrapModule : clientAPIBootstrapModulesTypes) {
+							Module clientModule = ServiceBootstrapGuiceModuleUtils.createGuiceModuleInstance(clientAPIBootstrapModule);
+							((ServicesClientAPIBootstrapGuiceModuleBase)clientModule).setCoreAppAndModules(_coreAppAndModules.get(apiAppCode));
+							
+							bootstrapModuleInstances.add(0,clientModule);	// insert first!
+						}		
+						
+						// 3.2 - Add a private module for each appCode / module stack: service interface --> proxy --> impl (rest / bean / etc)
+						//		 this way, each appCode / module is independent (isolated)
+						Collection<ServiceBootstrapDef> coreBootstrapGuiceModuleDefs = _bootstrapGuiceModuleDefsFrom(apiAppCode,
+																													 coreBootstrapModulesTypesByAppAndModule,
+																												     serviceIfacesToImplAndProxiesByAppModule);
+						for (ServiceBootstrapDef bootstrapCoreModDef : coreBootstrapGuiceModuleDefs) {
+							// Each core bootstrap modules (the ones implementing BeanImplementedServicesCoreGuiceModuleBase) for every core appCode / module
+							// SHOULD reside in it's own private guice module in order to avoid bindings collisions
+							// (ie JPA's guice persist modules MUST reside in separate private guice modules -see https://github.com/google/guice/wiki/GuicePersistMultiModules-)
+							Module coreAppAndModulePrivateGuiceModule = new ServicesCoreForAppModulePrivateGuiceModule(bootstrapCoreModDef);
+							bootstrapModuleInstances.add(coreAppAndModulePrivateGuiceModule);
+							
+							// ... BUT the REST or Servlet core bootstrap modules (the ones extending RESTImplementedServicesCoreGuiceModuleBase) MUST be binded here 
+							// in order to let the world see (specially the Guice Servlet filter) see the REST resources bindings
+							Collection<? extends ServicesCoreBootstrapGuiceModule> restCoreAppAndModuleGuiceModules = bootstrapCoreModDef.getPublicBootstrapGuiceModuleInstances();
+							bootstrapModuleInstances.addAll(restCoreAppAndModuleGuiceModules);
+						}
+						
+						// 3.3 - Install the modules
+						Binder theBinder = binder;
+						if (CollectionUtils.hasData(bootstrapModuleInstances)) {
+							for (Module module : bootstrapModuleInstances) {
+								theBinder.install(module);
+							}
+						}
+					}
+				};
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -279,11 +381,10 @@ public class ServicesMainGuiceBootstrap {
 					} else {
 						throw new IllegalArgumentException("Unsupported bootstrap guice module type: " + coreBootstrapGuiceModule);
 					}
-				}
+				} 
 				outGuiceModuleDefByAppAndModule.add(modDef);
 			}
 		}
 		return outGuiceModuleDefByAppAndModule;
 	}
-
 }

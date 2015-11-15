@@ -13,18 +13,18 @@ import r01f.exceptions.Throwables;
 import r01f.guids.AppAndComponent;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.services.client.internal.ServiceToImplAndProxyDef;
-import r01f.services.core.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
-import r01f.services.core.EJBImplementedServicesCoreGuiceModuleBase;
-import r01f.services.core.RESTImplementedServicesCoreGuiceModuleBase;
-import r01f.services.core.ServletImplementedServicesCoreGuiceModuleBase;
+import r01f.services.core.internal.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
+import r01f.services.core.internal.EJBImplementedServicesCoreGuiceModuleBase;
+import r01f.services.core.internal.RESTImplementedServicesCoreGuiceModuleBase;
 import r01f.services.core.internal.ServicesCoreBootstrapGuiceModule;
+import r01f.services.core.internal.ServletImplementedServicesCoreGuiceModuleBase;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.services.interfaces.ServiceInterfaceFor;
 import r01f.util.types.collections.CollectionUtils;
 
 @Accessors(prefix="_")
 @RequiredArgsConstructor
-class ServiceBootstrapDef {
+public class ServiceBootstrapDef {
 /////////////////////////////////////////////////////////////////////////////////////////
 //	FIELDS  
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -78,15 +78,6 @@ public class ServicesClientBootstrapModulesFinder {
 																												    ServicesClientAPIBootstrapGuiceModuleBase.class,_apiAppCode));
 		return bootstrapModuleTypes;
     }
-    /**
-     * Scans for types implementing {@link ServicesClientBindingsGuiceModule}
-     * (the {@link Module}s where client-side bindings are done
-     * @param apiAppCode
-     * @return
-     */
-	public Collection<Class<? extends ServicesClientBindingsGuiceModule>> findOtherBindingsGuiceModuleTypes() {
-		return _filterModulesOfType(ServicesClientBindingsGuiceModule.class);
-    }
 	private <M extends ServicesClientGuiceModule> Set<Class<? extends M>> _filterModulesOfType(final Class<M> moduleType) {
 		Set<Class<? extends M>> outModuleTypes = FluentIterable.from(_clientBootstrapGuiceModuleTypes)
 															   .filter(new Predicate<Class<? extends ServicesClientGuiceModule>>() {

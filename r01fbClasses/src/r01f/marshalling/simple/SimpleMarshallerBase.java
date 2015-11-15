@@ -18,7 +18,7 @@ import r01f.util.types.Strings;
 abstract class SimpleMarshallerBase 
     implements Marshaller {
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  ESTADO (es inyectado en el constructor de las super-clases)
+//  FIELDS (es inyectado en el constructor de las super-clases)
 ///////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Contiene la cache de mapeo utilizada en los procesos de marshalling/unmarshalling

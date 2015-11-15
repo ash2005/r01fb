@@ -24,7 +24,7 @@ import r01f.services.client.ServiceProxiesAggregator;
 import r01f.util.types.collections.CollectionUtils;
 
 @RequiredArgsConstructor
-class ServicesClientAPIFinder {
+public class ServicesClientAPIFinder {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -42,8 +42,6 @@ class ServicesClientAPIFinder {
 	 */
 	public Collection<Class<? extends ClientAPI>> findClientAPIs() {
 		// Find all ClientAPI interface subtypes
-		//		- some will be interfaces
-		//		- other will be implementations, either ClientAPIForBeanServices, ClientAPIForRESTServices, ClientAPIForEJBServices, etc 
 		List<URL> apiUrls = new ArrayList<URL>();
 		apiUrls.addAll(ClasspathHelper.forPackage(ServicesPackages.apiAggregatorPackage(_apiAppCode)));	// xxx.client.servicesproxy
 		apiUrls.addAll(ClasspathHelper.forPackage(ClientAPI.class.getPackage().getName()));		

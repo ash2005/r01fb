@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.aopalliance.intercept.MethodInterceptor;
 
 import com.google.inject.Binder;
+import com.google.inject.PrivateBinder;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
@@ -18,10 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import r01f.guids.AppAndComponent;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
-import r01f.services.ServicesForAppModulePrivateGuiceModule;
 import r01f.services.ServicesMainGuiceBootstrap;
 import r01f.services.client.ClientAPI;
 import r01f.services.client.ServiceProxiesAggregator;
+import r01f.services.core.internal.ServicesCoreForAppModulePrivateGuiceModule;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.usercontext.UserContext;
 
@@ -41,7 +42,7 @@ import r01f.usercontext.UserContext;
  * <pre>
  * ClientAPI
  *    |----> ServicesClientProxy
- * 						|---------------[ Proxy between client and server services ] -----> SERVER (could be REST, as simple java bean, etc)
+ * 						|---------------[ Proxy between client and server services ] 
  * 														  |
  * 														  |----- [ HTTP / RMI / Direct Bean access ]-------->[REAL server / core side Services implementation] 
  * </pre>
@@ -51,7 +52,7 @@ import r01f.usercontext.UserContext;
  * All the logic related to transforming client method-calls to core services method calls is done at the PROXIES. There's one proxy per core service implementation
  * (REST, EJB, Bean...) 
  * 
- * <b>See file resources/services-architecture.txt :: there is an schema of the app high level architecture</b>
+ * <b>See file services-architecture.txt :: there is an schema of the app high level architecture</b>
  * </pre>
  */
 @Slf4j
@@ -73,9 +74,9 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 	 * concrete instance of the service interface bean impl or proxy to be used
 	 * 		- if the service bean implementation is available, the service interface is binded to the bean impl directly
 	 *		- otherwise, the best suitable proxy to the service implementation is binded
-	 * Those Map member are {@link MapBinder}s injected at {@link ServicesForAppModulePrivateGuiceModule}{@link #_bindServiceProxiesAggregators(Binder)} method
+	 * Those Map member are {@link MapBinder}s injected at {@link ServicesCoreForAppModulePrivateGuiceModule}{@link #_bindServiceProxiesAggregators(Binder)} method
 	 * 
-	 * Since there's a {@link ServicesForAppModulePrivateGuiceModule} private module for every core appCode / module,
+	 * Since there's a {@link ServicesCoreForAppModulePrivateGuiceModule} private module for every core appCode / module,
 	 * this type has a Map member for every core appCode / module
 	 */
 	private final ServiceInterfaceTypesToImplOrProxyMappings _serviceInterfaceTypesToImplOrProxyMappings;
@@ -104,7 +105,7 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 		
 		// [2] - Bind the client API aggregator types as singletons
 		//		 The ClientAPI is injected with a service proxy aggregator defined at [2]
-		_bindAPIAggregatorImpls(theBinder);
+		Collection<Class<? extends ClientAPI>> clientAPITypes = _bindAPIAggregatorImpls(theBinder);
 	}
 	@Provides 
 	UserContext provideUserContext() {
@@ -128,7 +129,7 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 	 * references to {@link ServiceInterface} implementations that are on-demand injected at {@link ServicesClientProxyLazyLoaderGuiceMethodInterceptor} 
 	 * @param binder
 	 */
-	private void _bindAPIAggregatorImpls(final Binder binder) {
+	private Collection<Class<? extends ClientAPI>> _bindAPIAggregatorImpls(final Binder binder) {
 		ServicesClientAPIFinder clientAPIFinder = new ServicesClientAPIFinder(_apiAppCode);
 		Collection<Class<? extends ClientAPI>> clientAPITypes = clientAPIFinder.findClientAPIs();
 		log.warn("==================================================");
@@ -139,6 +140,7 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 			binder.bind(clientAPIType)
 				  .in(Singleton.class);
 		}
+		return clientAPITypes;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SERVICES PROXY
@@ -159,17 +161,20 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 	 */
 	private void _bindServiceProxiesAggregators(final Binder binder) {
 		// Inject all Map fields that matches the service interface types with the bean impl or proxy to be used
-		// (this Map fields are injected by MapBinders created at ServicesForAppModulePrivateGuiceModule)
+		// (this Map fields are injected by MapBinders created at ServicesForAppModulePrivateGuiceModule)									
 		binder.requestInjection(_serviceInterfaceTypesToImplOrProxyMappings);
-		binder.bind(ServiceInterfaceTypesToImplOrProxyMappings.class)
-			  .toInstance(_serviceInterfaceTypesToImplOrProxyMappings);
 		
-				
-		// Intercept all fine-grained proxy accessor method calls at ServicesAggregatorClientProxy 
+		// Create a private binder to be used to inject the MethodInterceptor that will intercept all fine-grained
+		// proxy accessor method calls at ServicesAggregatorClientProxy 
 		// The interceptor lazily loads the fine-grained proxy instances and makes the aggregator creation simpler
+		PrivateBinder privateBinder = binder.newPrivateBinder();
+		privateBinder.bind(ServiceInterfaceTypesToImplOrProxyMappings.class)
+			  		 .toInstance(_serviceInterfaceTypesToImplOrProxyMappings);
 		MethodInterceptor serviceProxyGetterInterceptor = new ServicesClientProxyLazyLoaderGuiceMethodInterceptor(_apiAppCode,
 																												  _coreAppAndModules);
-		binder.requestInjection(serviceProxyGetterInterceptor);		// the method interceptor is feeded with a map of service interfaces to bean impl or proxy created below
+		privateBinder.requestInjection(serviceProxyGetterInterceptor);		// the method interceptor is feeded with a map of service interfaces to bean impl or proxy created below
+		
+		// Bind the interceptor to ServiceProxiesAggregator type's fine-grained method calls
 		binder.bindInterceptor(Matchers.subclassesOf(ServiceProxiesAggregator.class),
 							   Matchers.any(),
 							   serviceProxyGetterInterceptor);

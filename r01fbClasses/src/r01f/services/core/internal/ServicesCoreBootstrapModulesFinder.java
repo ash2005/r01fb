@@ -26,7 +26,6 @@ import r01f.guids.CommonOIDs.AppComponent;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.ServicesImpl;
 import r01f.services.ServicesPackages;
-import r01f.services.core.RESTImplementedServicesCoreGuiceModuleBase;
 import r01f.services.core.ServicesCore;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
