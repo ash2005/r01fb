@@ -1,12 +1,13 @@
 package r01f.types;
 
 import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import r01f.util.types.Numbers;
-
 import com.google.common.annotations.GwtIncompatible;
+
+import r01f.util.types.Numbers;
 
 /**
  * Represents some time interval o lapse
@@ -48,6 +49,15 @@ public class TimeLapse
 	 */
 	public static TimeLapse createFor(final long milis) {
 		return new TimeLapse(milis);
+	}
+	/**
+	 * Creates a {@link TimeLapse} from units
+	 * @param units
+	 * @param unit
+	 * @return
+	 */
+	public static TimeLapse createFor(final long units,final TimeUnit unit) {
+		return TimeLapse.createFor(unit.toMillis(units));
 	}
 	/**
 	 * Creates a {@link TimeLapse} from a textual spec like some of the following

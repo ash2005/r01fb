@@ -2,7 +2,6 @@ package r01f.services.client.servicesproxy.rest;
 
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import r01f.exceptions.Throwables;
 import r01f.guids.OID;
 import r01f.httpclient.HttpResponse;
 import r01f.marshalling.Marshaller;
@@ -159,8 +158,8 @@ public abstract class RESTCRUDServicesProxyBase<O extends OID,M extends Persista
 //		if (receivedEntity.getClass() != _modelObjectType) throw new IllegalStateException(Throwables.message("The client REST proxy received type ({}) is NO the expected one {}",
 //																							  	 			  receivedEntity.getClass(),_modelObjectType));
 		// Check that it's about the same entity by comparing the received entity oid with the expected one
-		if (!receivedEntity.getOid().equals(requestedOid)) throw new IllegalStateException(Throwables.message("The client REST proxy received entity has NOT the same oid as the expected one (recived={}, expected={})",
-																									 	 	  receivedEntity.getOid(),requestedOid));
+//		if (!receivedEntity.getOid().equals(requestedOid)) throw new IllegalStateException(Throwables.message("The client REST proxy received entity has NOT the same oid as the expected one (recived={}, expected={})",
+//																									 	 	  receivedEntity.getOid(),requestedOid));
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  LOG

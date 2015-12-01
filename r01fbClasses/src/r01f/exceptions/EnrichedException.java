@@ -51,34 +51,78 @@ import r01f.util.types.collections.Lists;
  *</pre>
  * The usual usage is:
  * <ul>
- * <li>1.- Create a type extending {@link EnrichedException}
+ * <li>1.- Create an enum with the sub-types (if there are any)
+ * <pre class='brush:java'>
+ *  @Accessors(prefix="_")
+ *	@RequiredArgsConstructor
+ *		  enum TestExceptionSubTypes 
+ *  implements EnrichedThrowableSubType<TestExceptionSubTypes>{
+ *			NOT_DELETE(1),
+ *			VALIDATION(2);
+ *
+ *			@Getter private final int _group = 1;
+ *			@Getter private final int _code;
+ *
+ *			private static EnrichedThrowableSubTypeWrapper<TestExceptionSubTypes> WRAPPER = EnrichedThrowableSubTypeWrapper.create(TestExceptionSubTypes.class);
+ *
+ *	 		public static TestExceptionSubTypes from(final int errorCode) {
+ *				return WRAPPER.from(0,errorCode);
+ *			}
+ *			@Override
+ *			public ExceptionSeverity getSeverity() {
+ *				return ExceptionSeverity.FATAL;		
+ *			}
+ *			@Override
+ *			public boolean is(final int group,final int code) {
+ *				return WRAPPER.is(this,
+ *								  group,code);
+ *			}
+ *			public boolean is(final int code) {
+ *				return this.is(R01F.CORE_GROUP,code);
+ *			}
+ *			@Override
+ *			public boolean isIn(final TestExceptionSubTypes... els) {
+ *				return WRAPPER.isIn(this,els);
+ *			}
+ *			@Override
+ *			public boolean is(final TestExceptionSubTypes el) {
+ *				return WRAPPER.is(this,el);
+ *			}
+ *		}
+ * </pre>
+ * </li>
+ * <li>2.- Create a type extending {@link EnrichedRuntimeException}
  * <pre class='brush:java'>
  *		public class TestException 
  *           extends EnrichedException {
- *			public TestException() {
- *				super();
+ *			public TestException(final String msg,
+ *								 final TestExceptionSubTypes type) {
+ *				super(TestExceptionSubTypes.class,
+ *					  msg,
+ *					  type);
+ *			}	
+ *			public TestException(final Throwable otherEx,
+ *								 final TestExceptionSubTypes type) {
+ *				super(TestExceptionSubTypes.class,
+ *					  otherEx,
+ *					  type);
+ *			}
+ *			public TestException(final String msg,final Throwable otherEx,
+ *								 final TestExceptionSubTypes type) {
+ *				super(TestExceptionSubTypes.class,
+ *					  msg,otherEx,
+ *					  type);
  *			}
  *		}
  *</pre>
  * </li>
- * <li>2.- Include at the exception type an enum with the sub-types (if there are any)
+ * <li>3.- Create N static builder methods like:</li>
  * <pre class='brush:java'>
- *		enum TestExceptionSubTypes {
- *			NOT_DELETE,
- *			VALIDATION;
- *		}
- * </pre>
- * </li>
- * <li>3.- Create N builder methods like:</li>
- * <pre class='brush:java'>
- *		public TestException deleteContentError(final String recordOid,
- *												final Throwable th) {
- *			return EnrichedThrowableBuilder.of(TestException.class)
- *										   .error(th)
- *										   .withMessage("Error while deleting record: {}",recordOid)
- *										   .typed().at(10,1000,NOT_DELETE)
- *										   .severity().recoverable()
- *										   .build();
+ *		public static TestException deleteContentError(final String recordOid,
+ *												       final Throwable th) {
+ *			return new TestException("Delete content error at " + recordId,
+ *									 th,
+ *									 NOT_DELETE);
  *		}
  * </pre>
  * </li>

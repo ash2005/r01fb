@@ -2,13 +2,14 @@ package r01f.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+
 import lombok.experimental.Accessors;
 import r01f.types.Path;
-
-import com.google.common.base.Preconditions;
 
 @Accessors(prefix="_")
 abstract class ResourcesLoaderBase 
@@ -39,29 +40,45 @@ abstract class ResourcesLoaderBase
 	public ResourcesLoaderDef getConfig() {
 		return _def;
 	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public InputStream getInputStream(final String resourcePath) throws IOException {
-		return this.getInputStream(resourcePath,false);
+		return this.getInputStream(resourcePath,
+								   false);
 	}
 	@Override
-	public Reader getReader(final String resourcePath) throws IOException {
-		return this.getReader(resourcePath,false);
+	public InputStream getInputStream(final String resourcePath,
+									  final boolean reload) throws IOException {
+		return this.getInputStream(Path.of(resourcePath),
+								   reload);
 	}
 	@Override
 	public InputStream getInputStream(final Path resourcePath) throws IOException {
 		return this.getInputStream(resourcePath.asString());
 	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public InputStream getInputStream(final Path resourcePath, boolean reload) throws IOException {
-		return this.getInputStream(resourcePath.asString(),reload);
+	public Reader getReader(final String resourcePath) throws IOException {
+		return this.getReader(resourcePath);
 	}
 	@Override
 	public Reader getReader(final Path resourcePath) throws IOException {
 		return this.getReader(resourcePath.asString());
 	}
 	@Override
-	public Reader getReader(final Path resourcePath, boolean reload) throws IOException {
-		return this.getReader(resourcePath.asString(),reload);
+	public Reader getReader(final Path resourcePath,final boolean reload) throws IOException {
+		return this.getReader(resourcePath.asString(),
+							  reload);
 	}
+    @Override
+    public Reader getReader(final String resourceName,
+    						final boolean reload) throws IOException {
+    	return new InputStreamReader(this.getInputStream(resourceName,reload),
+    								 					 _def.getCharset());
+    }
 }
  

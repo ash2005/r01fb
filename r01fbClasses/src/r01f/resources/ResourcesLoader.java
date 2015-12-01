@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.Reader;
 
 import r01f.types.Path;
+import r01f.xmlproperties.XMLProperties;
 /**
  * Interface for the resources loader types
  * 
@@ -92,7 +93,7 @@ public interface ResourcesLoader {
 	 */
 	public ResourcesLoaderDef getConfig();
 ///////////////////////////////////////////////////////////////////////////////
-// RESOUCES LOADING
+// 	INPUTSTREAM
 ///////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Gets a {@link InputStream} to a resource. If the resource exists in any cache, it's taken from the cache;
@@ -101,7 +102,7 @@ public interface ResourcesLoader {
 	 * @return The {@link InputStream} to the resource
 	 * @throws IOException if the resource could not be retrieved
 	 */
-	public InputStream getInputStream(Path resourcePath) throws IOException;
+	public InputStream getInputStream(final Path resourcePath) throws IOException;
 	/**
 	 * Gets a {@link InputStream} to a resource
 	 * @param resourcePath path to the resource
@@ -109,8 +110,8 @@ public interface ResourcesLoader {
 	 * @return The {@link InputStream} to the resource
 	 * @throws IOException if the resource could not be retrieved
 	 */
-	public InputStream getInputStream(Path resourcePath,
-									  boolean reload) throws IOException;
+	public InputStream getInputStream(final Path resourcePath,
+									  final boolean reload) throws IOException;
 	/**
 	 * Gets a {@link InputStream} to a resource. If the resource exists in any cache, it's taken from the cache;
 	 * if it doesn't exists there the resource is loaded
@@ -118,7 +119,7 @@ public interface ResourcesLoader {
 	 * @return The {@link InputStream} to the resource
 	 * @throws IOException if the resource could not be retrieved
 	 */
-	public InputStream getInputStream(String resourcePath) throws IOException;
+	public InputStream getInputStream(final String resourcePath) throws IOException;
 	/**
 	 * Gets a {@link InputStream} to a resource
 	 * @param resourcePath path to the resource
@@ -126,8 +127,11 @@ public interface ResourcesLoader {
 	 * @return The {@link InputStream} to the resource
 	 * @throws IOException if the resource could not be retrieved
 	 */
-	public InputStream getInputStream(String resourcePath,
-									  boolean reload) throws IOException;
+	public InputStream getInputStream(final String resourcePath,
+									  final boolean reload) throws IOException;
+/////////////////////////////////////////////////////////////////////////////////////////
+//  READER
+/////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Gets a {@link Reader} to a resource. If the resource exists in any cache, it's taken from the cache;
 	 * if it doesn't exists there the resource is loaded
@@ -135,7 +139,7 @@ public interface ResourcesLoader {
 	 * @return The {@link InputStream} to the resource
 	 * @throws IOException if the resource could not be retrieved
 	 */
-	public Reader getReader(Path resourcePath) throws IOException;
+	public Reader getReader(final Path resourcePath) throws IOException;
 	/**
 	 * Gets a {@link Reader} to a resource
 	 * @param resourcePath path to the resource
@@ -143,8 +147,8 @@ public interface ResourcesLoader {
 	 * @return The {@link InputStream} to the resource
 	 * @throws IOException if the resource could not be retrieved
 	 */
-	public Reader getReader(Path resourcePath,
-							boolean reload) throws IOException;
+	public Reader getReader(final Path resourcePath,
+							final boolean reload) throws IOException;
 	/**
 	 * Gets a {@link Reader} to a resource. If the resource exists in any cache, it's taken from the cache;
 	 * if it doesn't exists there the resource is loaded
@@ -152,7 +156,7 @@ public interface ResourcesLoader {
 	 * @return The {@link InputStream} to the resource
 	 * @throws IOException if the resource could not be retrieved
 	 */
-	public Reader getReader(String resourcePath) throws IOException;
+	public Reader getReader(final String resourcePath) throws IOException;
 	/**
 	 * Gets a {@link Reader} to a resource
 	 * @param resourcePath path to the resource
@@ -160,6 +164,6 @@ public interface ResourcesLoader {
 	 * @return The {@link InputStream} to the resource
 	 * @throws IOException if the resource could not be retrieved
 	 */
-	public Reader getReader(String resourcePath,
-							boolean reload) throws IOException;
+	public Reader getReader(final String resourcePath,
+							final boolean reload) throws IOException;
 }

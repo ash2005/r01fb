@@ -49,12 +49,12 @@
 		<!-- ============================================================================================================================== -->
 		<!-- GWT                                                                                                                            -->
 		<!-- ============================================================================================================================== -->
-		<dependency org="com.google.gwt" name="gwt-user" rev="2.6.1" conf="compile->default"/>	<!-- gwt-user is ONLY needed at compile time -->
+		<dependency org="com.google.gwt" name="gwt-user" rev="2.7.0" conf="compile->default"/>	<!-- gwt-user is ONLY needed at compile time -->
    
    		<!-- ============================================================================================================================== -->
 		<!-- GUAVA-GWT                                                                                                                      -->
 		<!-- ============================================================================================================================== -->
-		<dependency org="com.google.guava" name="guava-gwt" rev="18.0" conf="compile->default"/> 
+		<dependency org="com.google.guava" name="guava-gwt" rev="19.0-rc2" conf="compile->default"/> 
 		<dependency org="com.google.code.findbugs" name="jsr305" rev="3.0.0" conf="compile->default"/>
 	</dependencies>
 	

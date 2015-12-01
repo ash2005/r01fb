@@ -54,10 +54,12 @@ public class ConfigPropertiesBuilder
     	_xmlProperties = xmlProps;
     }
     /**
-     * Creates a {@link ConfigPropertiesBuilder} instance using a {@link ResourceBundleControlBuilder}
+     * Creates a {@link ConfigPropertiesBuilder} instance 
      * This builder is the one to use when not using injection (guice)
      * <pre class='brush:java'>
-     * 		ConfigPropertiesFactory factory = ConfigPropertiesFactory.create(xmlProperties);
+     * 		ConfigPropertiesFactory factory = ConfigPropertiesFactory.create(xmlProperties)
+     * 																 .forBundle("myBundle")
+     * 																 .loadedUsingDefinitionAt("props/resLoaderdef")
      * </pre>
      * @param resControlFactory
      * @return
@@ -66,17 +68,31 @@ public class ConfigPropertiesBuilder
     	ConfigPropertiesBuilder outFactory = new ConfigPropertiesBuilder(xmlProperties);
     	return outFactory;
     }
+    /**
+     * Creates a {@link ConfigPropertiesBuilder} instance 
+     * This builder is the one to use when not using injection (guice)
+     * <pre class='brush:java'>
+     * 		ConfigPropertiesFactory factory = ConfigPropertiesFactory.create()
+     * 																 .forBundle("myBundle")
+     * 																 .loadedUsingDefinition(ResourcesLoaderDef.DEFAULT)
+     * </pre>
+     * @return
+     */
+    public static ConfigPropertiesBuilder create() {
+    	ConfigPropertiesBuilder outFactory = new ConfigPropertiesBuilder(null);		// no xml properties
+    	return outFactory;
+    }
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METODOS
 /////////////////////////////////////////////////////////////////////////////////////////    
-    public ConfigPropertiesBundleFactory forBundle(final String bundleSpec) {
-    	return new ConfigPropertiesBundleFactory(bundleSpec);
+    public ConfigPropertiesBundleBuilderBundleStep forBundle(final String bundleSpec) {
+    	return new ConfigPropertiesBundleBuilderBundleStep(bundleSpec);
     }
 /////////////////////////////////////////////////////////////////////////////////////////
 //  BUILDERS
 /////////////////////////////////////////////////////////////////////////////////////////
     @RequiredArgsConstructor
-    public class ConfigPropertiesBundleFactory {
+    public class ConfigPropertiesBundleBuilderBundleStep {
     	private final String _bundleSpec;
     	
 	    /**
@@ -98,6 +114,7 @@ public class ConfigPropertiesBuilder
 	    	return this.loadedUsingDefinitionAt(XMLPropertyLocation.createFor(appCode,component,xPath));
 	    }
 	    public ConfigProperties loadedUsingDefinitionAt(final XMLPropertyLocation resLoaderDefLocation) {
+	    	if (_xmlProperties == null) throw new IllegalStateException("No XMLProperties set; maybe #loadedUsingDefinition(ResourcesLoaderDef) method might be used instead"); 
 	    	// Get the loader definition from the XMLProperties file
 	    	ResourcesLoaderDef resLoaderDef = ResourcesLoaderDefBuilder.forDefinitionAt(_xmlProperties,
 	    																		 		resLoaderDefLocation);

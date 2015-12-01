@@ -2,8 +2,6 @@ package r01f.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -14,6 +12,7 @@ import lombok.experimental.Accessors;
 import r01f.guids.CommonOIDs.Password;
 import r01f.guids.CommonOIDs.UserCode;
 import r01f.httpclient.HttpClient;
+import r01f.types.Path;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -30,11 +29,9 @@ public class ResourcesLoaderFromURL
 	static final String PROXY_PORT_PROP = "proxyPort";
 	static final String PROXY_USER_PROP = "proxyUser";
 	static final String PROXY_PASSWORD_PROP = "proxyPassword";
-	static final String SERVER_CHARSET_PROP = "serverCharsetName";
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////	
-	@Getter @Setter private String _serverCharsetName = Charset.defaultCharset().name();	
 	@Getter @Setter private String _proxyHost;
 	@Getter @Setter private String _proxyPort;
 	@Getter @Setter private UserCode _proxyUser;
@@ -57,8 +54,6 @@ public class ResourcesLoaderFromURL
 				_proxyUser = !Strings.isNullOrEmpty(proxyUser) ? UserCode.forId(proxyUser) : null;
 				_proxyPassword = !Strings.isNullOrEmpty(proxyPwd) ? Password.forId(proxyPwd) : null;
 			}
-			String serverCharsetName = def.getProperty(SERVER_CHARSET_PROP);
-			_serverCharsetName = !Strings.isNullOrEmpty(serverCharsetName) ? serverCharsetName : null;
 		}
 	}
 	@Override
@@ -70,10 +65,11 @@ public class ResourcesLoaderFromURL
 // 	METHODS
 ///////////////////////////////////////////////////////////////////////////////
 	@Override
-	public InputStream getInputStream(final String resourceUrl,
+	public InputStream getInputStream(final Path resourceUrl,
 									  final boolean reload) throws IOException {
 		try {
-	        HttpURLConnection conx = _getURLConnection(resourceUrl,Charset.forName(this._serverCharsetName));
+	        HttpURLConnection conx = _getURLConnection(resourceUrl.asAbsoluteString(),
+	        										   this.getConfig().getCharset());
 	        InputStream is = conx.getInputStream();
 	        return is;
 		} catch(IOException ioEx) {
@@ -86,12 +82,6 @@ public class ResourcesLoaderFromURL
 			}
 			throw new IOException(msg + " > " + ioEx.getMessage());
 		}
-	}
-
-	@Override
-	public Reader getReader(final String resourceUrl,
-							final boolean reload) throws IOException {
-		return new InputStreamReader(this.getInputStream(resourceUrl,reload));
 	}
     /**
      * Returns an {@link InputStream} to the resource 

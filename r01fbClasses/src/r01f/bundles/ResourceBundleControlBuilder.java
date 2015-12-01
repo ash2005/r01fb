@@ -36,23 +36,23 @@ import r01f.xmlproperties.XMLPropertyLocation;
  * <pre class='brush:java'>
  * 		public myGuiceManagedType {
  * 			@Inject
- * 			private ResourceBundleControlFactory _resBundleControlFactory;
+ * 			private ResourceBundleControlBuilder _resBundleControlBuilder;
  * 
  * 			public void myMethod(..) {
- * 				ResourceBundleControl resBundleControl = _resBundleControlFactory.forLoadingDefinitionAt(appCode,component,xPath);
+ * 				ResourceBundleControl resBundleControl = _resBundleControlBuilder.loadingDefinitionAt(appCode,component,xPath);
  * 				ResourceBundle bundle = resBundleControl.newBundle(...);
  * 			}
  * 		}
  * </pre>
  * 
- * When a {@link ResourceBundleControl} is needed and GUICE is NOT used the {@link XMLProperties} object is NOT injected to the
+ * When a {@link ResourceBundleControl} is needed and GUICE is NOT used, the {@link XMLProperties} object is NOT injected to the
  * {@link ResourceBundleControlBuilder} and it has to be provided by hand:
  * <pre class='brush:java'>
  * 		// 1-Create a XMLProperties instance
  * 		XMLProperties props = XMLProperties.create();
  * 		// 2-Create the ResourceBundleControl using the factory		
  * 		ResourceBundleControl control = ResourceBundleControlBuilder.createUsing(props)
- * 																	.withLoadingDefinitionAt(appCode,component,xPath); 
+ * 																	.loadingDefinitionAt(appCode,component,xPath); 
  * </pre>
  * 
  * It's also possible to create the resources loading definition by hand (not loaded from a xml properties file) and
@@ -104,8 +104,8 @@ public class ResourceBundleControlBuilder
      * which is used to load the definition of the loading/reloading of the resources (an instance of {@link ResourcesLoaderDef})
      * This is the builder to use when not injected (in a not guice injected context)
      * <pre class='brush:java'>
-     * 		ResourceBundleControl resBundleControl = ResourceBundleControlFactory.createUsing(xmlProperties)
-     * 																			 .withLoadingDefinitionAt(appCode,component,xPath);
+     * 		ResourceBundleControl resBundleControl = ResourceBundleControlBuilder.createUsing(xmlProperties)
+     * 																			 .loadingDefinitionAt(appCode,component,xPath);
      * </pre> 
      * @param props the {@link XMLProperties} instance
      * @return the {@link ResourceBundleControlBuilder}
@@ -116,11 +116,12 @@ public class ResourceBundleControlBuilder
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FACTORY
 /////////////////////////////////////////////////////////////////////////////////////////
-    public ResourceBundleControl withLoadingDefinitionAt(final XMLPropertyLocation loc) {
+    public ResourceBundleControl loadingDefinitionAt(final XMLPropertyLocation loc) {
     	return ResourceBundleControlBuilder.forLoadingDefinitionAt(_xmlProperties,
     															   loc);
     }
-    public ResourceBundleControl withLoadingDefinitionAt(final AppCode appCode,final AppComponent component,final Path definitionPath) {
+    public ResourceBundleControl loadingDefinitionAt(final AppCode appCode,final AppComponent component,
+    												 final Path definitionPath) {
     	ResourceBundleControl outControl = ResourceBundleControlBuilder.forLoadingDefinitionAt(_xmlProperties, 
     															   							   appCode,component,definitionPath);
     	return outControl;

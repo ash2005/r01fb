@@ -3,8 +3,6 @@ package r01f.resources;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +15,7 @@ import r01f.exceptions.Throwables;
 import r01f.patterns.Memoized;
 import r01f.persistence.db.DBSQLExecutor;
 import r01f.reflection.ReflectionUtils;
+import r01f.types.Path;
 import r01f.util.types.collections.CollectionUtils;
 
 /**
@@ -171,7 +170,7 @@ public class ResourcesLoaderFromBBDD
 //  METHODS
 ///////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-    public InputStream getInputStream(final String resourceName,
+    public InputStream getInputStream(final Path resourceName,
     								  final boolean reload) throws IOException {
 		InputStream fileIS = null;
 		if (!_dbConnectionProps.containsKey("query")) {
@@ -190,18 +189,11 @@ public class ResourcesLoaderFromBBDD
 		}
 		if (result != null) {
 			fileIS = new ByteArrayInputStream(result.get(0).get("PROPERTIES_XML")
-														   .toString().getBytes());
+														   .toString().getBytes(this.getConfig().getCharset()));
 			_updateReloadTS();	// Actualizar la fecha de la última actualización
 		}
         return fileIS;
     }
-
-    @Override
-    public Reader getReader(final String resourceName,
-    						final boolean reload) throws IOException {
-    	return new InputStreamReader(this.getInputStream(resourceName,reload));
-    }
-
     /**
 	 * Actualizar con la fecha actual la fecha de última recarga del fichero de propiedades.
 	 */

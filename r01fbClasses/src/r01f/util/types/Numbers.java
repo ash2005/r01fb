@@ -6,16 +6,16 @@ package r01f.util.types;
 import com.google.common.base.CharMatcher;
 
 /**
- * Utilidades para el tratamiento de números
+ * Number utilities
  */
 public abstract class Numbers {
     /**
-     * El tamaño estandar para enteros de java
+     * Java integer standard size
      */
     public static final int INTEGER_WIDTH = 4;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS VARIOS
+//  MISC METHODS
 ///////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Returns true if the provided type is a numeric type
@@ -27,6 +27,9 @@ public abstract class Numbers {
     		   type.equals(Double.class) || type.equals(Float.class) || type.equals(Short.class) || 
     		   type.equals(Byte.class);
     }
+/////////////////////////////////////////////////////////////////////////////////////////
+//  EVEN/ODD
+/////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Check if the number is an even number
      * Java Puzzle 1: Oddity
@@ -37,7 +40,7 @@ public abstract class Numbers {
         return !isOdd(intNum);
     }
     /**
-     * Comprueba si un entero es impar.
+     * Checks if the number is an odd number
      * Java Puzzle 1: Oddity
      * @param intNum el entero
      * @return true si es impar
@@ -45,9 +48,8 @@ public abstract class Numbers {
     public static boolean isOdd(final int intNum) {
     	return (intNum & 1) != 0;
     }
-
     /**
-     * Comprueba si un long es par.
+     * Checks if the number is an even number
      * Java Puzzle 1: Oddity
      * @param longnum el long
      * @return true si es par
@@ -56,7 +58,7 @@ public abstract class Numbers {
     	return !isOdd(longNum);
     }
     /**
-     * Comprueba si un long es impar.
+     * Checks if the number is an odd number
      * Java Puzzle 1: Oddity
      * @param longNum el long
      * @return true si es impar
@@ -64,9 +66,76 @@ public abstract class Numbers {
     public static boolean isOdd(final long longNum) {
         return (longNum & 1) != 0;
     }
-
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Checks if the first number is within the other ones
+     * @param num
+     * @param others
+     * @return
+     */
+    public static boolean isWithin(final int num,final int... others) {
+    	if (others == null || others.length == 0) return false;
+    	for(int o : others) {
+    		if (num == o) return true;
+    	}
+    	return false;
+    }
+    /**
+     * Checks if the first number is within the other ones
+     * @param num
+     * @param others
+     * @return
+     */
+    public static boolean isWithin(final long num,final long... others) {
+    	if (others == null || others.length == 0) return false;
+    	for(long o : others) {
+    		if (num == o) return true;
+    	}
+    	return false;
+    }
+    /**
+     * Checks if the first number is within the other ones
+     * @param num
+     * @param others
+     * @return
+     */
+    public static boolean isWithin(final double num,final double... others) {
+    	if (others == null || others.length == 0) return false;
+    	for(double o : others) {
+    		if (num == o) return true;
+    	}
+    	return false;
+    }
+    /**
+     * Checks if the first number is within the other ones
+     * @param num
+     * @param others
+     * @return
+     */
+    public static boolean isWithin(final float num,final float... others) {
+    	if (others == null || others.length == 0) return false;
+    	for(float o : others) {
+    		if (num == o) return true;
+    	}
+    	return false;
+    }
+    /**
+     * Checks if the first number is within the other ones
+     * @param num
+     * @param others
+     * @return
+     */
+    public static boolean isWithin(final short num,final short... others) {
+    	if (others == null || others.length == 0) return false;
+    	for(short o : others) {
+    		if (num == o) return true;
+    	}
+    	return false;
+    }
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS DE ENMASCARADO DE BITS
+//  BIT MASKING
 ///////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Obtiene una máscara para ver el valor de un bit de un entero

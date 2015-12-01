@@ -1,5 +1,6 @@
 package r01f.resources;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -52,6 +53,9 @@ public class ResourcesLoaderDef
 	
 	@XmlElementWrapper(name="props")
 	@Getter @Setter private Map<String,String> _loaderProps;
+	
+	@XmlAttribute(name="charset")
+	@Getter @Setter private String _charsetName;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTORS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -62,10 +66,23 @@ public class ResourcesLoaderDef
 		_id = id;
 		_loader = type;
 		_reloadControlDef = reloadControlDef;
+		_charsetName = Charset.defaultCharset().name();
+	}
+	public ResourcesLoaderDef(final String id,
+							 final ResourcesLoaderType type,
+							 final ResourcesReloadControlDef reloadControlDef,
+							 final Charset charset) {
+		_id = id;
+		_loader = type;
+		_reloadControlDef = reloadControlDef;
+		_charsetName = charset != null ? charset.name() : Charset.defaultCharset().name();
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 // 	METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
+	public Charset getCharset() {
+		return Charset.forName(_charsetName);
+	}
 	/**
 	 * Creates a {@link ResourcesLoader} using this definition object 
 	 */

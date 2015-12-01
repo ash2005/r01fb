@@ -2,8 +2,6 @@ package r01f.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
@@ -45,7 +43,7 @@ public class ResourcesLoaderFromClassPath
 //  METHODS
 ///////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-    public InputStream getInputStream(final String resourcePath,
+    public InputStream getInputStream(final Path resourcePath,
     								  final boolean reload) throws IOException {
 		// IMPORTANT: ClassLoader and Class apply resource names differently
 		// see: http://www.thinkplexx.com/learn/howto/java/system/java-resource-loading-explained-absolute-and-relative-names-difference-between-classloader-and-class-resource-loading
@@ -55,8 +53,7 @@ public class ResourcesLoaderFromClassPath
 		//	  	- BUT ClassPathResourcesLoader.class.getClassLoader().getResource(name) y ClassPathResourcesLoader.class.getClassLoader().getResourceAsStream(name)
 		//		  use relative paths
 
-		String theResourcePath = Path.of(resourcePath)
-									 .asRelativeString();
+		String theResourcePath = resourcePath.asRelativeString();
         InputStream outResourceIS = null;
         ClassLoader loader = ResourcesLoaderFromClassPath.class.getClassLoader();
 
@@ -76,10 +73,5 @@ public class ResourcesLoaderFromClassPath
         	outResourceIS = loader.getResourceAsStream(theResourcePath);
         }
         return outResourceIS;
-    }
-    @Override
-    public Reader getReader(final String resourcePath,
-    						final boolean reload) throws IOException {
-    	return new InputStreamReader(this.getInputStream(resourcePath,reload));
     }
 }

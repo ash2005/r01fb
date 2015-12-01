@@ -28,6 +28,7 @@ import r01f.resources.ResourcesLoader;
 import r01f.resources.ResourcesLoaderBuilder;
 import r01f.resources.ResourcesLoaderFromClassPath;
 import r01f.resources.ResourcesLoaderFromFileSystem;
+import r01f.types.Path;
 import r01f.util.types.collections.CollectionUtils;
 
 import com.google.common.annotations.GwtIncompatible;
@@ -150,9 +151,29 @@ public class Strings {
 	 */
 	public static StringExtended load(final ResourcesLoader loader,
 									  final String filePath) throws IOException {
+		return Strings.load(loader,
+							Path.of(filePath));
+	}
+	/**
+	 * Creates a new {@link StringExtended} wrapper object to have access to fluent operations
+	 * the wrapper's buffer is loaded from a path that can be:
+	 * <ul>
+	 * 	<li>a classpath's relative path</li>
+	 * 	<li>an absolute filesystem path</li>
+	 * </ul>
+	 * The {@link ResourcesLoader} used to load the file in the provided path is the one which is 
+	 * going to use the path 
+	 * @param loader {@link ResourcesLoader} implementation: {@link ResourcesLoaderFromClassPath}, {@link ResourcesLoaderFromFileSystem}, etc
+	 * 				 if null, the default {@link ResourcesLoaderFromClassPath} is used
+	 * @param filePath the file path
+	 * @throws IOException 
+	 */
+	public static StringExtended load(final ResourcesLoader loader,
+									  final Path filePath) throws IOException {
 		ResourcesLoader theLoader = loader == null ? ResourcesLoaderBuilder.DEFAULT_RESOURCES_LOADER
 												   : loader;
-		String string = StringPersistenceUtils.load(theLoader,filePath);
+		String string = StringPersistenceUtils.load(theLoader,
+													filePath);
 		return new StringExtended(string);
 	}
 	/**
@@ -194,6 +215,27 @@ public class Strings {
 	@GwtIncompatible("IO is not supported by GWT")
 	public static StringExtended of(final Reader r,
 								    final Charset charset) throws IOException {
+		String string = StringPersistenceUtils.load(r,charset);
+		return new StringExtended(string);
+	}
+	/**
+	 * Creates a new {@link StringExtended} wrapper object to have access to fluent operations
+	 * The wrapper's buffer is loaded from a stream
+	 * @param r the stream reader
+	 */
+	@GwtIncompatible("IO is not supported by GWT")
+	public static StringExtended of(final Readable r) throws IOException {
+		return Strings.of(r,null);
+	}
+	/**
+	 * Creates a new {@link StringExtended} wrapper object to have access to fluent operations
+	 * The wrapper's buffer is loaded from a stream
+	 * @param r the stream reader
+	 * @param charset the byte stream charset
+	 */
+	@GwtIncompatible("IO is not supported by GWT")
+	public static StringExtended of(final Readable r,
+									final Charset charset) throws IOException {
 		String string = StringPersistenceUtils.load(r,charset);
 		return new StringExtended(string);
 	}
@@ -1805,7 +1847,7 @@ public class Strings {
      * @return true si es un StringBuffer vacio o null
      */
     public static boolean isNullOrEmpty(final CharSequence str) {
-        if (str == null || str.length() == 0) return true;        // true si null
+        if (str == null || str.length() == 0) return true;        // true if null
         return CharMatcher.WHITESPACE.matchesAllOf(str);
         /*
         // GWT does NOT supports Character.isWhitespace method

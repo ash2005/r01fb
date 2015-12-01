@@ -37,8 +37,8 @@ public class RESTJerseyServletGuiceModuleBase
 		Map<String,String> params = new HashMap<String,String>();
 		params.put("javax.ws.rs.Application",
 				   _jerseyAppType.getName());		
-		serve("/*").with(GuiceContainer.class,
-						 params);
+		this.serve("/*").with(GuiceContainer.class,
+						 	  params);
 		log.info("REST Application: javax.ws.rs.Application={}",_jerseyAppType.getName());
 	}
 }

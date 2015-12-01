@@ -14,67 +14,96 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
-import lombok.Cleanup;
-
 import org.apache.commons.io.input.CharSequenceReader;
 
-import r01f.resources.ResourcesLoader;
+import com.google.common.io.CharStreams;
 
-class StringPersistenceUtils {
+import lombok.Cleanup;
+import r01f.resources.ResourcesLoader;
+import r01f.types.Path;
+
+public class StringPersistenceUtils {
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CARGAR FICHEROS UTILIZANDO UN LOADER
+//  FILE LOADING
 /////////////////////////////////////////////////////////////////////////////////////////// 
     /**
-     * Carga una cadena a partir de un fichero
-     * @param loader una clase que implementa el interfaz ResourcesLoader (ej: ClassPathResourcesLoader o FileSystemResourcesLoader)
-     * 				 y que se encarga que obtener el fichero
-     * @param filePath path al fichero
-     * @return La cadena cargada a partir del fichero
+     * Loads a file content as a string
+     * @param loader a {@link ResourcesLoader} in charge of loading the file
+     * @param filePath the file path
+     * @return the file contents
+     * @throws IOException 
+     */
+	public static String load(final ResourcesLoader loader,
+							  final String filePath) throws IOException {
+    	return StringPersistenceUtils.load(loader,
+    									   Path.of(filePath));
+    }
+    /**
+     * Loads a file content as a string
+     * @param loader a {@link ResourcesLoader} in charge of loading the file
+     * @param filePath the file path
+     * @return the file contents
      * @throws IOException Si ocurre algun error al acceder al fichero
      */
 	@SuppressWarnings("resource")
-	public static String load(final ResourcesLoader loader,final String filePath) throws IOException {
-    	@Cleanup InputStream is = loader.getInputStream(filePath,true);	// true indica que NO hay que utilizar cachés (si existen)
+	public static String load(final ResourcesLoader loader,
+							  final Path filePath) throws IOException {
+    	@Cleanup InputStream is = loader.getInputStream(filePath.asString(),true);	// true = do NOT use caches if they're in place
         String outStr = StringPersistenceUtils.load(is);
         return outStr;
     }
     /**
-     * Carga una cadena a partir de un fichero y la encodea
-     * @param filePath path del fichero
-     * @param loader una clase que implementa el interfaz ResourcesLoader 
-     * 				 (ej: ClassPathResourcesLoader o FileSystemResourcesLoader)
-     * 				 y que se encarga que obtener el fichero
-     * @param encoding encoding del fichero de salida
-     * @return el contenido del fichero codificado
-     * @throws IOException si ocurre algún error al acceder al fichero
+     * Loads a file content as a string
+     * @param loader a {@link ResourcesLoader} in charge of loading the file
+     * @param filePath the file path
+     * @param encoding the file encoding
+     * @return the file contents
+     * @throws IOException 
+     */
+	public static String load(final ResourcesLoader loader,
+							  final String filePath,final Charset encoding) throws IOException {
+    	return StringPersistenceUtils.load(loader,
+    									   Path.of(filePath),
+    									   encoding);
+    }
+    /**
+     * Loads a file content as a string
+     * @param loader a {@link ResourcesLoader} in charge of loading the file
+     * @param filePath the file path
+     * @param encoding the file encoding
+     * @return the file contents
+     * @throws IOException 
      */
 	@SuppressWarnings("resource")
-	public static String load(final ResourcesLoader loader,final String filePath,final Charset encoding) throws IOException {
-    	@Cleanup InputStream is = loader.getInputStream(filePath,true);	// true indica que NO hay que utilizar cachés (si existen)
+	public static String load(final ResourcesLoader loader,
+							  final Path filePath,
+							  final Charset encoding) throws IOException {
+    	@Cleanup InputStream is = loader.getInputStream(filePath.asString(),true);	// true = do NOT use caches if they're in place
     	String outStr = StringPersistenceUtils.load(is,encoding);
     	return outStr;
     }  
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CARGAR FICHEROS A PARTIR DEL File
+//  FILE LOADING
 ///////////////////////////////////////////////////////////////////////////////////////////    
     /**
-     * Lectura completa del fichero(y caracteres especiales), incluso retornos de carro
-     * @param f fichero a cargar
-     * @return el contenido del fichero en formato de cadena
-     * @throws IOException si ocurre algún error al acceder al fichero
+     * Loads a file content as a String 
+     * @param f file
+     * @return the file content
+     * @throws IOException
      */
     public static String load(final File f) throws IOException {
     	String outStr = StringPersistenceUtils.load(f,null);
     	return outStr;
     }    
     /**
-     * Carga una cadena a partir de un fichero y la encodea
-     * @param f  del fichero
-     * @param encoding encoding del fichero de salida
-     * @return el contenido del fichero codificado
-     * @throws IOException si ocurre algún error al acceder al fichero
+     * Loads a file content as a String
+     * @param f  the file
+     * @param the file encoding
+     * @return the file content
+     * @throws IOException
      */
-    public static String load(final File f,final Charset encoding) throws IOException {
+    @SuppressWarnings("resource")
+	public static String load(final File f,final Charset encoding) throws IOException {
     	Charset theEncoding = encoding != null ? encoding : Charset.defaultCharset();
     	@Cleanup FileInputStream fis = new FileInputStream(f);
     	@Cleanup BufferedInputStream bis = new BufferedInputStream(fis);
@@ -82,12 +111,12 @@ class StringPersistenceUtils {
     	return outStr;
     }  
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CARGAR FICHEROS A PARTIR DEL Stream/Reader
+// 	STREAM LOADING
 ///////////////////////////////////////////////////////////////////////////////////////////     
     /**
-     * Lee una cadena de un inputStream
-     * @param is El inputStream
-     * @return La cadena leida
+     * Loads a stream as a String
+     * @param is the stream
+     * @return the string
      * @throws IOException
      */
     public static String load(final InputStream is) throws IOException {
@@ -96,11 +125,11 @@ class StringPersistenceUtils {
         return outStr;
     }
     /**
-     * Lee una cadena de un InputStream y encodea el resultado
-     * @param is InputStream del que leer
-     * @param encoding el encoding
-     * @return la cadena encodeada
-     * @throws IOException si se produce un error al cargar
+     * Loads a stream as a String
+     * @param is the stream
+     * @param encoding the encoding
+     * @return the file content
+     * @throws IOException
      */
 	@SuppressWarnings("resource")
 	public static String load(final InputStream is,final Charset encoding) throws IOException {
@@ -110,29 +139,29 @@ class StringPersistenceUtils {
         return outStr;
     }
     /**
-     * Lee una cadena de un reader
-     * @param r El reader
-     * @return La cadena leida
+     * Loads a stream as a String
+     * @param r the stream
+     * @return the file content
      * @throws IOException
      */
     public static String load(final Reader r) throws IOException {
         StringBuilder outString = new StringBuilder();
         if (r != null) {
-            char[] buf = new char[2 * 1024]; // Buffer de 2K
+            char[] buf = new char[2 * 1024]; // Buffer 2K
             int charsReaded = -1;
             do {
                 charsReaded = r.read(buf);
-                if (charsReaded != -1) outString.append(new String(buf, 0, charsReaded));
+                if (charsReaded != -1) outString.append(new String(buf,0,charsReaded));
             } while (charsReaded != -1);
             return outString.toString();
         }
         return null;
     }    
     /**
-     * Lee una cadena de un reader y la encodea
+     * Loads a stream as a String
      * @param r reader
-     * @param encoding para codificar la cadena
-     * @return la cadena leida codificada
+     * @param encoding stream encoding
+     * @return the file content
      * @throws IOException
      */
     public static String load(final Reader r,
@@ -143,14 +172,38 @@ class StringPersistenceUtils {
         ByteBuffer bb = theEncoding.encode(CharBuffer.wrap(srcString)); 
         return new String(bb.array());
     }
+    /**
+     * Loads a stream as a String
+     * @param r reader
+     * @return the file content
+     * @throws IOException
+     */
+    public static String load(final Readable r) throws IOException {
+    	return CharStreams.toString(r);
+    }
+    /**
+     * Loads a stream as a String
+     * @param r reader
+     * @param encoding stream encoding
+     * @return the file content
+     * @throws IOException
+     */
+    public static String load(final Readable r,
+    						  final Charset encoding) throws IOException {
+    	Charset theEncoding = encoding != null ? encoding 
+    										   : Charset.defaultCharset();  
+        String srcString = StringPersistenceUtils.load(r);
+        ByteBuffer bb = theEncoding.encode(CharBuffer.wrap(srcString)); 
+        return new String(bb.array());
+    }
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  GUARDAR FICHEROS
+//  FILE SAVE
 ///////////////////////////////////////////////////////////////////////////////////////////    
     /**
-     * Guarda una cadena en un fichero
-     * @param f El fichero
-     * @param theString La cadena a guardar en el fichero
-     * @throws IOException Si ocurre algun error al acceder al fichero
+     * Stores a String into a file
+     * @param f the file
+     * @param theString the string
+     * @throws IOException
      */
     public static void save(final CharSequence theString,final File f) throws IOException {
         BufferedReader reader = new BufferedReader(new CharSequenceReader(theString));
@@ -163,14 +216,25 @@ class StringPersistenceUtils {
         reader.close();
         writer.flush();
         writer.close();
-    }    
+    } 
     /**
-     * Guarda una cadena en un fichero
-     * @param filePath El path del fichero
-     * @param theString La cadena a guardar en el fichero
-     * @throws IOException Si ocurre algun error al acceder al fichero
+     * Saves a String into a file
+     * @param filePath the file path
+     * @param theString the String
+     * @throws IOException
      */
-    public static void save(final CharSequence theString,final String filePath) throws IOException {
+    public static void save(final CharSequence theString,
+    						final Path filePath) throws IOException {
+        StringPersistenceUtils.save(theString,new File(filePath.asString()));
+    }   
+    /**
+     * Saves a String into a file
+     * @param filePath the file path
+     * @param theString the String
+     * @throws IOException 
+     */
+    public static void save(final CharSequence theString,
+    						final String filePath) throws IOException {
         StringPersistenceUtils.save(theString,new File(filePath));
     }      
 }

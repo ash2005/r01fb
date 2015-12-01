@@ -189,6 +189,18 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 		return this.add(customized);
 	}
 	/**
+	 * Appends an element to the path customizing it before appending 
+	 * @param element
+	 * @param vars
+	 * @return
+	 */
+	public SELF_TYPE addCustomized(final String element,final Object... vars) {
+		String customized = Strings.of(element)
+								   .customizeWith(vars)
+								   .asString();
+		return this.add(customized);
+	}
+	/**
 	 * Prepends another path to the beginning of the current path
 	 * @param otherPath the path to add
 	 */

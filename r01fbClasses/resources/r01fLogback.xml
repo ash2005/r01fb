@@ -31,4 +31,8 @@
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="datos_app_log" />
 	</logger>
+	<logger name="r01f.io" level="WARN" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="datos_app_log" />
+	</logger>
 </included>

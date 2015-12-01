@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 
 import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import r01f.guids.CommonOIDs.Password;
 import r01f.guids.CommonOIDs.UserCode;
@@ -15,6 +16,7 @@ import r01f.types.Path;
 import r01f.types.TimeLapse;
 import r01f.util.types.Strings;
 
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public class ResourcesReloadControlDefBuilder 
   implements IsBuilder {
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -52,10 +54,11 @@ public class ResourcesReloadControlDefBuilder
 	 */
 	public static ResourcesReloadControlBuilderPeriodicIntervalStep createForPeriodicReloading() {
 		ResourcesReloadControlDef outDef = new ResourcesReloadControlDef(ResourcesReloadPolicy.PERIODIC);
-		return new ResourcesReloadControlBuilderPeriodicIntervalStep(outDef);
+		return new ResourcesReloadControlDefBuilder() 
+						.new ResourcesReloadControlBuilderPeriodicIntervalStep(outDef);
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesReloadControlBuilderPeriodicIntervalStep {
+	public class ResourcesReloadControlBuilderPeriodicIntervalStep {
 		private final ResourcesReloadControlDef _reloadControlDef;
 		
 		public ResourcesReloadControlBuilderEnabledStep reloadingEvery(final long milis) {
@@ -90,10 +93,11 @@ public class ResourcesReloadControlDefBuilder
 	public static ResourcesReloadControlBuilderFileUpdateTimeStampStep createForFileUpdateTimeStamp() {
 		ResourcesReloadControlDef outDef = new ResourcesReloadControlDef(ResourcesReloadPolicy.FILE_LAST_MODIF_TIMESTAMP);
 		outDef.setControlProps(new HashMap<String,String>());
-		return new ResourcesReloadControlBuilderFileUpdateTimeStampStep(outDef);
+		return new ResourcesReloadControlDefBuilder()
+						.new ResourcesReloadControlBuilderFileUpdateTimeStampStep(outDef);
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesReloadControlBuilderFileUpdateTimeStampStep {
+	public class ResourcesReloadControlBuilderFileUpdateTimeStampStep {
 		private final ResourcesReloadControlDef _reloadControlDef;
 		
 		public ResourcesReloadControlBuilderFileUpdateTimeStampLoaderStep forFile(final Path path) {
@@ -121,7 +125,7 @@ public class ResourcesReloadControlDefBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesReloadControlBuilderFileUpdateTimeStampLoaderStep {
+	public class ResourcesReloadControlBuilderFileUpdateTimeStampLoaderStep {
 		private final ResourcesReloadControlDef _reloadControlDef;
 		
 		public ResourcesReloadControlBuilderCheckStep loadedUsing(final ResourcesLoaderType resLoader) {
@@ -146,10 +150,11 @@ public class ResourcesReloadControlDefBuilder
 	 */
 	public static ResourcesReloadControlBuilderBBDDLoaderPropertiesConxStep createForBBDDChecking() {
 		ResourcesReloadControlDef reloadCtrlDef = new ResourcesReloadControlDef(ResourcesReloadPolicy.BBDD);
-		return new ResourcesReloadControlBuilderBBDDLoaderPropertiesConxStep(reloadCtrlDef);
+		return new ResourcesReloadControlDefBuilder()
+						.new ResourcesReloadControlBuilderBBDDLoaderPropertiesConxStep(reloadCtrlDef);
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesReloadControlBuilderBBDDLoaderPropertiesConxStep {
+	public class ResourcesReloadControlBuilderBBDDLoaderPropertiesConxStep {
 		private final ResourcesReloadControlDef _reloadControlDef;
 		
 		public ResourcesReloadControlBuilderBBDDLoaderPropertiesLoadSqlStep conectingUsingDataSource(final String dataSourceName) {
@@ -170,7 +175,7 @@ public class ResourcesReloadControlDefBuilder
 		}		
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesReloadControlBuilderBBDDLoaderPropertiesLoadSqlStep {
+	public class ResourcesReloadControlBuilderBBDDLoaderPropertiesLoadSqlStep {
 		private final ResourcesReloadControlDef _reloadControlDef;
 		
 		public ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesUpdateTSSqlStep sqlToLoadReloadFlag(final String sql) {
@@ -182,7 +187,7 @@ public class ResourcesReloadControlDefBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesUpdateTSSqlStep {
+	public class ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesUpdateTSSqlStep {
 		private final ResourcesReloadControlDef _reloadControlDef;
 		
 		public ResourcesReloadControlBuilderCheckStep sqlToUpdateReloadFlag(final String sql) {
@@ -197,7 +202,7 @@ public class ResourcesReloadControlDefBuilder
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesReloadControlBuilderCheckStep {
+	public class ResourcesReloadControlBuilderCheckStep {
 		private final ResourcesReloadControlDef _reloadControlDef;
 		/**
 		 * Sets the milis interval to check if a reload is needed
@@ -226,15 +231,23 @@ public class ResourcesReloadControlDefBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesReloadControlBuilderEnabledStep {
+	public class ResourcesReloadControlBuilderEnabledStep {
 		private final ResourcesReloadControlDef _reloadControlDef;
 		
-		public ResourcesReloadControlDef enabled() {
+		public ResourcesReloadControlBuilderBuildStep enabled() {
 			_reloadControlDef.setEnabled(true);
-			return _reloadControlDef;
+			return new ResourcesReloadControlBuilderBuildStep(_reloadControlDef);
 		}
-		public ResourcesReloadControlDef disabled() {
+		public ResourcesReloadControlBuilderBuildStep disabled() {
 			_reloadControlDef.setEnabled(false);
+			return new ResourcesReloadControlBuilderBuildStep(_reloadControlDef);
+		}
+	}
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	public class ResourcesReloadControlBuilderBuildStep {
+		private final ResourcesReloadControlDef _reloadControlDef;
+		
+		public ResourcesReloadControlDef build() {
 			return _reloadControlDef;
 		}
 	}

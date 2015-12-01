@@ -50,7 +50,7 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 //  FIND OIDs
 /////////////////////////////////////////////////////////////////////////////////////////
 	public FindOIDsResult<O> doFindOids(final UserContext userContext,
-										 final SerializedURL restResourceUrl) {
+										final SerializedURL restResourceUrl) {
 		// do the http call
 		String userContextXml = _marshaller.xmlFromBean(userContext);
 		HttpResponse httpResponse = DelegateForRawREST.GET(restResourceUrl,

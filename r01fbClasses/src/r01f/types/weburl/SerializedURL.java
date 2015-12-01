@@ -1,11 +1,16 @@
 package r01f.types.weburl;
 
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
+
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.collect.Sets;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,9 +23,6 @@ import r01f.types.CanBeRepresentedAsString;
 import r01f.types.Path;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.annotations.GwtIncompatible;
-import com.google.common.collect.Sets;
 
 
 /**
@@ -215,8 +217,16 @@ public class SerializedURL
 	/**
 	 * @return an object of type {@link WebUrl} from the string representing the url
 	 */
-	public WebUrl asUrl() {
+	public WebUrl asWebUrl() {
 		return WebUrl.from(_url.toString());
+	}
+	/**
+	 * Return an object of type {@link URL} from the string representing the url
+	 * @return
+	 * @throws MalformedURLException
+	 */
+	public URL asUrl() throws MalformedURLException {
+		return new URL(_url.toString());
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  WebUrlAsString

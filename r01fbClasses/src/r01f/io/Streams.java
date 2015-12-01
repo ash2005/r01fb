@@ -8,80 +8,68 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 
-import lombok.RequiredArgsConstructor;
-
 /**
- * Utilidades sobre Streams
+ * Streams utilities
  */
 public class Streams {
-///////////////////////////////////////////////////////////////////////////////
-// 
-///////////////////////////////////////////////////////////////////////////////	
-	@RequiredArgsConstructor
-	public static class InputStreamWrapper {
-		private final InputStream _is;
-		
-		
-		/**
-		 * Gets an {@link InputStream} as a byte array
-		 * @return the byte array from the {@link InputStream}
-		 * @throws IOException if an I/O error occurs
-		 */
-		public byte[] getBytes() throws IOException {
-			byte[] outBytes = IOUtils.toByteArray(_is);
-			return outBytes;
-		}
-	    /**
-	     * Pasa un InputStream a una cadena codificada en el encoding por defecto
-	     * @param is el inputStream a convertir
-	     * @return la cadena
-	     * @throws IOException si se produce un error de IO
-	     */
-		public String asString() throws IOException {
-			return this.asString(Charset.defaultCharset());
-		}
-	    /**
-	     * Pasa un InputStream a una cadena
-	     * @param is el inputStream a convertir
-	     * @param charset el charset en el que se codifica el String
-	     * @return la cadena
-	     * @throws IOException si se produce un error de IO
-	     */
-		public String asString(final Charset charSet) throws IOException {
-			Writer writer = null;
-	        if (_is != null) {
-	            writer = new StringWriter();
-	            char[] buffer = new char[1024];
-	            try {
-	                Reader reader = new BufferedReader(new InputStreamReader(_is,charSet));
-	                int n;
-	                while ((n = reader.read(buffer)) != -1) {
-	                    writer.write(buffer, 0, n);
-	                }
-	            } finally {
-	            	try {
-	            		_is.close();
-	            	} catch (IOException ioEx) {
-	            		/* ignore */
-	            	}
-	            }
-	        }         
-	        return writer != null ? writer.toString()
-	        					  : null;
-		}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  InputStream
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Gets an {@link InputStream} as a byte array
+	 * @param is
+	 * @return the byte array from the {@link InputStream}
+	 * @throws IOException if an I/O error occurs
+	 */
+	public static byte[] inputStreamBytes(final InputStream is) throws IOException {
+		byte[] outBytes = IOUtils.toByteArray(is);
+		return outBytes;
 	}
-///////////////////////////////////////////////////////////////////////////////
-// 	FACTORIAS
-///////////////////////////////////////////////////////////////////////////////
-	public static InputStreamWrapper of(final InputStream is) {
-		return new InputStreamWrapper(is);
+    /**
+     * Loads the wrapped {@link InputStream} as a String 
+     * @param is 
+     * @return 
+     * @throws IOException
+     */
+	public static String inputStreamAsString(final InputStream is) throws IOException {
+		return Streams.inputStreamAsString(is,Charset.defaultCharset());
+	}
+    /**
+     * Loads the wrapped {@link InputStream} as a String
+     * @param is
+     * @param charset 
+     * @return 
+     * @throws IOException 
+     */
+	public static String inputStreamAsString(final InputStream is,final Charset charSet) throws IOException {
+		Writer writer = null;
+        if (is != null) {
+            writer = new StringWriter();
+            char[] buffer = new char[1024];
+            try {
+                Reader reader = new BufferedReader(new InputStreamReader(is,charSet));
+                int n;
+                while ((n = reader.read(buffer)) != -1) {
+                    writer.write(buffer, 0, n);
+                }
+            } finally {
+            	try {
+            		is.close();
+            	} catch (IOException ioEx) {
+            		/* ignore */
+            	}
+            }
+        }         
+        return writer != null ? writer.toString()
+        					  : null;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS
+//  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * (from org.apache.tomcat.util.http.fileupload.util.Streams)
@@ -101,7 +89,7 @@ public class Streams {
 		return Streams.copy(pInputStream,
 						 	pOutputStream,
 						 	pClose,
-						 	new byte[8192]);
+						 	2 * 1024);
 		 
 	}
 	/**
@@ -115,9 +103,10 @@ public class Streams {
 	public static long copy(final InputStream pIn,
 							final OutputStream pOut,
 							final boolean pClose,
-							final byte[] pBuffer) throws IOException {
+							final int bufferSize) throws IOException {
 		OutputStream out = pOut;
         InputStream in = pIn;
+        byte[] pBuffer = new byte[bufferSize];
         try {
             long total = 0;
             for (;;) {
@@ -160,4 +149,40 @@ public class Streams {
             }
         }
 	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  READABLE
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Copies all {@link Readable} content to a {@link Writer}
+	 * @param r
+	 * @param w
+	 * @throws IOException
+	 */
+	public static void copy(final Readable r,
+							final Writer w) throws IOException {
+		Streams.copy(r,w,
+					 2*1024);
+	}
+	/**
+	 * Copies all {@link Readable} content to a {@link Writer}
+	 * @param r
+	 * @param w
+	 * @throws IOException
+	 */
+	public static void copy(final Readable r,
+							final Writer w,
+							final int buffSize) throws IOException {
+		CharBuffer buff = CharBuffer.allocate(2 * 1024);
+	    char[] chars = buff.array();
+	
+	    while (r.read(buff) != -1) { // Read from channel until EOF
+	      // Put the char buffer into drain mode, and write its contents
+	      // to the Writer, reading them from the backing array.
+	      buff.flip();
+	      w.write(chars,
+	    		  buff.position(),buff.remaining());
+	      buff.clear(); 		// Clear the character buffer
+	    }
+	}
+		
 }

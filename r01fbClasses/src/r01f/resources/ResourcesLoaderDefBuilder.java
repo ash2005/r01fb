@@ -2,10 +2,12 @@ package r01f.resources;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.CommonOIDs.AppCode;
@@ -64,6 +66,7 @@ import r01f.xmlproperties.XMLPropertyLocation;
  * </pre>
  */
 @Slf4j
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public class ResourcesLoaderDefBuilder 
   implements IsBuilder {
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -195,10 +198,14 @@ public class ResourcesLoaderDefBuilder
 	public static ResourcesLoaderDefManualBuilderLoaderStep create(final String id) {
 		ResourcesLoaderDef resLoaderDef = new ResourcesLoaderDef();
 		resLoaderDef.setId(id);
-		return new ResourcesLoaderDefManualBuilderLoaderStep(resLoaderDef);
+		return new ResourcesLoaderDefBuilder()
+						.new ResourcesLoaderDefManualBuilderLoaderStep(resLoaderDef);
 	}	
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesLoaderDefManualBuilderLoaderStep {
+	public class ResourcesLoaderDefManualBuilderLoaderStep {
 		private final ResourcesLoaderDef _resLoaderDef;
 		
 		public ResourcesLoaderDefManualBuilderReloadingStep usingClassPathResourcesLoader() {
@@ -226,7 +233,7 @@ public class ResourcesLoaderDefBuilder
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesConxStep {
+	public class ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesConxStep {
 		private final ResourcesLoaderDef _resLoaderDef;
 		
 		public ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesLoadSqlStep conectingUsingDataSource(final String dataSourceName) {
@@ -247,7 +254,7 @@ public class ResourcesLoaderDefBuilder
 		}		
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesLoadSqlStep {
+	public class ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesLoadSqlStep {
 		private final ResourcesLoaderDef _resLoaderDef;
 		
 		public ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesUpdateTSSqlStep sqlToLoadResource(final String sql) {
@@ -259,7 +266,7 @@ public class ResourcesLoaderDefBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesUpdateTSSqlStep {
+	public class ResourcesLoaderDefManualBuilderBBDDLoaderPropertiesUpdateTSSqlStep {
 		private final ResourcesLoaderDef _resLoaderDef;
 		
 		public ResourcesLoaderDefManualBuilderReloadingStep sqlToUpdateLastReloadTimeStamp(final String sql) {
@@ -274,7 +281,7 @@ public class ResourcesLoaderDefBuilder
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesLoaderDefManualBuilderURLLoaderPropertiesProxyStep {
+	public class ResourcesLoaderDefManualBuilderURLLoaderPropertiesProxyStep {
 		private final ResourcesLoaderDef _resLoaderDef;
 		
 		public ResourcesLoaderDefManualBuilderReloadingStep usingProxy(final String proxyHost,final int proxyPort,
@@ -296,7 +303,7 @@ public class ResourcesLoaderDefBuilder
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesLoaderDefManualBuilderPropertiesStep {
+	public class ResourcesLoaderDefManualBuilderPropertiesStep {
 		private final ResourcesLoaderDef _resLoaderDef;
 		
 		public ResourcesLoaderDefManualBuilderReloadingStep withoutProperties() {
@@ -321,11 +328,42 @@ public class ResourcesLoaderDefBuilder
 //  
 /////////////////////////////////////////////////////////////////////////////////////////	
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class ResourcesLoaderDefManualBuilderReloadingStep {
+	public class ResourcesLoaderDefManualBuilderReloadingStep {
 		private final ResourcesLoaderDef _resLoaderDef;
 		
-		public ResourcesLoaderDef reloadingAsDefinedAt(final ResourcesReloadControlDef reloadControlDef) {
+		public ResourcesLoaderDefManualBuilderCharsetStep reloadingAsDefinedAt(final ResourcesReloadControlDef reloadControlDef) {
 			_resLoaderDef.setReloadControlDef(reloadControlDef);
+			return new ResourcesLoaderDefManualBuilderCharsetStep(_resLoaderDef);
+		}
+		public ResourcesLoaderDefManualBuilderCharsetStep notReloading() {
+			_resLoaderDef.setReloadControlDef(ResourcesReloadControlDef.NO_RELOAD);
+			return new ResourcesLoaderDefManualBuilderCharsetStep(_resLoaderDef);
+		}
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////	
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	public class ResourcesLoaderDefManualBuilderCharsetStep {
+		private final ResourcesLoaderDef _resLoaderDef;
+		
+		public ResourcesLoaderDefManualBuilderBuildStep charset(final Charset charset) {
+			_resLoaderDef.setCharsetName(charset.name());
+			return new ResourcesLoaderDefManualBuilderBuildStep(_resLoaderDef);
+		}
+		public ResourcesLoaderDefManualBuilderBuildStep defaultCharset() {
+			_resLoaderDef.setCharsetName(Charset.defaultCharset().name());
+			return new ResourcesLoaderDefManualBuilderBuildStep(_resLoaderDef);
+		}
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////	
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	public class ResourcesLoaderDefManualBuilderBuildStep {
+		private final ResourcesLoaderDef _resLoaderDef;
+		
+		public ResourcesLoaderDef build() {
 			return _resLoaderDef;
 		}
 	}

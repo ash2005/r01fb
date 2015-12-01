@@ -17,8 +17,11 @@ import r01f.enums.EnumWithCode;
 import r01f.enums.EnumWithCodeWrapper;
 import r01f.enums.Enums;
 import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.CommonOIDs.Environment;
 import r01f.guids.CommonOIDs.Password;
 import r01f.guids.CommonOIDs.UserCode;
+import r01f.locale.Language;
+import r01f.locale.Languages;
 import r01f.marshalling.Marshaller;
 import r01f.reflection.ReflectionUtils;
 import r01f.resources.ResourcesLoaderDef;
@@ -285,6 +288,55 @@ public final class XMLPropertyWrapper {
 		return this.asPath(Path.of(defaultVal));
 	}
 	/**
+	 * The property value as an {@link Language} object
+	 * @return
+	 */
+	public Language asLanguageFromCode() {
+		String langCode = this.asString();
+		return Strings.isNOTNullOrEmpty(langCode) ? Languages.fromCountryCode(langCode) : null;
+	}
+	/**
+	 * The property value as an {@link Language} object or the default value if the
+	 * property is not found
+	 * @param defaultVal 
+	 * @return 
+	 */
+	public Language asLanguageFromCode(final Language defaultVal) {
+		Language outLang = this.asLanguageFromCode();
+		return outLang != null ? outLang
+							   : defaultVal;
+	}
+	/**
+	 * The property value as an {@link Environment} object
+	 * @return
+	 */
+	public Environment asEnvironment() {
+		String env = this.asString();
+		return Strings.isNOTNullOrEmpty(env) ? Environment.forId(env) : null;
+	}
+	/**
+	 * The property value as an {@link Environment} object or the default value if the
+	 * property is not found
+	 * @param defaultVal 
+	 * @return 
+	 */
+	public Environment asEnvironment(final Environment defaultVal) {
+		Environment outEnv = this.asEnvironment();
+		return outEnv != null ? outEnv
+							  : defaultVal;
+	}
+	/**
+	 * The property value as an {@link Environment} object or the default value if the
+	 * property is not found
+	 * @param defaultVal 
+	 * @return 
+	 */
+	public Environment asEnvironment(final String defaultVal) {
+		Environment outEnv = this.asEnvironment();
+		return outEnv != null ? outEnv
+							  : Environment.forId(defaultVal);
+	}
+	/**
 	 * The property value as an {@link AppCode} object
 	 * @return
 	 */
@@ -525,6 +577,49 @@ public final class XMLPropertyWrapper {
 	 */
 	public <T> T asObject(final Function<Node,T> transformFuncion) {
 		return _props.getObject(_xPath,transformFuncion);
+	}
+	/**
+	 * Returns the property as an object build from the property string value
+	 * To do so, the object type MUST implement an static valueOf(String) method
+	 * or an static fromString(String) method
+	 * @param objType
+	 * @return
+	 */
+	public <T> T asObjectFromString(final Class<T> objType) {
+		String valueAsString = this.asString();
+		if (valueAsString == null) valueAsString = "no_property_configured_at_" + _xPath;
+		return ReflectionUtils.createInstanceFromString(objType, 
+														valueAsString);
+	}
+	/**
+	 * Returns the property as an object build from the property string value
+	 * To do so, the object type MUST implement an static valueOf(String) method
+	 * or an static fromString(String) method
+	 * @param objType
+	 * @param defaultValue
+	 * @return
+	 */
+	public <T> T asObjectFromString(final Class<T> objType,
+									final T defaultValue) {
+		String valueAsString = this.asString();
+		if (valueAsString == null) return defaultValue;
+		return ReflectionUtils.createInstanceFromString(objType, 
+														valueAsString);
+	}
+	/**
+	 * Returns the property as an object build from the property string value
+	 * To do so, the object type MUST implement an static valueOf(String) method
+	 * or an static fromString(String) method
+	 * @param objType
+	 * @param defaultValue
+	 * @return
+	 */
+	public <T> T asObjectFromString(final Class<T> objType,
+									final String defaultValue) {
+		String valueAsString = this.asString();
+		if (valueAsString == null) valueAsString = defaultValue;
+		return ReflectionUtils.createInstanceFromString(objType, 
+														valueAsString);
 	}
 	/**
 	 * Devuelve la propiedad como un objeto de definición de carga de recursos {@link ResourcesLoaderDef}

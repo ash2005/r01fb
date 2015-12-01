@@ -59,12 +59,11 @@ import r01f.util.types.collections.CollectionUtils;
  *				public void configure(Binder binder) {		
  *				}
  *				@Provides @Named("myProjectProperties")
- *				public ConfigProperties provideMyConfigProperties(final ConfigPropertiesFactory configPropertiesFactory) {
- *					// The ConfigPropertiesFactory instance is injected to the provider
- *					return configPropertiesFactory.forBundle("myProject.properties")
- *				  		 	 			 		  .loadedUsingDefinitionAt(AppCode.forId("r01fb"),
- *										  								  				 AppComponent.forId("test"),
- *										  								  				 Path.of("/properties/resourcesLoader[@id='myClassPathResourcesLoader']"));
+ *				public ConfigProperties provideMyConfigProperties(final ConfigPropertiesBuilder ConfigPropertiesBuilder) {
+ *					// The ConfigPropertiesBuilder instance is injected to the provider
+ *					return ConfigPropertiesBuilder.forBundle("myProject.properties")
+ *				  		 	 			 		  .loadedUsingDefinitionAt(AppCode.forId("r01fb"),AppComponent.forId("test"),
+ *										  								   Path.of("/properties/resourcesLoader[@id='myClassPathResourcesLoader']"));
  *				}
  *			}
  * 	</pre><pre>
@@ -96,40 +95,19 @@ import r01f.util.types.collections.CollectionUtils;
  * [OPTION 2]: Create the {@link ConfigProperties} by hand (not using GUICE at all)
  * </h3>
  * <pre>
- * 		1.- Create a ResourceBundleControlFactory that provides ResourceBundleControl object instances
- * 		    The factory needs an instance of an XMLProperties file where the resources loading/reloading is defined</pre>
- * 			<pre class='brush:java'>
- * 			XMLProperties props = XMLProperties.create(); 	// Normally you would put this XMLProperties in an static instance since it maintains a cache of properties
- * 			ResourceBundleControlFactory resBundleControlFactory = ResourceBundleControlFactory.create(props);
- * 			</pre><pre>
- * 		2.- Create the ConfigPropertiesFactory</pre>
- * 			<pre class='brush:java'>
- * 			ConfigPropertiesFactory cfgPropsFactory = ConfigPropertiesFactory.create(resBundleControlFactory);
- * 			</pre><pre>
- * 		3.- Create the ConfigProperties</pre>
- * 			<pre class='brush:java'>
- *	    	ConfigProperties props = cfgPropsFactory.forBundle("properties/myProject")
- *	    											.loadedUsingDefinitionAt(AppCode.forId("r01fb"),
- *	    																     AppComponent.forId("test"),
- *	    																     Path.of("/properties/resourcesLoader[@id='myClassPathResourcesLoader']"));
- * 			</pre>
+ *	    ConfigProperties props = ConfigPropertiesBuilder.create(new XMLProperties())
+ *														.forBundle("properties/myProject")
+ *	    												.loadedUsingDefinitionAt(AppCode.forId("r01fb"),AppComponent.forId("test"),
+ *	    															     		 Path.of("/properties/resourcesLoader[@id='myClassPathResourcesLoader']"));
  * <pre> 
- * If the resources loading/reloading is NOT defined in an XMLProperties file, the ResourceBundleControlFactory can be
+ * If the resources loading/reloading is NOT defined in an XMLProperties file, the ResourceBundleControlBuilder can be
  * created as:
- * 		1.- Create a ResourceBundleControlFactory that provides ResourceBundleControl object instances</pre>
- * 			<pre class='brush:java'>
- * 			ResourceBundleControlFactory resBundleControlFactory = ResourceBundleControlFactory.create();
- * 			</pre><pre>
- * 		2.- Create the ConfigPropertiesFactory</pre>
- * 			<pre class='brush:java'>
- * 			ConfigPropertiesFactory cfgPropsFactory = ConfigPropertiesFactory.create(resBundleControlFactory);
- * 			</pre><pre>
- * 		3.- Create the ConfigProperties</pre>
- * 			<pre class='brush:java'>
- *	    	ConfigProperties props = cfgPropsFactory.forBundle("properties/myProject")
- *	    											.loadedUsingDefinition(ResourceLoaderDef.DEFAULT);	// use the default resources loading/reloading definition
- *																										// obviously a custom one could be used
- * 			</pre>
+ * 	<pre class='brush:java'>
+ *	   	ConfigProperties props = ConfigPropertiesBuilder.create()
+ *														.forBundle("properties/myProject")
+ *	   													.loadedUsingDefinition(ResourceLoaderDef.DEFAULT);	// use the default resources loading/reloading definition
+ *																											// obviously a custom one could be used
+ * 	</pre>
  */
 @Slf4j
 @Accessors(prefix="_")

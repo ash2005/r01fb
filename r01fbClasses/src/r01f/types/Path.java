@@ -98,5 +98,12 @@ public class Path
 	public static Path join(final String... paths) {
 		return Path.of(paths);
 	}
-
+	public static Path join(final Object... paths) {
+		Path outPath = null;
+		if (CollectionUtils.hasData(paths)) {
+			outPath = Path.create();
+			for (Object path : paths) outPath.add(path);
+		}
+		return outPath;
+	}
 }

@@ -3,9 +3,9 @@ package r01f.resources;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.Map;
+
+import r01f.types.Path;
 
 /**
  * Loads a file from the file system
@@ -26,14 +26,9 @@ public class ResourcesLoaderFromFileSystem
 //  METODOS
 ///////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-    public InputStream getInputStream(final String resourceName,
+    public InputStream getInputStream(final Path resourceName,
     								  final boolean reload) throws IOException {
-        InputStream fileIS = new FileInputStream(resourceName);
+        InputStream fileIS = new FileInputStream(resourceName.asAbsoluteString());
         return fileIS;
-    }
-    @Override
-    public Reader getReader(final String resourceName,
-    						final boolean reload) throws IOException {
-    	return new InputStreamReader(this.getInputStream(resourceName,reload));
     }
 }

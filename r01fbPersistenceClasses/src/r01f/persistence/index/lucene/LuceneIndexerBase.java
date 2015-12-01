@@ -50,7 +50,7 @@ import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
 /**
- * Base Lucene indexer that encapsulates the logic described at {@link LuceneDocumentFactory} to create a lucene's {@link Document}
+ * Base Lucene indexer that encapsulates the logic described at {@link LuceneDocumentFactoryForIndexableModelObject} to create a lucene's {@link Document}
  * from a model object
  * @param <P>
  */
@@ -166,7 +166,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 									  			.andValue(_luceneIdFieldValueFrom(modelObj)));
 		
 		// [3] - Create a fields factory that uses the fields config to create the lucene fields
-		LuceneDocumentFactory docFactory = LuceneDocumentFactory.of(_fieldsConfigSet);	// creates fields using the fieldsConfigSet
+		LuceneDocumentFactoryForIndexableModelObject docFactory = LuceneDocumentFactoryForIndexableModelObject.of(_fieldsConfigSet);	// creates fields using the fieldsConfigSet
 		
 		// [4] - Create the fields using the factory
 		if (fieldsValues.hasData()) {
@@ -243,7 +243,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 //  FIELD CREATION
 /////////////////////////////////////////////////////////////////////////////////////////
 	@SuppressWarnings("unchecked")
-	private <T> void _createField(final LuceneDocumentFactory fieldsFactory,
+	private <T> void _createField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  final IndexDocumentFieldValue<T> indexableFieldValue) {
 		FieldMetaData fieldMetaDataConfig = indexableFieldValue.getMetaDataConfig();
 		IndexableFieldID fieldId = indexableFieldValue.getFieldId();
@@ -368,7 +368,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 		}
 	}
 	@SuppressWarnings("unchecked")
-	private static <T> void _createField(final LuceneDocumentFactory fieldsFactory,
+	private static <T> void _createField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 final IndexDocumentFieldID luceneFieldId,
 								  		 final T value) { 
 		if (value instanceof OID) {
@@ -423,7 +423,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  OID 
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createLuceneIdField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createLuceneIdField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 									  		 final IndexDocumentFieldValue<String> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<String>() {
@@ -436,13 +436,13 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createLuceneIdField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createLuceneIdField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 									  		 final IndexDocumentFieldID luceneFieldId,
 									  		 final String id) {
 		fieldsFactory.createField(luceneFieldId)
 					 .setStringValue(id);
 	}
-	private static void _createOidField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createOidField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								 		final IndexDocumentFieldValue<OID> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<OID>() {
@@ -455,7 +455,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createOidField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createOidField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								 		final IndexDocumentFieldID luceneFieldId,
 								 		final OID oid) {
 		fieldsFactory.createField(luceneFieldId)
@@ -464,7 +464,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  String
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createJavaTypeField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createJavaTypeField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										   	 final IndexDocumentFieldValue<Class<?>> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Class<?>>() {
@@ -477,7 +477,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createJavatypeField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createJavatypeField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										     final IndexDocumentFieldID luceneFieldId,
 										     final Class<?> value) {
 		fieldsFactory.createField(luceneFieldId)
@@ -486,7 +486,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  String
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createStringField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createStringField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										   final IndexDocumentFieldValue<String> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<String>() {
@@ -499,7 +499,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createStringField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createStringField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										   final IndexDocumentFieldID luceneFieldId,
 										   final String value) {
 		fieldsFactory.createField(luceneFieldId)
@@ -508,7 +508,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CanBeRepresentedAsString
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createCanBeRepresentedAsStringField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createCanBeRepresentedAsStringField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 		  			 final IndexDocumentFieldValue<CanBeRepresentedAsString> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<CanBeRepresentedAsString>() {
@@ -521,7 +521,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createCanBeRepresentedAsStringField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createCanBeRepresentedAsStringField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										 		  			 final IndexDocumentFieldID luceneFieldId,
 										 		  			 final CanBeRepresentedAsString str) {
 		fieldsFactory.createField(luceneFieldId)
@@ -531,7 +531,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 //  Reader
 /////////////////////////////////////////////////////////////////////////////////////////
 	@SuppressWarnings("unused")
-	private static void _createReaderField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createReaderField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										   final IndexDocumentFieldValue<Reader> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Reader>() {
@@ -544,7 +544,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createReaderField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createReaderField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										   final IndexDocumentFieldID luceneFieldId,
 										   final Reader value) {
 		fieldsFactory.createField(luceneFieldId)
@@ -553,7 +553,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Numeric
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createBooleanField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createBooleanField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 									 		final IndexDocumentFieldValue<Boolean> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Boolean>() {
@@ -566,14 +566,14 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createBooleanField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createBooleanField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										    final IndexDocumentFieldID luceneFieldId,
 										    final boolean bool) {
 		int boolValue = bool ? 1 : 0;
 		fieldsFactory.createField(luceneFieldId)
 					 .setIntValue(boolValue);
 	}
-	private static void _createIntegerField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createIntegerField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 									 		final IndexDocumentFieldValue<Integer> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Integer>() {
@@ -586,13 +586,13 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createIntegerField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createIntegerField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										    final IndexDocumentFieldID luceneFieldId,
 										    final int number) {
 		fieldsFactory.createField(luceneFieldId)
 					 .setIntValue(number);
 	}
-	private static void _createLongField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createLongField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 final IndexDocumentFieldValue<Long> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Long>() {
@@ -605,13 +605,13 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createLongField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createLongField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 final IndexDocumentFieldID luceneFieldId,
 								  		 final long number) {
 		fieldsFactory.createField(luceneFieldId)
 					 .setLongValue(number);
 	}
-	private static void _createDoubleField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createDoubleField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		   final IndexDocumentFieldValue<Double> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Double>() {
@@ -624,13 +624,13 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createDoubleField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createDoubleField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		   final IndexDocumentFieldID luceneFieldId,
 								  		   final double number) {
 		fieldsFactory.createField(luceneFieldId)
 					 .setDoubleValue(number);
 	}
-	private static void _createFloatField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createFloatField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		  final IndexDocumentFieldValue<Float> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Float>() {
@@ -643,7 +643,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createFloatField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createFloatField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 final IndexDocumentFieldID luceneFieldId,
 								  		 final float number) {
 		fieldsFactory.createField(luceneFieldId)
@@ -652,7 +652,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Date
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createDateField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createDateField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 final IndexDocumentFieldValue<Date> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Date>() {
@@ -665,7 +665,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createDateField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createDateField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										 final IndexDocumentFieldID luceneFieldId,
 										 final Date date) {
 		fieldsFactory.createField(luceneFieldId)
@@ -674,7 +674,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  RANGE
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createRangeField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createRangeField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		  final IndexDocumentFieldValue<Range<? extends Comparable<?>>> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Range<? extends Comparable<?>>>() {
@@ -690,7 +690,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 
 	
 
-	private static <T extends Comparable<T>> void _createRangeField(final LuceneDocumentFactory fieldsFactory,
+	private static <T extends Comparable<T>> void _createRangeField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										 							final IndexDocumentFieldID luceneFieldId,
 										 							final Range<T> range) {		
 		
@@ -766,7 +766,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Path
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createPathField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createPathField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 final IndexDocumentFieldValue<IsPath> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<IsPath>() {
@@ -779,7 +779,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createPathField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createPathField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										 final IndexDocumentFieldID luceneFieldId,
 										 final IsPath path) {
 		fieldsFactory.createField(luceneFieldId)
@@ -788,7 +788,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Path
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createSerializedUrlField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createSerializedUrlField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 		  final IndexDocumentFieldValue<SerializedURL> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<SerializedURL>() {
@@ -801,7 +801,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createSerializedUrlField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createSerializedUrlField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										 		  final IndexDocumentFieldID luceneFieldId,
 										 		  final SerializedURL url) {
 		fieldsFactory.createField(luceneFieldId)
@@ -810,7 +810,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Enum
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createEnumField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createEnumField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 final IndexDocumentFieldValue<Enum<? extends Enum<?>>> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Enum<? extends Enum<?>>>() {
@@ -823,7 +823,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });	
 	}
-	private static void _createEnumField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createEnumField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 								  		 final IndexDocumentFieldID luceneFieldId,
 								  		 final Enum<? extends Enum<?>> en) {
 		if (en instanceof Language) {
@@ -859,7 +859,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Summary
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static void _createSummaryField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createSummaryField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 									 		final IndexDocumentFieldValue<Summary> indexableField) {
 		_process(indexableField,
 				 new FieldFactory<Summary>() {
@@ -872,7 +872,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							}
 				 });
 	}
-	private static void _createSummaryField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createSummaryField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 									 		final IndexDocumentFieldID luceneFieldId,
 									 		final Summary summary) {
 		if (summary != null) {
@@ -893,7 +893,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 			}
 		}		
 	}
-	private static void _createLangDependentSummaryFields(final LuceneDocumentFactory fieldsFactory,
+	private static void _createLangDependentSummaryFields(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 												   		  final IndexDocumentFieldID luceneFieldId,
 												   		  final LangDependentSummary summary) {
 		// Guess the language from the id
@@ -910,7 +910,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 							   summary.asString(lang));		// dynamic dimension (language) dependent
 		}
 	}
-	private static void _createLangIndependentSummaryField(final LuceneDocumentFactory fieldsFactory,
+	private static void _createLangIndependentSummaryField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 														   final IndexDocumentFieldID luceneFieldId,
 														   final LangIndependentSummary summary) {
 		// Field value: note that summaries are only stored but full-text summaries are indexed and not stored

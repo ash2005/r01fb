@@ -82,9 +82,9 @@ public abstract class BeanImplementedPersistenceServicesCoreBootstrapGuiceModule
 			  otherModules);
 	}
 	public BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-														   final DBGuiceModuleBase dbGuiceModule,
-														   final SearchGuiceModuleBase searchGuiceModule,
-														   final Module... otherModules) {
+														   				  final DBGuiceModuleBase dbGuiceModule,
+														   				  final SearchGuiceModuleBase searchGuiceModule,
+														   				  final Module... otherModules) {
 		super(apiAppCode,
 			  dbGuiceModule,
 			  searchGuiceModule,
