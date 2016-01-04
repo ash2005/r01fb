@@ -12,7 +12,7 @@ import r01f.guids.VersionOID;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
-import r01f.persistence.CRUDOnMultipleEntitiesResult;
+import r01f.persistence.CRUDOnMultipleResult;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.PersistenceException;
 import r01f.services.interfaces.CRUDServicesForVersionableModelObject;
@@ -173,7 +173,7 @@ public abstract class ClientAPIDelegateForVersionableModelObjectCRUDServices<O e
 														srcEntity);	
 			// Return or throw
 			if (dstEntityCreate.hasSucceeded()) {
-				if (dstEntityCreate.asOK().hasBeenCreated()) {					//asOK(CRUDOK.class)
+				if (dstEntityCreate.asCRUDOK().hasBeenCreated()) {					//asOK(CRUDOK.class)
 					// OK
 					outDstEntity = dstEntityCreate.getOrThrow();
 				} else {
@@ -183,10 +183,10 @@ public abstract class ClientAPIDelegateForVersionableModelObjectCRUDServices<O e
 				}
 			} else {
 				// Throw the creation exception
-				dstEntityCreate.asError().throwAsPersistenceException();		// asError(CRUDError.class)
+				dstEntityCreate.asCRUDError().throwAsPersistenceException();		// asError(CRUDError.class)
 			}
 		} else {
-			srcEntityLoad.asError().throwAsPersistenceException();				// asError(CRUDError.class)
+			srcEntityLoad.asCRUDError().throwAsPersistenceException();				// asError(CRUDError.class)
 		}
 		return outDstEntity;
 	}
@@ -209,17 +209,17 @@ public abstract class ClientAPIDelegateForVersionableModelObjectCRUDServices<O e
 	 */
 	public Collection<M> deleteAllVersions(final VersionIndependentOID oid) throws PersistenceException {
 		// [1] - Call services layer
-		CRUDOnMultipleEntitiesResult<M> deletionOpsResults = this.getServiceProxy()
+		CRUDOnMultipleResult<M> deletionOpsResults = this.getServiceProxy()
 																		.deleteAllVersions(this.getUserContext(),
 											   								   	  	 	   oid);
 		log.debug(deletionOpsResults.debugInfo().toString());
 		
 		// [2] - Return the deleted records
 		Collection<M> outDeletedRecords = deletionOpsResults.getSuccessfulOperationsOrThrow();
-		if (deletionOpsResults.asOK()	//as(CRUDOnMultipleEntitiesOK.class)		// 
+		if (deletionOpsResults.asCRUDOnMultipleOK()	 
 							  .haveSomeFailed()) {
 			log.error("Some entities with oid={} versions delete operations have failed: {} OK and {} ERROR",
-					  oid,deletionOpsResults.asOK().getNumberOfOperationsOK(),deletionOpsResults.asOK().getNumberOfOperationsNOK());
+					  oid,deletionOpsResults.asCRUDOnMultipleOK().getNumberOfOperationsOK(),deletionOpsResults.asCRUDOnMultipleOK().getNumberOfOperationsNOK());
 		}
 		ClientAPIModelObjectChangesTrack.startTrackingChangesOnDeleted(outDeletedRecords);
 		

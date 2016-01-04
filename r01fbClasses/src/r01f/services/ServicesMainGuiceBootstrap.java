@@ -30,6 +30,7 @@ import r01f.services.core.internal.ServicesCoreBootstrapModulesFinder;
 import r01f.services.core.internal.ServicesCoreForAppModulePrivateGuiceModule;
 import r01f.services.core.internal.ServletImplementedServicesCoreGuiceModuleBase;
 import r01f.services.interfaces.ServiceInterface;
+import r01f.services.interfaces.ServiceInterfaceFor;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 import r01f.util.types.collections.Lists;
@@ -140,7 +141,7 @@ public class ServicesMainGuiceBootstrap {
 	private final Map<AppCode,Collection<AppAndComponent>> _coreAppAndModules;
 	/**
 	 * The core app codes and modules and the default service proxy impl 
-	 * (it's loaded from {apiAppCode}.core.properties.xml
+	 * (it's loaded from {apiAppCode}.client.properties.xml
 	 */
 	private final Map<AppCode,Map<AppAndComponent,ServicesImpl>> _coreAppAndModulesDefProxy;
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -154,7 +155,7 @@ public class ServicesMainGuiceBootstrap {
 		for (final AppCode apiAppCode : _apiAppCodes) {
 			final XMLPropertiesForApp _apiProps = XMLProperties.createForApp(apiAppCode)
 									 						   .notUsingCache();	
-			// Find all core appCode / modules from {apiAppCode}.core.properties.xml
+			// Find all core appCode / modules from {apiAppCode}.client.properties.xml
 			Collection<AppAndComponent> coreAppAndModules = _apiProps.forComponent("client")
 												  			    	 .propertyAt("/client/proxies")
 												  			    	 .asObjectList(new Function<Node,AppAndComponent>() {
@@ -165,7 +166,7 @@ public class ServicesMainGuiceBootstrap {
 																								return AppAndComponent.composedBy(coreAppCode,module); 
 																							}
 													 					          });
-			// Fin all core appCode / modules default proxy to use from {apiAppCode}.client.properties.xml
+			// Find all core appCode / modules default proxy to use from {apiAppCode}.client.properties.xml
 			Map<AppAndComponent,ServicesImpl> coreAppAndModulesDefProxy = null;
 			coreAppAndModulesDefProxy = Maps.toMap(coreAppAndModules,
 												   new Function<AppAndComponent,ServicesImpl>() {
@@ -256,7 +257,8 @@ public class ServicesMainGuiceBootstrap {
 		log.warn("  [END]-Find CLIENT binding modules====================================================================================");
 		
 		
-		// [2] - Find the CORE (server) bootstrap guice module types for the cores defined at r01m.core.properties.xml file
+		// [2] - Find the CORE (server) bootstrap guice module types for the cores defined at r01m.client.properties.xml file
+		//		 for each app/component combination there might be multiple Bean/REST/EJB/Servlet, etc core bootstrap modules
     	log.warn("[START]-Find CORE binding modules======================================================================================");
     	ServicesCoreBootstrapModulesFinder coreBootstrapModulesFinder = new ServicesCoreBootstrapModulesFinder(apiAppCode,
     																										   _coreAppAndModules.get(apiAppCode));
@@ -265,7 +267,14 @@ public class ServicesMainGuiceBootstrap {
 		log.warn("  [END]-Find CORE binding modules======================================================================================");
 
 		
-		// [3] - Find the service interface to proxy and / or impls matchings 
+		// [3] - Find the client-api service interface to proxy and / or impls matchings 
+		//		 At {apiAppCode}.client.properties.xml all proxy/impl for every coreAppCode / module is defined:
+		//					<proxies>
+		//						<proxy appCode="coreAppCode1" id="moduleA1" impl="REST">Module definition</proxy>
+		//						<proxy appCode="coreAppCode1" id="moduleB1" impl="REST">Module definition</proxy>
+		//						<proxy appCode="coreAppCode2" id="moduleA2" impl="Bean">Module definition</proxy>
+		//					</proxies>
+		//		 now every client-api defined service interface is matched to a proxy implementation
 		log.warn("[START]-Find ServiceInterface to bean impl and proxy matchings ========================================================");
 		ServicesClientInterfaceToImplAndProxyFinder serviceIfaceToImplAndProxiesFinder = new ServicesClientInterfaceToImplAndProxyFinder(apiAppCode,
 																											   				        	 _coreAppAndModulesDefProxy.get(apiAppCode));
@@ -363,25 +372,42 @@ public class ServicesMainGuiceBootstrap {
 				// Create the definition
 				ServiceBootstrapDef modDef = new ServiceBootstrapDef(apiAppCode,
 																     coreAppAndModule,
-																	 _coreAppAndModulesDefProxy.get(apiAppCode).get(coreAppAndModule));
-				// set the service interface to impl and proxy binding definition
-				modDef.setServiceInterfacesToImplAndProxiesDefs(serviceInterfacesToImplAndProxyByAppModule.get(coreAppAndModule));
-				
+																	 _coreAppAndModulesDefProxy.get(apiAppCode).get(coreAppAndModule));				
 				
 				// divide the core bootstrap guice modules by type
 				for (Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapGuiceModule : coreBootstrapGuiceModules) {
-					if (ReflectionUtils.isImplementing(coreBootstrapGuiceModule,BeanImplementedServicesCoreBootstrapGuiceModuleBase.class)) {
+					if (ReflectionUtils.isImplementing(coreBootstrapGuiceModule,
+													   BeanImplementedServicesCoreBootstrapGuiceModuleBase.class)) {
 						modDef.addCoreBeanBootstrapModuleType((Class<? extends BeanImplementedServicesCoreBootstrapGuiceModuleBase>)coreBootstrapGuiceModule);
-					} else if (ReflectionUtils.isImplementing(coreBootstrapGuiceModule,RESTImplementedServicesCoreGuiceModuleBase.class)) {
+					} else if (ReflectionUtils.isImplementing(coreBootstrapGuiceModule,
+															  RESTImplementedServicesCoreGuiceModuleBase.class)) {
 						modDef.addCoreRESTBootstrapModuleType((Class<? extends RESTImplementedServicesCoreGuiceModuleBase>)coreBootstrapGuiceModule);
-					} else if (ReflectionUtils.isImplementing(coreBootstrapGuiceModule,EJBImplementedServicesCoreGuiceModuleBase.class)) {
+					} else if (ReflectionUtils.isImplementing(coreBootstrapGuiceModule,
+															  EJBImplementedServicesCoreGuiceModuleBase.class)) {
 						modDef.addCoreEJBBootstrapModuleType((Class<? extends EJBImplementedServicesCoreGuiceModuleBase>)coreBootstrapGuiceModule);
-					} else if (ReflectionUtils.isImplementing(coreBootstrapGuiceModule,ServletImplementedServicesCoreGuiceModuleBase.class)) {
+					} else if (ReflectionUtils.isImplementing(coreBootstrapGuiceModule,
+															  ServletImplementedServicesCoreGuiceModuleBase.class)) {
 						modDef.addCoreServletBootstrapModuleType((Class<? extends ServletImplementedServicesCoreGuiceModuleBase>)coreBootstrapGuiceModule);
 					} else {
 						throw new IllegalArgumentException("Unsupported bootstrap guice module type: " + coreBootstrapGuiceModule);
 					}
 				} 
+				
+				// set the service interface to impl and proxy binding definition
+				if (serviceInterfacesToImplAndProxyByAppModule.get(coreAppAndModule) == null) {
+					log.warn("BEWARE!!!!! The core module {} is NOT accesible via a client-API service interface: " +
+							 "there's NO client API service interface to impl and/or proxy binding for {}; " +
+							 "check that the types implementing {} has the @{} annotation ant the appCode and module attributes match the coreAppCode & module " +
+							 "(they MUST match the ones in {}.client.properties.xml). " + 
+							 "This is usually an ERROR except on coreAppCode/modules that do NOT expose anything at client-api (ie the Servlet modules)",
+							   coreAppAndModule,
+							   coreAppAndModule,
+							   ServiceInterface.class.getName(),ServiceInterfaceFor.class.getSimpleName(),
+							   coreAppAndModule.getAppCode());
+				} else {					
+					modDef.setServiceInterfacesToImplAndProxiesDefs(serviceInterfacesToImplAndProxyByAppModule.get(coreAppAndModule));
+				}
+				
 				outGuiceModuleDefByAppAndModule.add(modDef);
 			}
 		}

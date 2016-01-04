@@ -7,7 +7,7 @@ import r01f.guids.VersionIndependentOID;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
-import r01f.persistence.CRUDOnMultipleEntitiesResult;
+import r01f.persistence.CRUDOnMultipleResult;
 import r01f.persistence.CRUDResult;
 import r01f.usercontext.UserContext;
 
@@ -50,8 +50,8 @@ public interface CRUDServicesForVersionableModelObject<O extends OIDForVersionab
 	 * @param oid the identifier of the record whose versions are to be deleted
 	 * @return the versions delete operation result
 	 */
-	public CRUDOnMultipleEntitiesResult<M> deleteAllVersions(final UserContext userContext,
-									 				       	 final VersionIndependentOID oid);
+	public CRUDOnMultipleResult<M> deleteAllVersions(final UserContext userContext,
+									 				       	 	 final VersionIndependentOID oid);
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ACTIVATION
 /////////////////////////////////////////////////////////////////////////////////////////

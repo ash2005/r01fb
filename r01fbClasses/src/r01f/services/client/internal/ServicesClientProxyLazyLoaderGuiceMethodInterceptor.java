@@ -107,15 +107,19 @@ public class ServicesClientProxyLazyLoaderGuiceMethodInterceptor
 												 namedField2.getField());
 			}
 		}
+		
 		// Check that there's a Map annotated for every appCode / module
 		if (CollectionUtils.isNullOrEmpty(fields)) throw new IllegalStateException(Throwables.message("{} instance does NOT have any @{} annotated Map<Class,ServiceInterface> fields for service interface type to bean impl or proxy bindings", 
 																									  serviceInterfaceTypesToImplOrProxyMappings.getClass(),Names.class.getSimpleName()));
 		for (AppAndComponent coreAppAndModule : coreAppAndModules) {
 			Field f = fields.get(coreAppAndModule);
-			if (f == null) throw new IllegalStateException(Throwables.message("{} instance does NOT have an injected Map<Class,ServiceInterface> annotated with {}",
-																			  serviceInterfaceTypesToImplOrProxyMappings.getClass(),coreAppAndModule));
-			if (!ReflectionUtils.isImplementing(f.getType(),Map.class)) throw new IllegalStateException(Throwables.message("{} instance has a @{}({}) annotated field that MUST be a Map<Class,ServiceInterface>",
-																												  		   serviceInterfaceTypesToImplOrProxyMappings.getClass(),Names.class.getSimpleName(),coreAppAndModule));
+//			if (f == null) throw new IllegalStateException(Throwables.message("{} instance does NOT have an injected Map<Class,ServiceInterface> annotated with {}",
+//																			  serviceInterfaceTypesToImplOrProxyMappings.getClass(),coreAppAndModule));
+			if (f == null) log.warn("BEWARE!!!!!!! {} instance does NOT have an injected Map<Class,ServiceInterface> annotated with {}; " + 
+									"this is usually an ERROR except when the coreApp/module does NOT exposes any interface at the client-api (ie servlet modules)",
+									serviceInterfaceTypesToImplOrProxyMappings.getClass(),coreAppAndModule);
+			if (f != null && !ReflectionUtils.isImplementing(f.getType(),Map.class)) throw new IllegalStateException(Throwables.message("{} instance has a @{}({}) annotated field that MUST be a Map<Class,ServiceInterface>",
+																												  		   				serviceInterfaceTypesToImplOrProxyMappings.getClass(),Names.class.getSimpleName(),coreAppAndModule));
 		}
 		
 		// create a Map to collect all Maps from the _serviceInterfaceTypesToImplOrProxyMappings's Map fields

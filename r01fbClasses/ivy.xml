@@ -19,7 +19,10 @@
 -->
 <ivy-module version="2.0" 
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+            xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd"
+            xmlns:e="http://ant.apache.org/ivy/extra" 
+			xmlns:m="http://ant.apache.org/ivy/maven">
+			
     <info organisation="com.ejie.r01.r01fb"
           module="r01fbClasses"
            revision="0.0.5"
@@ -75,7 +78,9 @@
 		<!-- ============================================================================================================================== -->
 		<dependency org="org.apache.commons" name="commons-compress" rev="1.9" transitive="false" />
 		<dependency org="org.apache.commons" name="commons-lang3" rev="3.3.2" transitive="false" />
-		<dependency org="commons-beanutils" name="commons-beanutils" rev="1.9.2" transitive="false" />
+		<dependency org="commons-beanutils" name="commons-beanutils" rev="1.9.2" transitive="false">
+			<exclude org="commons-logging" />	<!-- it's also excluded in general (see below)-->
+		</dependency>
 		<dependency org="commons-collections" name="commons-collections" rev="3.2.1" transitive="false"/>		
 		<dependency org="commons-io" name="commons-io" rev="2.4" transitive="false"/>            
 		<dependency org="commons-codec" name="commons-codec" rev="1.10" transitive="false"/>
@@ -83,7 +88,7 @@
 		<!-- ============================================================================================================================== -->
 		<!-- Guava                                                                                                                          -->
 		<!-- ============================================================================================================================== --> 
-		<dependency org="com.google.guava" name="guava" rev="19.0-rc2"/>
+		<dependency org="com.google.guava" name="guava" rev="19.0"/>
 		
 		<!-- ============================================================================================================================== -->
 		<!-- GUICE                                                                                                                          -->

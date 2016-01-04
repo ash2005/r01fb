@@ -19,7 +19,10 @@
 -->
 <ivy-module version="2.0" 
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+            xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd"
+            xmlns:e="http://ant.apache.org/ivy/extra" 
+			xmlns:m="http://ant.apache.org/ivy/maven">
+			
     <info organisation="com.ejie.r01.r01fb"
           module="r01fbAspectCoreClasses"
           revision="0.0.5"
@@ -46,27 +49,7 @@
 		<!-- ============================================================================================================================== -->
 		<!-- R01                                                                                                                            -->
 		<!-- ============================================================================================================================== -->
-		<dependency org="com.ejie.r01.r01fb" name="r01fbClasses" rev="0.0.5" conf="default->default"/>
-		
-		<!-- ============================================================================================================================== -->
-		<!-- Logging                                                                                                                        -->
-		<!-- ============================================================================================================================== -->
-		<!-- sl4fj API -->
-		<dependency org="org.slf4j" name="slf4j-api" rev="1.7.7" />		<!-- API is required at compile-time... implementations are only required at runtime -->
-		
-		<!-- Logback -->
-		<dependency org="ch.qos.logback" name="logback-core" rev="1.1.2" conf="runtime->default"/>		<!-- core part -->
-		<dependency org="ch.qos.logback" name="logback-classic" rev="1.1.2" conf="runtime->default"/>	<!-- logging part, asimilable to log4j -->
-		
-		<!-- ============================================================================================================================== -->
-		<!-- Guava                                                                                                                          -->
-		<!-- ============================================================================================================================== --> 
-		<dependency org="com.google.guava" name="guava" rev="19.0-rc2" />
-		
-		<!-- ============================================================================================================================== -->
-		<!-- Lombok                                                                                                                			-->
-		<!-- ============================================================================================================================== -->            
-		<dependency org="org.projectlombok" name="lombok" rev="1.14.4" conf="compile->default"/>	<!-- lombok is ONLY needed at compile config -->
+		<dependency org="com.ejie.r01.r01fb" name="r01fbClasses" rev="0.0.5" conf="default->default;compile->compile;runtime->runtime"/>
 	</dependencies>
 	
 </ivy-module>

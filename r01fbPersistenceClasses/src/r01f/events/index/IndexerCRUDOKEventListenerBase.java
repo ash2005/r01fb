@@ -8,7 +8,6 @@ import r01f.events.PersistenceOperationEvents.PersistenceOperationOKEvent;
 import r01f.events.crud.CRUDOperationOKEventListenerBase;
 import r01f.guids.OID;
 import r01f.model.IndexableModelObject;
-import r01f.model.PersistableModelObject;
 import r01f.model.facets.HasOID;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.persistence.CRUDOK;
@@ -43,16 +42,14 @@ abstract class IndexerCRUDOKEventListenerBase<O extends OID,M extends IndexableM
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@SuppressWarnings("unchecked")
 	@Subscribe	// subscribes this event listener at the EventBus
 	@Override
 	public void onPersistenceOperationOK(final PersistenceOperationOKEvent opEvent) {
 		// [1] - Check if the event has to be handled
 		// 				a) the event refers to the same model object type THIS event handler handles
 		//				b) the operation is an update, create or delete operation
-
-		CRUDOK<?> opOK = opEvent.getResultAsCRUDOperationOK();
-		boolean hasToBeHandled = opOK.getModelObjectType() == _type												// a)										
+		CRUDOK<? extends M> opOK = opEvent.getResultAsCRUDOperationOK();
+		boolean hasToBeHandled = opOK.getObjectType() == _type												// a)										
 						      && (opOK.hasBeenUpdated() || opOK.hasBeenCreated() || opOK.hasBeenDeleted());		// b)
 		
 		// [2] - Debug
@@ -67,7 +64,7 @@ abstract class IndexerCRUDOKEventListenerBase<O extends OID,M extends IndexableM
 		// [3] - Handle the event: update the index
 		if (hasToBeHandled) {
 			_updateIndex(opEvent.getUserContext(),
-					     (CRUDOK<? extends M>) opOK);
+					     opOK);
 		}			
 	}
 	private String _debugEvent(final PersistenceOperationOKEvent opEvent,
@@ -84,9 +81,9 @@ abstract class IndexerCRUDOKEventListenerBase<O extends OID,M extends IndexableM
 //  INDEX & UN_INDEX
 /////////////////////////////////////////////////////////////////////////////////////////	
     @SuppressWarnings("unchecked")
-	private  <E extends PersistableModelObject<? extends OID>  > 
-	void _updateIndex(final UserContext userContext,  final CRUDOK<E> opOK){
-		E entity  = opOK.getOrThrow();		
+	private void _updateIndex(final UserContext userContext,
+							  final CRUDOK<? extends M> opOK){
+		M entity  = opOK.getOrThrow();		
 		if (_indexServices == null) log.warn("Cannot index an instance of {} because the indexer is null!!",entity.getClass());		
 		log.info("Updating index for record type {} with oid='{}'",entity.getClass(),entity.asFacet(HasOID.class).getOid());		
 		String indexOp = "OP UNKNOWN";
@@ -96,11 +93,11 @@ abstract class IndexerCRUDOKEventListenerBase<O extends OID,M extends IndexableM
 			if (opOK.hasBeenCreated()) {
 				indexOp = "INDEX";
 				job = _indexServices.index(userContext,
-							   			   (M)entity);	
+							   			   entity);	
 			} else if (opOK.hasBeenUpdated()) {
 				indexOp = "UPDATE INDEX";
 				job = _indexServices.updateIndex(userContext,
-									 		     (M)entity);
+									 		     entity);
 			} else if (opOK.hasBeenDeleted()) {
 				indexOp = "DELETE FROM INDEX";
 				job = _indexServices.removeFromIndex(userContext,

@@ -100,7 +100,7 @@ public abstract class DBCRUDForModelObjectBase<O extends OID,M extends Persistab
 												.on(_modelObjectType)
 												.notCreated()
 												.becauseClientBadRequest("The provided {} entity do not have primary key data",_modelObjectType)
-												  		.about(modelObj);
+												  		.about(modelObj).build();
 		
 		// [1]: Check if the entity exists
 		DB dbEntityToPersist = this.getEntityManager().find(_DBEntityType,
@@ -111,7 +111,7 @@ public abstract class DBCRUDForModelObjectBase<O extends OID,M extends Persistab
 									.on(_modelObjectType)
 									.notCreated()
 									.becauseClientRequestedEntityAlreadyExists()
-									 		.about(modelObj);
+									 		.about(modelObj).build();
 		}
 		
 		// [3]: Depending on the existence of the entity create or update
@@ -177,7 +177,7 @@ public abstract class DBCRUDForModelObjectBase<O extends OID,M extends Persistab
 											    .on(_modelObjectType)
 												.notDeleted()
 												   .becauseClientBadRequest("The entity oid cannot be null in order to be deleted")
-												  		.about(oid);
+												  		.about(oid).build();
 		
 		log.debug("> deleting a {} entity with pk={}",_DBEntityType,pk.asString());
 		
@@ -201,7 +201,7 @@ public abstract class DBCRUDForModelObjectBase<O extends OID,M extends Persistab
 										 .on(_modelObjectType)
 											.notDeleted()
 												.becauseClientRequestedEntityWasNOTFound()
-														.about(oid);
+													.about(oid).build();
 			log.warn(outResult.getDetailedMessage());
 		}
 		return outResult;

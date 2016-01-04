@@ -35,7 +35,6 @@ import r01f.model.metadata.FieldMetaData;
 import r01f.model.metadata.FieldMetaDataForCollection;
 import r01f.model.metadata.FieldMetaDataForJavaType;
 import r01f.model.metadata.FieldMetaDataForPolymorphicType;
-import r01f.model.metadata.FieldMetaDataForSummary;
 import r01f.model.metadata.FieldMetaDataID;
 import r01f.model.metadata.ModelObjectTypeMetaData;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;

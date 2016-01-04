@@ -55,6 +55,10 @@ public class LanguageTextsMapBacked
 		this();
 		_backEndTextsMap = new LinkedHashMap<Language,String>(size);
 	}
+	public LanguageTextsMapBacked(final int size,final LangTextNotFoundBehabior notFoundBehabiour) {
+		this(size);
+		_langTextNotFoundBehabior = notFoundBehabiour;
+	}
 	public LanguageTextsMapBacked(final Map<Language,String> texts) {
 		this();
 		if (CollectionUtils.hasData(texts)) {

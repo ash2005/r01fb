@@ -9,11 +9,10 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 
-import lombok.NoArgsConstructor;
-import r01f.util.types.collections.CollectionUtils;
-
 import com.google.common.collect.Sets;
 import com.sun.jersey.guice.JerseyServletModule;
+
+import r01f.util.types.collections.CollectionUtils;
 
 
 /**
@@ -25,9 +24,13 @@ import com.sun.jersey.guice.JerseyServletModule;
  * </pre>	
  */
 @Singleton
-@NoArgsConstructor
 public abstract class RESTAppBase 
      		  extends Application {
+/////////////////////////////////////////////////////////////////////////////////////////
+//  CONSTRUCTOR
+/////////////////////////////////////////////////////////////////////////////////////////
+	protected RESTAppBase() {
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////

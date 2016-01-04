@@ -10,6 +10,8 @@ import java.nio.channels.FileChannel;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+
 import r01f.util.types.Strings;
 
 
@@ -156,5 +158,19 @@ public class Files {
     			// just ignore
     		}
     	}
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Deletes a directory no matter if it's not empty
+	 * @param folder
+	 * @return
+	 * @throws IOException
+	 */
+	public static boolean deleteFolder(final File folder) throws IOException {
+		if (!folder.exists()) throw new IOException("Folder " + folder.getAbsolutePath() + " does NOT exists");
+		if (!folder.isDirectory()) throw new IllegalArgumentException("File " + folder.getAbsolutePath() + " is NOT a folder!");
+		return FileUtils.deleteQuietly(folder);
 	}
 }

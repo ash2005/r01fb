@@ -10,7 +10,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.Provider;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ public class RESTRequestTypeMappersForBasicTypes {
 /////////////////////////////////////////////////////////////////////////////////////////
 //	Date (only usable for Dates sent in the BODY (POST / PUT)
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Provider
 	public static abstract class DateRequestTypeMapperBase 
 		  	          implements MessageBodyReader<Date> {
 		@Override
@@ -62,7 +60,6 @@ public class RESTRequestTypeMappersForBasicTypes {
 /////////////////////////////////////////////////////////////////////////////////////////
 //	Range (only usable for Dates sent in the BODY (POST / PUT)
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Provider
 	public static abstract class DateRangeRequestTypeMapperBase 
 		  	          implements MessageBodyReader<Range<Date>> {
 		@Override
@@ -95,7 +92,6 @@ public class RESTRequestTypeMappersForBasicTypes {
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Provider
 	@RequiredArgsConstructor
 	public static abstract class XMLMarshalledObjectRequestTypeMapper<T> 
 		  	 		  implements MessageBodyReader<T> {

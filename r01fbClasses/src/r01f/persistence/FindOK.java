@@ -2,72 +2,53 @@ package r01f.persistence;
 
 import java.util.Collection;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
-import r01f.guids.OID;
-import r01f.model.PersistableModelObject;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
-
-@XmlRootElement(name="foundEntities")
+@XmlRootElement(name="foundObjects")
 @Accessors(prefix="_")
-public class FindOK<M extends PersistableModelObject<? extends OID>>
-	 extends PersistenceOperationOnModelObjectOK<Collection<M>>
-  implements FindResult<M>,
-  			 PersistenceOperationOK {
+public class FindOK<T>
+	 extends PersistenceOperationOnObjectOK<Collection<T>>
+  implements FindResult<T> {
+/////////////////////////////////////////////////////////////////////////////////////////
+//  FIELDS
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * The found object type
+	 * (beware that {@link PersistenceOperationOnObjectOK} wraps a {@link Collection} 
+	 *  of this objects)
+	 */
+	@XmlAttribute(name="foundObjType")
+	@Getter @Setter protected Class<T> _foundObjectType;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR & BUILDER
 /////////////////////////////////////////////////////////////////////////////////////////
 	public FindOK() {
 		/* nothing */
 	}
-	protected FindOK(final Class<M> entityType) {
-		super(entityType,
+	protected FindOK(final Class<T> entityType) {
+		super(Collection.class,		// The find methods return Collection of objects
 			  PersistenceRequestedOperation.FIND,PersistencePerformedOperation.from(PersistenceRequestedOperation.FIND));
+		_foundObjectType = entityType;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * @return the found entities' oids if the persistence find operation was successful or a PersistenteException if not
-	 * @throws PersistenceException
-	 */
-	public <O extends OID> Collection<O> getOidsOrThrow() throws PersistenceException {
-		if (CollectionUtils.isNullOrEmpty(_operationExecResult)) return Lists.newArrayList();
-		return FluentIterable.from(_operationExecResult)
-							 .transform(new Function<M,O>() {
-												@Override @SuppressWarnings("unchecked")
-												public O apply(final M entity) {
-													return (O)entity.getOid();
-												}
-								 			
-							 			})
-							 .toList();
-	}
-	/**
-	 * When a single result is expected, this method returns this entity's oid
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	public <O extends OID> O getSingleExpectedOidOrThrow() {
-		M outEntity = this.getSingleExpectedOrThrow();
-		return (O)(outEntity != null ? outEntity.getOid()
-								 	 : null);
-	}
-	/**
 	 * When a single result is expected, this method returns this entity
 	 * @return
 	 */
-	public M getSingleExpectedOrThrow() {
-		M outEntity = null;
-		Collection<M> entities = this.getOrThrow();
+	public T getSingleExpectedOrThrow() {
+		T outEntity = null;
+		Collection<T> entities = this.getOrThrow();
 		if (CollectionUtils.hasData(entities)) {
-			outEntity = CollectionUtils.of(entities).pickOneAndOnlyElement("A single instance of {} was expected to be found BUT {} were found",_modelObjectType,entities.size());
+			outEntity = CollectionUtils.of(entities).pickOneAndOnlyElement("A single instance of {} was expected to be found BUT {} were found",_objectType,entities.size());
 		} 
 		return outEntity;
 	}
@@ -75,11 +56,11 @@ public class FindOK<M extends PersistableModelObject<? extends OID>>
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public FindOK<M> asOK() {
+	public FindOK<T> asFindOK() {
 		return this;
 	}
 	@Override
-	public FindError<M> asError() {
+	public FindError<T> asFindError() {
 		throw new ClassCastException();
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -88,6 +69,6 @@ public class FindOK<M extends PersistableModelObject<? extends OID>>
 	@Override
 	public CharSequence debugInfo() {
 		return Strings.customized("{} persistence operation requested on entity of type {} and found {} results",
-								  _requestedOperation,_modelObjectType,CollectionUtils.safeSize(_operationExecResult));
+								  _requestedOperation,_objectType,CollectionUtils.safeSize(_operationExecResult));
 	}
 }

@@ -1,0 +1,26 @@
+package r01f.ejie.model.shf;
+
+import lombok.RequiredArgsConstructor;
+import x43f.ejie.com.X43FNSHF.VerificationResult;
+
+@RequiredArgsConstructor
+public class SignatureVerifyOutputData 
+  implements SignatureServiceObject {
+	
+	private static final long serialVersionUID = 2125508306357035091L;
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	private final VerificationResult result;
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	public Boolean asBoolean() {
+		return this.result.getIsSuccessResult()
+						  .equalsIgnoreCase("true") ? Boolean.TRUE 
+								  					: Boolean.FALSE;
+	}
+	
+	
+
+}

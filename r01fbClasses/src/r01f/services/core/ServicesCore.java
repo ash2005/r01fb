@@ -31,11 +31,17 @@ import com.google.inject.BindingAnnotation;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServicesCore {
 	/**
-	 * The module id from r01m.core.properties.xml
+	 * The module id from r01m.client.properties.xml
 	 */
 	String moduleId();
 	/**
 	 * The module dependencies
 	 */
 	ServicesImpl[] dependsOn() ;//default ServicesImpl.NULL;
+	/**
+	 * Some times a bootstrap guice module for a coreAppCode/module depends upon a bootstrap module
+	 * of OTHER coreAppCode/module
+	 * (it's NOT necessary to set this value if the dependencies are at the same appCode/module)
+	 */
+	String fromOtherCoreAppCodeAndModule() default "";
 }

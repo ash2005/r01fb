@@ -228,6 +228,10 @@ public class ReflectionUtils {
 	public static <T> T cast(final Class<T> type,final Object obj) {
 		return type.cast(obj);
 	}
+	@SuppressWarnings({ "cast","unchecked" })
+	public static <T> T cast(final String typeName,final Object obj) {
+		return (T)ReflectionUtils.cast((Class<T>)ReflectionUtils.typeFromClassName(typeName),obj);
+	}
 	/**
 	 * Returns true if the provided type is within the other provided ones
 	 * @param types
@@ -327,23 +331,45 @@ public class ReflectionUtils {
      * @return true si son la misma clase
      */
     @SuppressWarnings("null")
-	public static boolean isSameClassAs(Object theObj,Object theOtherObj) {
+	public static boolean isSameClassAs(final Object theObj,final Object theOtherObj) {
     	if (theObj == null && theOtherObj == null) return false;
         if (theObj == null && theOtherObj != null) return false;
         if (theObj != null && theOtherObj == null) return false;
         return ReflectionUtils.isSameClassAs(theObj.getClass(),theOtherObj.getClass());
-    }    
+    }  
 ///////////////////////////////////////////////////////////////////////////////////////////
 //  METODOS DE DEFINICION DE CLASES
-///////////////////////////////////////////////////////////////////////////////////////////    
+/////////////////////////////////////////////////////////////////////////////////////////// 
     /**
      * Gets the type's {@link Class} object from the type's complete name (including package)
      * @param typeName 
      * @return the type's definition {@link Class} (NOT a type's instance) 
      * @throws ReflectionException if the type cannot be loaded
      */
-    @SuppressWarnings("unchecked")
 	public static <T> Class<T> typeFromClassName(final String typeName) {
+    	return _typeFromClassName(typeName,
+    							  true);	// throw if cannot load
+    }
+    /**
+     * Gets the type's {@link Class} object from the type's complete name (including package)
+     * @param typeName 
+     * @return the type's definition {@link Class} (NOT a type's instance) 
+     * @throws ReflectionException if the type cannot be loaded
+     */
+	public static <T> Class<T> typeFromClassNameOrNull(final String typeName) {
+    	return _typeFromClassName(typeName,
+    							  false);	// do NOT throw if cannot load
+    }
+    /**
+     * Gets the type's {@link Class} object from the type's complete name (including package)
+     * @param typeName 
+     * @param throwIfCannotLoad
+     * @return the type's definition {@link Class} (NOT a type's instance) 
+     * @throws ReflectionException if the type cannot be loaded
+     */
+    @SuppressWarnings("unchecked")
+	private static <T> Class<T> _typeFromClassName(final String typeName,
+												   final boolean throwIfCannotLoad) {
         if (typeName == null) throw new IllegalArgumentException("The typeName cannot be null to get it's type");
         Class<?> objType = null ;
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -355,15 +381,15 @@ public class ReflectionUtils {
             } catch(ClassNotFoundException cnfEx){
                 /* ignorar */
             }
-            if (objType == null ) {
+            if (objType == null) {
             	try {
             		objType = Class.forName(typeName);
             	} catch(ClassNotFoundException cnfEx) {
-            		throw ReflectionException.of(cnfEx);	// wrap the exception
+            		if (throwIfCannotLoad) throw ReflectionException.of(cnfEx);	// wrap the exception
             	}
             }
         }
-        if (objType == null ) throw ReflectionException.classNotFoundException(typeName);
+        if (objType == null && throwIfCannotLoad) throw ReflectionException.classNotFoundException(typeName);
         return (Class<T>)objType;
     }
     /**

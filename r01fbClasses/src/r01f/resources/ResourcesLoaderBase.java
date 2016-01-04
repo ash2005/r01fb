@@ -63,7 +63,8 @@ abstract class ResourcesLoaderBase
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public Reader getReader(final String resourcePath) throws IOException {
-		return this.getReader(resourcePath);
+		return this.getReader(resourcePath,
+							  false);
 	}
 	@Override
 	public Reader getReader(final Path resourcePath) throws IOException {

@@ -56,33 +56,33 @@ public abstract class CoreFindServiceForModelObjectBase<O extends OID,M extends 
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIND
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public FindOIDsResult<O> findAll(final UserContext userContext) {
 		return this.createDelegateAs(FindServicesForModelObject.class)
 						.findAll(userContext);
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public FindOIDsResult<O> findByCreateDate(final UserContext userContext,
 											  final Range<Date> createDate) {
 		return this.createDelegateAs(FindServicesForModelObject.class)
 						.findByCreateDate(userContext,
 										  createDate);
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public FindOIDsResult<O> findByLastUpdateDate(final UserContext userContext,
 												  final Range<Date> lastUpdateDate) {
 		return this.createDelegateAs(FindServicesForModelObject.class)
 						.findByLastUpdateDate(userContext,
 											  lastUpdateDate);
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public FindOIDsResult<O> findByCreator(final UserContext userContext,
 										   final UserCode creatorUserCode) {
 		return this.createDelegateAs(FindServicesForModelObject.class)
 						.findByCreator(userContext,
 									   creatorUserCode);
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public FindOIDsResult<O> findByLastUpdator(final UserContext userContext,
 											   final UserCode lastUpdtorUserCode) {
 		return this.createDelegateAs(FindServicesForModelObject.class)

@@ -1,7 +1,7 @@
 package r01f.model.facets;
 
 import r01f.model.ModelObject;
-import r01f.persistence.db.ModelObjectValidationResult;
+import r01f.validation.ObjectValidationResult;
 
 /**
  * Facet for model objects that contains self validation logic:
@@ -25,5 +25,5 @@ import r01f.persistence.db.ModelObjectValidationResult;
  */
 public interface SelfValidates<T extends ModelObject> {
 	
-	public ModelObjectValidationResult<T> validate();
+	public ObjectValidationResult<T> validate();
 }

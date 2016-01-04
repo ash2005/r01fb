@@ -338,12 +338,12 @@ implements XMLPropertiesComponentLoadedListener {
         return node != null;
     }
 	/**
-	 * Devuelve una propiedad.
-	 * @param component el componente de la aplicación.
-	 * @param propXPath la ruta XPath de la propiedad.
-	 * @param defaultValue el valor por defecto de la propiedad.
-	 * @param type el tipo de dato en el que se quiere la propiedad.
-	 * @return La propiedad o <code>null</code> si la propiedad no existe.
+	 * Returns a property
+	 * @param component the app component
+	 * @param propXPath property xPath
+	 * @param defaultValue the property default value
+	 * @param type the property data type
+	 * @return The property or <code>null</code> if the property does NOT exists
 	 */
     public <T> T getProperty(final AppComponent component,final Path propXPath,
     						 final T defaultValue,

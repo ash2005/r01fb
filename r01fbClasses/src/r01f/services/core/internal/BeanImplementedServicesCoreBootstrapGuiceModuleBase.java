@@ -83,7 +83,7 @@ public abstract class BeanImplementedServicesCoreBootstrapGuiceModuleBase
 		_installedModules = Lists.newArrayList();
 	}
 	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-													  	 final Collection<? extends Module> modulesToInstall) {
+													  	 		  final Collection<? extends Module> modulesToInstall) {
 		this(apiAppCode);
 		
 		// modules to install
@@ -95,8 +95,8 @@ public abstract class BeanImplementedServicesCoreBootstrapGuiceModuleBase
 		}
 	}
 	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-													  	 final Module m1,
-													  	 final Collection<? extends Module> otherModules) {
+													  	 		  final Module m1,
+													  	 		  final Collection<? extends Module> otherModules) {
 		this(apiAppCode);
 		
 		// modules to install
@@ -112,8 +112,8 @@ public abstract class BeanImplementedServicesCoreBootstrapGuiceModuleBase
 		}
 	}
 	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-													  	 final Module m1,final Module m2,
-													  	 final Collection<? extends Module> otherModules) {
+													  	 		  final Module m1,final Module m2,
+													  	 		  final Collection<? extends Module> otherModules) {
 		this(apiAppCode);
 		
 		// modules to install
@@ -133,8 +133,8 @@ public abstract class BeanImplementedServicesCoreBootstrapGuiceModuleBase
 		}
 	}
 	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-													  	 final Module m1,final Module m2,final Module m3,
-													  	 final Collection<? extends Module> otherModules) {
+													  	 		  final Module m1,final Module m2,final Module m3,
+													  	 		  final Collection<? extends Module> otherModules) {
 		this(apiAppCode);
 		
 		// modules to install
@@ -230,7 +230,6 @@ public abstract class BeanImplementedServicesCoreBootstrapGuiceModuleBase
 	
 	protected static class XMLPropertiesForServicesProvider
 				   extends XMLPropertiesForXProviderBase {
-		
 		
 		public XMLPropertiesForServicesProvider(final AppCode coreAppCode,final AppComponent coreAppComponent) {
 			super(coreAppCode,coreAppComponent);

@@ -12,6 +12,7 @@ public abstract class ServicesDelegateProvider<D extends ServiceInterface>
 /////////////////////////////////////////////////////////////////////////////////////////
 	public abstract D get(final UserContext userContext);
 	
+	@Override
 	public D get() {
 		return this.get(null);	// no user context
 	}

@@ -42,21 +42,21 @@ public abstract class CoreSearchServicesForModelObjectBase<F extends SearchFilte
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SEARCH
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public int countRecords(final UserContext userContext,
 							final F filter) {
 		return  this.createDelegateAs(SearchServices.class)
 						.countRecords(userContext,
 									  filter);
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public <O extends OID> Collection<O> filterRecordsOids(final UserContext userContext,
 													   	   final F filter) {
 		return  this.createDelegateAs(SearchServices.class)
 						.filterRecordsOids(userContext,
 										   filter);
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public SearchResults<F,I> filterRecords(final UserContext userContext,
 	                    		 			final F filter,
 	                    		 			final int firstRowNum,final int numberOfRows) {

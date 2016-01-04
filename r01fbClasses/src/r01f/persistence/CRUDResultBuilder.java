@@ -2,6 +2,8 @@ package r01f.persistence;
 
 import java.util.Date;
 
+import com.google.common.base.Function;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -10,17 +12,16 @@ import r01f.guids.VersionIndependentOID;
 import r01f.guids.VersionOID;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
+import r01f.model.facets.HasOID;
 import r01f.model.facets.Versionable.HasVersionableFacet;
 import r01f.patterns.IsBuilder;
 import r01f.persistence.db.DBEntity;
 import r01f.persistence.db.DBEntityToModelObjectTransformerBuilder;
-import r01f.persistence.db.ModelObjectValidationResults.ModelObjectValidationResultNOK;
 import r01f.types.weburl.SerializedURL;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
-
-import com.google.common.base.Function;
+import r01f.validation.ObjectValidationResults.ObjectValidationResultNOK;
 
 /**
  * Builder type for {@link CRUDResult}-implementing types:
@@ -80,9 +81,8 @@ public class CRUDResultBuilder
 	public class CRUDResultBuilderEntityStep {
 		private final UserContext _userContext;
 		
-		public <O extends OID,M extends PersistableModelObject<O>> 
-			   CRUDResultBuilderOperationStep<M> on(final Class<M> entityType) {
-			return new CRUDResultBuilderOperationStep<M>(_userContext,
+		public <T> CRUDResultBuilderOperationStep<T> on(final Class<T> entityType) {
+			return new CRUDResultBuilderOperationStep<T>(_userContext,
 														 entityType);
 		}
 		public <M extends PersistableModelObject<? extends OIDForVersionableModelObject> & HasVersionableFacet> 
@@ -94,10 +94,10 @@ public class CRUDResultBuilder
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Operation
 /////////////////////////////////////////////////////////////////////////////////////////
-	public class CRUDResultBuilderOperationStep<M extends PersistableModelObject<? extends OID>> 
-		 extends CRUDResultBuilderOperationStepBase<M> {
+	public class CRUDResultBuilderOperationStep<T> 
+		 extends CRUDResultBuilderOperationStepBase<T> {
 		public CRUDResultBuilderOperationStep(final UserContext userContext,
-											  final Class<M> entityType) {
+											  final Class<T> entityType) {
 			super(userContext,
 				  entityType);
 		}
@@ -111,68 +111,68 @@ public class CRUDResultBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	private class CRUDResultBuilderOperationStepBase<M extends PersistableModelObject<? extends OID>> {
+	private class CRUDResultBuilderOperationStepBase<T> {
 		protected final UserContext _userContext;
-		protected final Class<M> _entityType;
+		protected final Class<T> _entityType;
 		
 		//  --------- ERROR
-		public CRUDResultBuilderForErrorAboutStep<M> badClientRequestData(final PersistenceRequestedOperation reqOp,
+		public CRUDResultBuilderForErrorAboutStep<T> badClientRequestData(final PersistenceRequestedOperation reqOp,
 																		  final String msg,final Object... vars) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
+			CRUDError<T> err = new CRUDError<T>(_entityType,
 												reqOp,
 												Strings.customized(msg,vars),PersistenceErrorType.BAD_REQUEST_DATA);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
-																		err);
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
+														     err);
 		}
-		public CRUDResultBuilderForErrorStep<M> not(final PersistenceRequestedOperation reqOp) {
-			return new CRUDResultBuilderForErrorStep<M>(_userContext,
+		public CRUDResultBuilderForErrorStep<T> not(final PersistenceRequestedOperation reqOp) {
+			return new CRUDResultBuilderForErrorStep<T>(_userContext,
 														_entityType,
 														reqOp);
 		}
-		public CRUDResultBuilderForErrorStep<M> notLoaded() {
-			return new CRUDResultBuilderForErrorStep<M>(_userContext,
+		public CRUDResultBuilderForErrorStep<T> notLoaded() {
+			return new CRUDResultBuilderForErrorStep<T>(_userContext,
 														_entityType,
 														PersistenceRequestedOperation.LOAD);	
 		}
-		public CRUDResultBuilderForCreateError<M> notCreated() {
-			return new CRUDResultBuilderForCreateError<M>(_userContext,
+		public CRUDResultBuilderForCreateError<T> notCreated() {
+			return new CRUDResultBuilderForCreateError<T>(_userContext,
 														  _entityType);	
 		}
-		public CRUDResultBuilderForUpdateError<M>  notUpdated() {
-			return new CRUDResultBuilderForUpdateError<M>(_userContext,
+		public CRUDResultBuilderForUpdateError<T>  notUpdated() {
+			return new CRUDResultBuilderForUpdateError<T>(_userContext,
 														  _entityType);	
 		}
-		public CRUDResultBuilderForErrorStep<M> notDeleted() {
-			return new CRUDResultBuilderForErrorStep<M>(_userContext,
+		public CRUDResultBuilderForErrorStep<T> notDeleted() {
+			return new CRUDResultBuilderForErrorStep<T>(_userContext,
 														_entityType,
 														PersistenceRequestedOperation.DELETE);	
 		}
 		// --------- SUCCESS
-		public PersistenceOperationResultBuilderForOK<M> executed(final PersistenceRequestedOperation requestedOp,
-																  final PersistencePerformedOperation performedOp) {
-			return new PersistenceOperationResultBuilderForOK<M>(_userContext,
-																 _entityType,
-																 requestedOp,performedOp);
+		public PersistenceOperationResultBuilderForOK<T> executed(final PersistenceRequestedOperation requestedOp,
+																  				final PersistencePerformedOperation performedOp) {
+			return new PersistenceOperationResultBuilderForOK<T>(_userContext,
+														 		 _entityType,
+														 		 requestedOp,performedOp);
 		}
-		public PersistenceOperationResultBuilderForOK<M> loaded() {
-			return new PersistenceOperationResultBuilderForOK<M>(_userContext,
-																 _entityType,
-																 PersistenceRequestedOperation.LOAD,PersistencePerformedOperation.LOADED);
+		public PersistenceOperationResultBuilderForOK<T> loaded() {
+			return new PersistenceOperationResultBuilderForOK<T>(_userContext,
+														 	     _entityType,
+														 		 PersistenceRequestedOperation.LOAD,PersistencePerformedOperation.LOADED);
 		}
-		public PersistenceOperationResultBuilderForOK<M> created() {
-			return new PersistenceOperationResultBuilderForOK<M>(_userContext,
-																 _entityType,
-																 PersistenceRequestedOperation.CREATE,PersistencePerformedOperation.CREATED);
+		public PersistenceOperationResultBuilderForOK<T> created() {
+			return new PersistenceOperationResultBuilderForOK<T>(_userContext,
+														 		 _entityType,
+														 		 PersistenceRequestedOperation.CREATE,PersistencePerformedOperation.CREATED);
 		}
-		public PersistenceOperationResultBuilderForOK<M> updated() {
-			return new PersistenceOperationResultBuilderForOK<M>(_userContext,
-																 _entityType,
-																 PersistenceRequestedOperation.UPDATE,PersistencePerformedOperation.UPDATED);
+		public PersistenceOperationResultBuilderForOK<T> updated() {
+			return new PersistenceOperationResultBuilderForOK<T>(_userContext,
+														 		 _entityType,
+														 		 PersistenceRequestedOperation.UPDATE,PersistencePerformedOperation.UPDATED);
 		}
-		public PersistenceOperationResultBuilderForOK<M> deleted() {
-			return new PersistenceOperationResultBuilderForOK<M>(_userContext,
-																 _entityType,
-																 PersistenceRequestedOperation.DELETE,PersistencePerformedOperation.DELETED);
+		public PersistenceOperationResultBuilderForOK<T> deleted() {
+			return new PersistenceOperationResultBuilderForOK<T>(_userContext,
+														 		 _entityType,
+														 		 PersistenceRequestedOperation.DELETE,PersistencePerformedOperation.DELETED);
 		}
 		// --------- MULTIPLE SUCCESS
 		@SuppressWarnings("unchecked")
@@ -186,103 +186,116 @@ public class CRUDResultBuilder
 //  ERROR
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public class CRUDResultBuilderForErrorStep<M extends PersistableModelObject<? extends OID>> {
+	public class CRUDResultBuilderForErrorStep<T> {
 		protected final UserContext _userContext;
-		protected final Class<M> _entityType;
+		protected final Class<T> _entityType;
 		protected final PersistenceRequestedOperation _requestedOp;
 		
-		public CRUDResultBuilderForErrorAboutStep<M> because(final Throwable th) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
-											    _requestedOp,
-												th);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+		public CRUDResultBuilderForErrorAboutStep<T> because(final Throwable th) {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
+							    				_requestedOp,
+							    				th);
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 												 			 err);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseClientCannotConnectToServer(final SerializedURL serverUrl) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
-											    _requestedOp,
-											    Strings.customized("Cannot connect to server at {}",serverUrl),PersistenceErrorType.CLIENT_CANNOT_CONNECT_SERVER);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+		public CRUDResultBuilderForErrorAboutStep<T> because(final CRUDError<?> otherCRUDError) {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
+												otherCRUDError);
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseServerError(final String errData,final Object... vars) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseClientCannotConnectToServer(final SerializedURL serverUrl) {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
+							    				_requestedOp,
+							    				Strings.customized("Cannot connect to server at {}",serverUrl),PersistenceErrorType.CLIENT_CANNOT_CONNECT_SERVER);
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
+															 err);
+		}
+		public CRUDResultBuilderForErrorAboutStep<T> becauseServerError(final String errData,final Object... vars) {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
 												_requestedOp,
 												Strings.customized(errData,vars),PersistenceErrorType.SERVER_ERROR);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseClientError(final PersistenceErrorType errorType,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseClientError(final PersistenceErrorType errorType,
 																		final String msg,final Object... vars) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
+			CRUDError<T> err = new CRUDError<T>(_entityType,
 												_requestedOp,
 												Strings.customized(msg,vars),errorType);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseClientBadRequest(final String msg,final Object... vars) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseClientBadRequest(final String msg,final Object... vars) {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
 												_requestedOp,
 												Strings.customized(msg,vars),PersistenceErrorType.BAD_REQUEST_DATA);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseClientRequestedEntityWasNOTFound() {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
-											   	_requestedOp,
-											   	PersistenceErrorType.ENTITY_NOT_FOUND);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseClientRequestedEntityWasNOTFound() {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
+							   					_requestedOp,
+							   					PersistenceErrorType.ENTITY_NOT_FOUND);
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseRequiredRelatedEntityWasNOTFound(final String msg,final Object... vars) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseRequiredRelatedEntityWasNOTFound(final String msg,final Object... vars) {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
 												_requestedOp,
 												Strings.customized(msg,vars),PersistenceErrorType.RELATED_REQUIRED_ENTITY_NOT_FOUND);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);		
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public class CRUDResultBuilderForErrorAboutStep<M extends PersistableModelObject<? extends OID>> { 
+	public class CRUDResultBuilderForErrorAboutStep<T> { 
 		protected final UserContext _userContext;
-		protected final CRUDError<M> _err;
+		protected final CRUDError<T> _err;
 		
-		public CRUDError<M> build() {
+		public CRUDError<T> build() {
 			return _err;
 		}
-		public CRUDError<M> about(final String meta,final String value) {
+		public CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final String meta,final String value) {
 			_err.addTargetEntityIdInfo(meta,value);
-			return _err;
+			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
+																    _err);
 		}
-		public <O extends OID> CRUDError<M> about(final O entityOid) {
+		public <O extends OID> CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final O entityOid) {
 			_err.addTargetEntityIdInfo("oid",entityOid.asString());
-			return _err;
+			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
+																    _err);
 		}
-		public CRUDError<M> about(final M entity) {
+		public CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final T entity) {
 			_err.setTargetEntity(entity);
-			_err.addTargetEntityIdInfo("oid",entity.getOid().asString());
-			return _err;
+			if (entity instanceof HasOID) _err.addTargetEntityIdInfo("oid",((HasOID<?>)entity).getOid().asString());
+			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
+																	_err);
 		}
-		public CRUDError<M> about(final VersionIndependentOID oid) {
+		public CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final VersionIndependentOID oid) {
 			_err.addTargetEntityIdInfo("versionIndependentOid",oid.asString());
-			return _err;
+			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
+																	_err);
 		}
-		public CRUDError<M> about(final VersionIndependentOID oid,final VersionOID version) {
+		public CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final VersionIndependentOID oid,final VersionOID version) {
 			_err.addTargetEntityIdInfo("versionIndependentOid",oid.asString());
 			_err.addTargetEntityIdInfo("version",version.asString());
-			return _err;
+			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
+																	_err);
 		}
-		public CRUDError<M> about(final VersionIndependentOID oid,final Date date) {
+		public CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final VersionIndependentOID oid,final Date date) {
 			_err.addTargetEntityIdInfo("versionIndependentOid",oid.asString());
 			_err.addTargetEntityIdInfo("date",Dates.epochTimeStampAsString(date.getTime()));
-			return _err;
+			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
+																	_err);
 		}
-		public CRUDError<M> aboutWorkVersion(final VersionIndependentOID oid) {
+		public CRUDResultBuilderForErrorExtErrorCodeStep<T> aboutWorkVersion(final VersionIndependentOID oid) {
 			_err.addTargetEntityIdInfo("versionIndependentOid",oid.asString());
 			_err.addTargetEntityIdInfo("version","workVersion");
-			return _err;
+			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
+																    _err);
 		}
-		public CRUDError<M> about(final VersionIndependentOID oid,final Object version) {
+		public CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final VersionIndependentOID oid,final Object version) {
 			_err.addTargetEntityIdInfo("versionIndependentOid",oid.asString());
 			if (version instanceof Date) { 
 				_err.addTargetEntityIdInfo("date",Dates.epochTimeStampAsString(((Date)version).getTime()));
@@ -291,70 +304,84 @@ public class CRUDResultBuilder
 			} else if (version instanceof String || version == null) {
 				_err.addTargetEntityIdInfo("version","workVersion");	
 			}
+			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
+																	_err);
+		}
+	}
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	public class CRUDResultBuilderForErrorExtErrorCodeStep<T> { 
+		protected final UserContext _userContext;
+		protected final CRUDError<T> _err;
+		
+		public CRUDError<T> buildWithExtendedErrorCode(final int extErrCode) {
+			_err.setExtendedErrorCode(extErrCode);
+			return _err;
+		}
+		public CRUDError<T> build() {
 			return _err;
 		}
 	}
-	private abstract class PersistenceCRUDResultBuilderForMutatorErrorBase<M extends PersistableModelObject<? extends OID>>
-			       extends CRUDResultBuilderForErrorStep<M> {
+	private abstract class PersistenceCRUDResultBuilderForMutatorErrorBase<T>
+			       extends CRUDResultBuilderForErrorStep<T> {
 		public PersistenceCRUDResultBuilderForMutatorErrorBase(final UserContext userContext,
-										   	   				   final Class<M> entityType,
-										   	   				   final PersistenceRequestedOperation reqOp) {
+								   	   				   		   final Class<T> entityType,
+								   	   				   		   final PersistenceRequestedOperation reqOp) {
 			super(userContext,
 				  entityType,
 				  reqOp);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseOptimisticLockingError() {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
-											    _requestedOp,
-												PersistenceErrorType.OPTIMISTIC_LOCKING_ERROR);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseOptimisticLockingError() {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
+							    				_requestedOp,
+							    				PersistenceErrorType.OPTIMISTIC_LOCKING_ERROR);
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseClientSentEntityValidationErrors(final ModelObjectValidationResultNOK<M> validNOK) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
-											    _requestedOp,
-												validNOK.getReason(),PersistenceErrorType.ENTITY_NOT_VALID);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseClientSentEntityValidationErrors(final ObjectValidationResultNOK<T> validNOK) {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
+							    				_requestedOp,
+							    				validNOK.getReason(),PersistenceErrorType.ENTITY_NOT_VALID);
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
 	}
-	public class CRUDResultBuilderForCreateError<M extends PersistableModelObject<? extends OID>>
-		 extends PersistenceCRUDResultBuilderForMutatorErrorBase<M> {
+	public class CRUDResultBuilderForCreateError<T>
+		 extends PersistenceCRUDResultBuilderForMutatorErrorBase<T> {
 		public CRUDResultBuilderForCreateError(final UserContext userContext,
-										  	   final Class<M> entityType) {
+										  	   final Class<T> entityType) {
 			super(userContext,
 				  entityType,
 				  PersistenceRequestedOperation.CREATE);
 		}
 		public CRUDResultBuilderForCreateError(final UserContext userContext,
-										  	   final Class<M> entityType,
-										  	   final PersistenceRequestedOperation reqOp) {
+								  	   		   final Class<T> entityType,
+								  	   		   final PersistenceRequestedOperation reqOp) {
 			super(userContext,
 				  entityType,
 				  reqOp);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseClientRequestedEntityAlreadyExists() {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
-												_requestedOp,
-												PersistenceErrorType.ENTITY_ALREADY_EXISTS);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseClientRequestedEntityAlreadyExists() {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
+											    _requestedOp,
+											    PersistenceErrorType.ENTITY_ALREADY_EXISTS);
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
 	}
-	public class CRUDResultBuilderForUpdateError<M extends PersistableModelObject<? extends OID>>
-		 extends PersistenceCRUDResultBuilderForMutatorErrorBase<M> {
+	public class CRUDResultBuilderForUpdateError<T>
+		 extends PersistenceCRUDResultBuilderForMutatorErrorBase<T> {
 
 		public CRUDResultBuilderForUpdateError(final UserContext userContext,
-										  	   final Class<M> entityType) {
+										  	   final Class<T> entityType) {
 			super(userContext,
 				  entityType,
 				  PersistenceRequestedOperation.UPDATE);
 		}
-		public CRUDResultBuilderForErrorAboutStep<M> becauseTargetEntityWasInAnIllegalStatus(final String msg,final Object... vars) {
-			CRUDError<M> err = new CRUDError<M>(_entityType,
+		public CRUDResultBuilderForErrorAboutStep<T> becauseTargetEntityWasInAnIllegalStatus(final String msg,final Object... vars) {
+			CRUDError<T> err = new CRUDError<T>(_entityType,
 												_requestedOp,
 												Strings.customized(msg,vars),PersistenceErrorType.ILLEGAL_STATUS);
-			return new CRUDResultBuilderForErrorAboutStep<M>(_userContext,
+			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
 	}
@@ -362,35 +389,35 @@ public class CRUDResultBuilder
 //  EXECUTED
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public class PersistenceOperationResultBuilderForOK<M extends PersistableModelObject<? extends OID>> {
+	public class PersistenceOperationResultBuilderForOK<T> {
 		protected final UserContext _userContext;
-		protected final Class<M> _entityType;
+		protected final Class<T> _entityType;
 		protected final PersistenceRequestedOperation _requestedOp;
 		protected final PersistencePerformedOperation _performedOp;
 		
-		public CRUDOK<M> entity(final M entity) {
-			CRUDOK<M> outPersistenceOpResult = new CRUDOK<M>(_entityType,
-															 _requestedOp,_performedOp,
-															 entity);
+		public CRUDOK<T> entity(final T entity) {
+			CRUDOK<T> outPersistenceOpResult = new CRUDOK<T>(_entityType,
+											 				 _requestedOp,_performedOp,
+											 				 entity);
 			return outPersistenceOpResult;			
 		}
-		public CRUDOK<M> dbEntity(final DBEntity dbEntity) {
-			Function<DBEntity,M> defaultDBEntityToModelObjConverter = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
+		public CRUDOK<T> dbEntity(final DBEntity dbEntity) {			
+			Function<DBEntity,T> defaultDBEntityToModelObjConverter = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
 																														_entityType);
-			M modelObject = defaultDBEntityToModelObjConverter.apply(dbEntity);
-			CRUDOK<M> outPersistenceOpResult = new CRUDOK<M>(_entityType,
-															 _requestedOp,_performedOp,
-															 modelObject);
+			T obj = defaultDBEntityToModelObjConverter.apply(dbEntity);
+			CRUDOK<T> outPersistenceOpResult = new CRUDOK<T>(_entityType,
+											 				 _requestedOp,_performedOp,
+											 				 obj);
 			return outPersistenceOpResult;
 		}
-		public CRUDOK<M> dbEntity(final DBEntity dbEntity,
-								  final Function<DBEntity,M> transformer) {
-			Function<DBEntity,M> dbEntityToModelObjConverter = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
+		public CRUDOK<T> dbEntity(final DBEntity dbEntity,
+								  		  final Function<DBEntity,T> transformer) {
+			Function<DBEntity,T> dbEntityToModelObjConverter = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
 																												  transformer);
-			M modelObject = dbEntityToModelObjConverter.apply(dbEntity);
-			CRUDOK<M> outPersistenceOpResult = new CRUDOK<M>(_entityType,
-								 						     _requestedOp,_performedOp,
-															 modelObject);
+			T obj = dbEntityToModelObjConverter.apply(dbEntity);
+			CRUDOK<T> outPersistenceOpResult = new CRUDOK<T>(_entityType,
+				 						     				 _requestedOp,_performedOp,
+				 						     				 obj);
 			return outPersistenceOpResult;
 		}
 	}

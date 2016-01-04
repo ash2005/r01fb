@@ -161,7 +161,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 										  .on(_modelObjectType)
 										  .not(requestedOp)	
 										  .becauseServerError(responseStr)	// the rest endpoint response is the error as TEXT
-										 		.about(requestedOid);
+										 		.about(requestedOid).build();
 		}
 		// [2] - Client error (the client sent an unprocessable entity)
 		if (httpResponse.isClientError()) {
@@ -171,7 +171,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 											  .on(_modelObjectType)
 											  .not(requestedOp)													
 											  .becauseClientRequestedEntityWasNOTFound()
-											 		 .about(requestedOid);
+											 		 .about(requestedOid).build();
 			} else {
 				// other client errors: entity update conflict, illegal argument, etc
 				String errorCodeHeader = httpResponse.getSingleValuedHeaderAsString("x-r01-errorCode");
@@ -193,7 +193,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 													  .not(requestedOp)
 													  .becauseClientError(persistErrorType,errorMessageHeader)
 													  		.about(requestedOid)
-													  		.withExtendedErrorCode(extErrorCode);
+													  		.buildWithExtendedErrorCode(extErrorCode);
 					}
 				}
 				// The exception type is unknown... but it's sure it's a client bad request
@@ -202,7 +202,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 												  .on(_modelObjectType)
 												  .not(requestedOp)
 												  .becauseClientBadRequest(errorMessageHeader)
-												  		.about(requestedOid);
+												  		.about(requestedOid).build();
 				}
 			}
 		}
@@ -212,7 +212,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 										  .on(_modelObjectType)
 										  .not(requestedOp)	
 										  .becauseServerError(responseStr)	// the rest endpoint response is the error as TEXT
-										 		.about(requestedOid);
+										 		.about(requestedOid).build();
 		}
 		// [4] - Return the CRUDOperationResult
 		return outOpError;
@@ -234,7 +234,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 										  .on(_modelObjectType)
 										  .not(requestedOp)	
 										  .becauseServerError(responseStr)	// the rest endpoint response is the error as TEXT
-										 		.about(requestedEntity);
+										 		.about(requestedEntity).build();
 		}
 		// [2] - Client error (the client sent an unprocessable entity)
 		else if (httpResponse.isClientError()) {
@@ -244,7 +244,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 											  .on(_modelObjectType)
 											  .not(requestedOp)													
 											  .becauseClientCannotConnectToServer(restResourceUrl)
-											 		.about(requestedEntity.getOid());
+											 		.about(requestedEntity.getOid()).build();
 			} else {
 				// other client errors: entity update conflict, illegal argument, etc
 				//String errorCode = httpResponse.getSingleValuedHeaderAsString("x-r01-errorCode");
@@ -253,7 +253,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 											  .on(_modelObjectType)
 											  .not(requestedOp)	
 											  .becauseClientBadRequest(errorMessage)
-											  		.about(requestedEntity);
+											  		.about(requestedEntity).build();
 			}
 		}
 		// [3] - Unknown error
@@ -262,7 +262,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 										  .on(_modelObjectType)
 										  .not(requestedOp)	
 										  .becauseServerError(responseStr)	// the rest endpoint response is the error as TEXT
-										 		.about(requestedEntity);
+										 		.about(requestedEntity).build();
 		}
 		// [4] - Return the CRUDOperationResult
 		return outOpError;

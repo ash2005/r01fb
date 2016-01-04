@@ -1,19 +1,30 @@
 package r01f.persistence;
 
-import java.util.Collection;
-
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.guids.OID;
 import r01f.model.PersistableModelObject;
+import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
 
-@XmlRootElement(name="errorFindingEntitiesOids")
+@XmlRootElement(name="oidFindError")
 @Accessors(prefix="_")
 public class FindOIDsError<O extends OID>
-	 extends PersistenceOperationOnModelObjectError<Collection<O>>
-  implements FindOIDsResult<O>,
-  			 PersistenceOperationError {
+	 extends FindError<O>
+  implements FindOIDsResult<O> {
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * The model object type
+	 * Beware that {@link FindOIDsOK} extends {@link FindOK} parameterized with 
+	 * the oid type NOT the model object type 
+	 */
+	@XmlAttribute(name="modelObjType")
+	@Getter @Setter private Class<? extends PersistableModelObject<? extends OID>> _modelObjectType;
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR & BUILDER
@@ -21,35 +32,33 @@ public class FindOIDsError<O extends OID>
 	public FindOIDsError() {
 		// nothing
 	}
+	@SuppressWarnings("unchecked")
 	FindOIDsError(final Class<? extends PersistableModelObject<? extends OID>> entityType,
 			  	  final Throwable th) {
-		super(entityType,
-			  PersistenceRequestedOperation.FIND,
+		super((Class<O>)ModelObjectTypeMetaDataBuilder.createFor(entityType)
+													  .getOIDFieldMetaData()
+													  .getDataType(),
 			  th);
+		_modelObjectType = entityType;
 	}
+	@SuppressWarnings("unchecked")
 	FindOIDsError(final Class<? extends PersistableModelObject<? extends OID>> entityType,
 			  	  final String errMsg,final PersistenceErrorType errorCode) {
-		super(entityType,
-			  PersistenceRequestedOperation.FIND,
+		super((Class<O>)ModelObjectTypeMetaDataBuilder.createFor(entityType)
+													  .getOIDFieldMetaData()
+													  .getDataType(),
 			  errMsg,errorCode);
+		_modelObjectType = entityType;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public FindOIDsError<O> asError() {
+	public FindOIDsError<O> asCRUDError() {
 		return this;
 	}
 	@Override
-	public FindOIDsOK<O> asOK() {
+	public FindOIDsOK<O> asCRUDOK() {
 		throw new ClassCastException();
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public FindOIDsError<O> withExtendedErrorCode(final int extErrorCode) {
-		this.setExtendedErrorCode(extErrorCode);
-		return this;
 	}
 }

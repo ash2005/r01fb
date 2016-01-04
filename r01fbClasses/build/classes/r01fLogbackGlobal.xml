@@ -6,7 +6,7 @@
 <included>
 	<!-- Se puede establecer el directorio "a mano" o usar el del usuario -->
 	<!-- <property name="USER_HOME" value="${user.home}" />  -->
-	<property name="DATA_HOME" value="d:/temp_dev/log" />
+	<property name="DATA_HOME" value="d:/temp_dev/log" />	<!-- /datos -->
 	<property name="logPath" value="${DATA_HOME}/${appName}/log" />
 
 	<!-- 1 por día. Nivel DEBUG. 10 días de historia
@@ -16,7 +16,13 @@
 		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 			<level>WARN</level>
 		</filter>
-		<File>${logPath}/${appName}.log</File>
+		<!-- When in a weblogic cluster and logs located in a NAS, if the log file name does NOT include something 
+			 for each cluster node (like the server's name), N JVMs will be writing at the same file; this is a performance botlenect.
+			 To avoid this problem, the log file name includes an environmental variable that each weblogic server sets with it's own name: weblogic.Name
+			 When in a NOT-weblogic environmente (ie Tomcat), the default value is used $(weblogic.Name:-[defaultValue])
+			 see http://logback.qos.ch/manual/configuration.html#variableSubstitution 	 
+		-->
+		<File>${logPath}/${appName}_${weblogic.Name:-default}.log</File>	
 		<encoder>
 		  <pattern>%date %-5level %logger{10} - %message%n %exception{30}</pattern>
 		</encoder>

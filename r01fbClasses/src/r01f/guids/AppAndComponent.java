@@ -65,6 +65,18 @@ public class AppAndComponent
 		String[] parts = Strings.of(this.getId())
 								.splitter(".")
 								.toArray();
-		return AppComponent.forId(parts[1]);
+		if (parts.length == 2) {
+			return AppComponent.forId(parts[1]);
+		} else if (parts.length > 2) {
+			StringBuilder comp = new StringBuilder();
+			for (int i=1; i < parts.length; i++) {
+				comp.append(parts[i]);
+				if (i < parts.length-1) comp.append(".");
+			}
+			return AppComponent.forId(comp.toString());
+		} else {
+			throw new IllegalStateException();
+		}
 	}
+		
 }

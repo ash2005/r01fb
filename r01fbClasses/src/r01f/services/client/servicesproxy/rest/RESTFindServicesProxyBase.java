@@ -46,7 +46,7 @@ public abstract class RESTFindServicesProxyBase<O extends OID,M extends Persista
 		return _findDelegate.doFindOids(userContext,
 				           				restResourceUrl);
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public FindOIDsResult<O> findByCreateDate(final UserContext userContext,
 										  	  final Range<Date> createDate) {
 		SerializedURL restResourceUrl = this.composePersistenceURIFor(this.getServicesRESTResourceUrlPathBuilderAs(ServicesRESTResourcePathBuilderForModelObject.class)
@@ -54,7 +54,7 @@ public abstract class RESTFindServicesProxyBase<O extends OID,M extends Persista
 		return _findDelegate.doFindOids(userContext,
 				           				restResourceUrl);
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public FindOIDsResult<O> findByLastUpdateDate(final UserContext userContext,
 											  	  final Range<Date> lastUpdateDate) {
 		SerializedURL restResourceUrl = this.composePersistenceURIFor(this.getServicesRESTResourceUrlPathBuilderAs(ServicesRESTResourcePathBuilderForModelObject.class)

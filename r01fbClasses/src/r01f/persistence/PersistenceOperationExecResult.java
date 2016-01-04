@@ -5,10 +5,12 @@ import javax.xml.bind.annotation.XmlAttribute;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import r01f.debug.Debuggable;
 
 @Accessors(prefix="_")
 public abstract class PersistenceOperationExecResult<T> 
-    	   implements PersistenceOperationResult {
+    	   implements PersistenceOperationResult,
+    	   			  Debuggable {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -31,9 +33,9 @@ public abstract class PersistenceOperationExecResult<T>
 	 * @throws PersistenceException
 	 */
 	public T getOrThrow() throws PersistenceException {
-		if (this.hasFailed()) this.asError()		//as(PersistenceOperationExecError.class)
+		if (this.hasFailed()) this.asOperationExecError()		
 								  .throwAsPersistenceException();
-		return this.asOK()	//as(PersistenceOperationExecOK.class)
+		return this.asOperationExecOK()
 				   .getOrThrow();
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -51,8 +53,8 @@ public abstract class PersistenceOperationExecResult<T>
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public abstract PersistenceOperationExecError<T> asError();
-	public abstract PersistenceOperationExecOK<T> asOK();
+	public abstract PersistenceOperationExecError<T> asOperationExecError();
+	public abstract PersistenceOperationExecOK<T> asOperationExecOK();
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CAST
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -60,12 +62,4 @@ public abstract class PersistenceOperationExecResult<T>
 	public <R extends PersistenceOperationResult> R as(final Class<R> type) {
 		return (R)this;
 	}
-//	@Override @SuppressWarnings("unchecked")
-//	public <R extends PersistenceOperationError> R asError(final Class<R> type) {
-//		return (R)this;
-//	}
-//	@Override @SuppressWarnings("unchecked")
-//	public <R extends PersistenceOperationOK> R asOK(final Class<R> type) {
-//		return (R)this;
-//	}
 }

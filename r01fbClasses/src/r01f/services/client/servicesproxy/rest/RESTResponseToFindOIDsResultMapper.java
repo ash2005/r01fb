@@ -19,7 +19,7 @@ import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
 @Slf4j
-class RESTResponseToFindOIDsResultMapper<O extends OID,M extends PersistableModelObject<O>> {
+public class RESTResponseToFindOIDsResultMapper<O extends OID,M extends PersistableModelObject<O>> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////

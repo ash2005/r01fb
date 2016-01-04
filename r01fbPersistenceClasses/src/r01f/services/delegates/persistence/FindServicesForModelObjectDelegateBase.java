@@ -3,6 +3,8 @@ package r01f.services.delegates.persistence;
 
 import java.util.Date;
 
+import com.google.common.eventbus.EventBus;
+
 import r01f.guids.CommonOIDs.UserCode;
 import r01f.guids.OID;
 import r01f.model.PersistableModelObject;
@@ -12,8 +14,6 @@ import r01f.persistence.db.DBFindForModelObject;
 import r01f.services.interfaces.FindServicesForModelObject;
 import r01f.types.Range;
 import r01f.usercontext.UserContext;
-
-import com.google.common.eventbus.EventBus;
 
 /**
  * Service layer delegated type for CRUD find operations
@@ -40,13 +40,13 @@ public abstract class FindServicesForModelObjectDelegateBase<O extends OID,M ext
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIND
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public FindOIDsResult<O> findAll(final UserContext userContext) {
 		FindOIDsResult<O> outResults = this.getServiceImplAs(FindServicesForModelObject.class)
 												.findAll(userContext);
 		return outResults;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public FindOIDsResult<O> findByCreateDate(final UserContext userContext,
 										  	  final Range<Date> createDate) {
 		// [0] - check the date
@@ -62,7 +62,7 @@ public abstract class FindServicesForModelObjectDelegateBase<O extends OID,M ext
 																  createDate);
 		return outResults;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public FindOIDsResult<O> findByLastUpdateDate(final UserContext userContext,
 											  	  final Range<Date> lastUpdateDate) {
 		// [0] - check the date
@@ -78,7 +78,7 @@ public abstract class FindServicesForModelObjectDelegateBase<O extends OID,M ext
 																   	   	   lastUpdateDate);
 		return outResults;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public FindOIDsResult<O> findByCreator(final UserContext userContext,
 									   	   final UserCode creatorUserCode) {
 		// [0] - check the date
@@ -94,7 +94,7 @@ public abstract class FindServicesForModelObjectDelegateBase<O extends OID,M ext
 															   creatorUserCode);
 		return outResults;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public FindOIDsResult<O> findByLastUpdator(final UserContext userContext,
 										       final UserCode lastUpdatorUserCode) {
 		// [0] - check the date

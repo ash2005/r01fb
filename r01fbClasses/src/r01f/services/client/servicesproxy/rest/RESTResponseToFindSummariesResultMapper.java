@@ -20,7 +20,7 @@ import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
 @Slf4j
-class RESTResponseToFindSummariesResultMapper<O extends OID,M extends PersistableModelObject<O>> {
+public class RESTResponseToFindSummariesResultMapper<O extends OID,M extends PersistableModelObject<O>> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////

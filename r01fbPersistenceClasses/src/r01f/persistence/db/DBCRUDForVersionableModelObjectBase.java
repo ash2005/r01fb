@@ -5,6 +5,8 @@ import java.util.Date;
 
 import javax.persistence.EntityManager;
 
+import com.google.common.collect.Lists;
+
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
@@ -12,7 +14,7 @@ import r01f.guids.VersionIndependentOID;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
-import r01f.persistence.CRUDOnMultipleEntitiesResult;
+import r01f.persistence.CRUDOnMultipleResult;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.CRUDResultBuilder;
 import r01f.persistence.db.entities.DBEntityForVersionableModelObject;
@@ -24,8 +26,6 @@ import r01f.usercontext.UserContext;
 import r01f.util.types.Dates;
 import r01f.util.types.collections.CollectionUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.common.collect.Lists;
 
 /**
  * Base type for every persistence layer type
@@ -98,7 +98,7 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 											 .on(_modelObjectType)
 											 .notLoaded()
 												.becauseClientRequestedEntityWasNOTFound()
-														.about(oid,date);
+													.about(oid,date).build();
 			log.warn(outLoadResult.getDetailedMessage());
 		}
 		return outLoadResult;
@@ -135,13 +135,13 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 											 .on(_modelObjectType)
 											 .notLoaded()
 											 .becauseClientRequestedEntityWasNOTFound()
-											 		.aboutWorkVersion(oid);
+											 		.aboutWorkVersion(oid).build();
 			log.warn(outLoadResult.getDetailedMessage());
 		}
 		return outLoadResult;
 	}
 	@Override @SuppressWarnings("unchecked")
-	public CRUDOnMultipleEntitiesResult<M> deleteAllVersions(final UserContext userContext,
+	public CRUDOnMultipleResult<M> deleteAllVersions(final UserContext userContext,
 													  	   	 final VersionIndependentOID oid) {
 		log.debug("> deleting all versions for a {} entity with oid={}",_DBEntityType,oid);
 		
@@ -169,7 +169,7 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 		}
 		
 		// [3] - Compose the result and return
-		CRUDOnMultipleEntitiesResult<M> outDeleteResults = CRUDResultBuilder.using(userContext)
+		CRUDOnMultipleResult<M> outDeleteResults = CRUDResultBuilder.using(userContext)
 																			.on(_modelObjectType)
 																			.<M>versionable()
 																				.deletedDBEntities(allVersionEntities);

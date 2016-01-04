@@ -2,28 +2,39 @@ package r01f.persistence;
 
 import java.util.Collection;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
+
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.exceptions.Throwables;
 import r01f.guids.OID;
 import r01f.model.PersistableModelObject;
 import r01f.model.SummarizedModelObject;
 import r01f.model.facets.HasOID;
-import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
-
-@XmlRootElement(name="foundSummarizedEntities")
+@XmlRootElement(name="foundSummarizedModelObjects")
 @Accessors(prefix="_")
 @SuppressWarnings("unchecked")
 public class FindSummariesOK<M extends PersistableModelObject<? extends OID>>
-	 extends PersistenceOperationOnModelObjectOK<Collection<? extends SummarizedModelObject<M>>>
-  implements FindSummariesResult<M>,
-  			 PersistenceOperationOK {
+	 extends PersistenceOperationOnObjectOK<Collection<? extends SummarizedModelObject<M>>>
+  implements FindSummariesResult<M> {
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Info about the model object
+	 * beware that the {@link PersistenceOperationOnObjectOK} wraps a {@link Collection}
+	 * of model objects
+	 */
+	@XmlAttribute(name="modelObjectType")
+	@Getter @Setter private Class<M> _modelObjectType;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR & BUILDER
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -31,16 +42,13 @@ public class FindSummariesOK<M extends PersistableModelObject<? extends OID>>
 		/* nothing */
 	}
 	protected FindSummariesOK(final Class<M> entityType) {
-		super(entityType,
+		super(Collection.class,
 			  PersistenceRequestedOperation.FIND,PersistencePerformedOperation.from(PersistenceRequestedOperation.FIND));
+		_modelObjectType = entityType;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public <S extends SummarizedModelObject<M>> Collection<S> getOrThrow() throws PersistenceException {
-		return (Collection<S>)super.getOrThrow();
-	}
 	/**
 	 * @return the found entities' oids if the persistence find operation was successful or a PersistenteException if not
 	 * @throws PersistenceException
@@ -78,7 +86,7 @@ public class FindSummariesOK<M extends PersistableModelObject<? extends OID>>
 	 */
 	public <S extends SummarizedModelObject<M>> S getSingleExpectedOrThrow() {
 		S outEntitySummary = null;
-		Collection<S> entities = this.<S>getOrThrow();
+		Collection<S> entities = (Collection<S>)super.getOrThrow();
 		if (CollectionUtils.hasData(entities)) {
 			outEntitySummary = CollectionUtils.of(entities).pickOneAndOnlyElement("A single instance of {} was expected to be found BUT {} were found",SummarizedModelObject.class,entities.size());
 		} 
@@ -88,20 +96,21 @@ public class FindSummariesOK<M extends PersistableModelObject<? extends OID>>
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public FindSummariesOK<M> asOK() {
+	public FindSummariesOK<M> asCRUDOK() {
 		return this;
 	}
 	@Override
-	public FindSummariesError<M> asError() {
+	public FindSummariesError<M> asCRUDError() {
 		throw new ClassCastException();
 	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
+	
 	@Override
-	public CharSequence debugInfo() {
-		return Strings.customized("{} persistence operation requested on entity of type {} and found {} results",
-								  _requestedOperation,_modelObjectType,CollectionUtils.safeSize(_operationExecResult));
-	}
-
+	public <S extends SummarizedModelObject<M>> Collection<S> getOrThrow() throws PersistenceException {
+		if (this.hasFailed()) this.asOperationExecError()		
+								  .throwAsPersistenceException();
+		return (Collection<S>) this.asOperationExecOK()
+				   .getOrThrow();
+	}	
+	
+	
 }

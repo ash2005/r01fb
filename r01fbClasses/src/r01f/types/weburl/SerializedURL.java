@@ -277,4 +277,16 @@ public class SerializedURL
 	public String toString() {
 		return this.asString();
 	}
+	@Override 
+	public boolean equals(final Object other) {
+		if (other == null) return false;
+		if (other instanceof SerializedURL) {
+			return ((SerializedURL) other).asString().equals(this.asString());
+		}
+		return false;
+	}
+	@Override
+	public int hashCode() {
+		return _url.toString().hashCode();
+	}
 }

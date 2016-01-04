@@ -9,7 +9,7 @@ import r01f.guids.VersionIndependentOID;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
-import r01f.persistence.CRUDOnMultipleEntitiesResult;
+import r01f.persistence.CRUDOnMultipleResult;
 import r01f.persistence.CRUDResult;
 import r01f.services.delegates.persistence.CRUDServicesForVersionableModelObjectDelegateBase;
 import r01f.services.interfaces.CRUDServicesForVersionableModelObject;
@@ -28,7 +28,7 @@ public abstract class CoreCRUDServiceForVersionableModelObjectBase<O extends OID
 //  CRUD DELEGATE
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Transactional
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> loadActiveVersionAt(final UserContext userContext,
 									   		 final VersionIndependentOID oid,final Date date) {
 		return this.createDelegateAs(CRUDServicesForVersionableModelObject.class)
@@ -36,7 +36,7 @@ public abstract class CoreCRUDServiceForVersionableModelObjectBase<O extends OID
 								 	   		 oid,date);
 	}
 	@Transactional
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> loadWorkVersion(final UserContext userContext,
 									   	 		    final VersionIndependentOID oid) {
 		return this.createDelegateAs(CRUDServicesForVersionableModelObject.class)
@@ -44,15 +44,15 @@ public abstract class CoreCRUDServiceForVersionableModelObjectBase<O extends OID
 								   		 oid);
 	}
 	@Transactional
-	@Override @SuppressWarnings("unchecked")
-	public CRUDOnMultipleEntitiesResult<M> deleteAllVersions(final UserContext userContext, 
+	@Override 
+	public CRUDOnMultipleResult<M> deleteAllVersions(final UserContext userContext, 
 														   				final VersionIndependentOID oid) {
 		return this.createDelegateAs(CRUDServicesForVersionableModelObject.class)
 						.deleteAllVersions(userContext,
 									 	   oid);
 	}
 	@Transactional
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> activate(final UserContext userContext,
 								  final M entityToBeActivated) {
 		return this.createDelegateAs(CRUDServicesForVersionableModelObject.class)

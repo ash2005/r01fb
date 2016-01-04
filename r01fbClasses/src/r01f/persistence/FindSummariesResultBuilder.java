@@ -100,8 +100,8 @@ public class FindSummariesResultBuilder
 			}
 			return this.foundSummaries(summaries);
 		}
-		public FindOK<M> noSummaryFound() {
-			FindOK<M> outFoundEntities = new FindOK<M>();
+		public FindOnModelObjectOK<M> noSummaryFound() {
+			FindOnModelObjectOK<M> outFoundEntities = new FindOnModelObjectOK<M>();
 			outFoundEntities.setModelObjectType(_entityType);
 			outFoundEntities.setRequestedOperation(PersistenceRequestedOperation.FIND);
 			outFoundEntities.setPerformedOperation(PersistencePerformedOperation.FOUND);

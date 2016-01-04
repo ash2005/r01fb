@@ -1,10 +1,8 @@
 package r01f.persistence;
 
 import r01f.debug.Debuggable;
-import r01f.guids.OID;
-import r01f.model.PersistableModelObject;
 
-public interface CRUDResult<M extends PersistableModelObject<? extends OID>>
+public interface CRUDResult<T>
 		 extends PersistenceOperationResult,
 		 		 Debuggable {
 	/**
@@ -13,13 +11,13 @@ public interface CRUDResult<M extends PersistableModelObject<? extends OID>>
 	 * @return
 	 * @throws PersistenceException
 	 */
-	public M getOrThrow() throws PersistenceException;
+	public T getOrThrow() throws PersistenceException;
 	/**
 	 * @return a {@link CRUDOK} instance
 	 */
-	public CRUDOK<M> asOK();
+	public CRUDOK<T> asCRUDOK();
 	/**
 	 * @return a {@link CRUDError} instance
 	 */
-	public CRUDError<M> asError();
+	public CRUDError<T> asCRUDError();
 }

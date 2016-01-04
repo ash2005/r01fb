@@ -119,10 +119,10 @@ public class Paging
         int currentNavNarWindow = this.getCurrentNavBarWindow();	// the current nav bar window
         
         int currentWindowItems = currentNavNarWindow < navBarWindows || _pageCount % _navBarWindowItems == 0 ? _navBarWindowItems
-        															 									 : _pageCount % _navBarWindowItems;
+        																									 : _pageCount % _navBarWindowItems;
         // Return an array of the item numbers of the current window
         int currentNavBarWindowItem = currentNavNarWindow > 1 ? currentNavNarWindow * _navBarWindowItems - _navBarWindowItems + 1
-        													   : 1;
+        													  : 1;
         int[] windowItems = new int[currentWindowItems];
         for (int i = 0; i < currentWindowItems; i++) {
         	windowItems[i] = currentNavBarWindowItem++;
@@ -322,7 +322,7 @@ public class Paging
      */
     public int getNextNavBarWindowFirstPage() {
         int nextBlockFirstPage = _currentNavBarWindowPages[_currentNavBarWindowPages.length-1] == _pageCount ? _currentNavBarWindowPages[_currentNavBarWindowPages.length-1]
-        																						          : _currentNavBarWindowPages[_currentNavBarWindowPages.length-1]+1;
+        																						             : _currentNavBarWindowPages[_currentNavBarWindowPages.length-1]+1;
         return nextBlockFirstPage;
     }    
 ///////////////////////////////////////////////////////////////////////////////////////////

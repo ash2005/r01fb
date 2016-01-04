@@ -12,7 +12,7 @@ import r01f.guids.VersionOID;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
-import r01f.persistence.CRUDOnMultipleEntitiesResult;
+import r01f.persistence.CRUDOnMultipleResult;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.PersistenceException;
 import r01f.rest.RESTOperationsResponseBuilder;
@@ -124,7 +124,7 @@ public class RESTVersionableCRUDDelegateBase<O extends OIDForVersionableModelObj
 	@SuppressWarnings("unchecked")
 	public Response deleteAllVersions(final UserContext userContext,final String resourcePath,
 						   			  final VersionIndependentOID entityOid) throws PersistenceException {
-		CRUDOnMultipleEntitiesResult<M> deleteResults = this.getPersistenceServicesAs(CRUDServicesForVersionableModelObject.class)
+		CRUDOnMultipleResult<M> deleteResults = this.getPersistenceServicesAs(CRUDServicesForVersionableModelObject.class)
 																	.deleteAllVersions(userContext,
 																				       entityOid);
 		Response outResponse = RESTOperationsResponseBuilder.crudOn(_modelObjectType)

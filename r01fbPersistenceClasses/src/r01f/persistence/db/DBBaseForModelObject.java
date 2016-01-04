@@ -4,11 +4,14 @@ import java.util.Collection;
 
 import javax.persistence.EntityManager;
 
+import com.google.common.base.Function;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.OID;
 import r01f.model.PersistableModelObject;
+import r01f.persistence.CRUDResult;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.CRUDResultBuilder;
 import r01f.persistence.db.entities.DBEntityForModelObject;
@@ -18,8 +21,6 @@ import r01f.reflection.ReflectionUtils;
 import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.common.base.Function;
 
 /**
  * Base type for every persistence layer type
@@ -62,7 +63,7 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 										final M modelObj) {
 		DB outEntity = ReflectionUtils.<DB>createInstanceOf(_DBEntityType);
 		outEntity.fromModelObject(userContext,
-								  modelObj);
+						     	  modelObj);
 		// do not forget!!
 		outEntity.setEntityVersion(modelObj.getEntityVersion());
 		return outEntity;
@@ -104,7 +105,7 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 														   .on(_modelObjectType)
 													  	   .notLoaded()
 													  	   .becauseClientBadRequest("The {} entity's oid cannot be null in order to be loaded",_modelObjectType)
-													  	   		.about(oid);
+													  	   		.about(oid).build();
 		// Load the entity
 		DB dbEntity = _doLoadEntity(userContext,
 									pk);
@@ -123,7 +124,7 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 															  .on(_modelObjectType)
 															  .notLoaded()
 															  .becauseClientRequestedEntityWasNOTFound()
-															  		.about(oid);
+															  		.about(oid).build();
 			log.warn(outEntityLoadResult.getDetailedMessage());
 		}
 		return outEntityLoadResult;
@@ -175,7 +176,7 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 											 .on(_modelObjectType)
 											 .notLoaded()
 											 	.becauseServerError("There MUST be a single entity of {} with id {}",_DBEntityType,id)
-											 	.about(id);
+											 	.about(id).build();
 			} else {
 				// normal 
 				DB dbEntity = CollectionUtils.of(dbEntities)
@@ -191,7 +192,7 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 										 .on(_modelObjectType)
 										 .notLoaded()
 										 	.becauseClientRequestedEntityWasNOTFound()
-										 	.about(id);
+										 	.about(id).build();
 		}
 		return outResult;
 	}

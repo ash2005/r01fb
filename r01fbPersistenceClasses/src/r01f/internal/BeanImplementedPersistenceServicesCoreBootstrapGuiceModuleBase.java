@@ -47,35 +47,35 @@ public abstract class BeanImplementedPersistenceServicesCoreBootstrapGuiceModule
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	public BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-														   final Module... otherModules) {
+														   				  final Module... otherModules) {
 		super(apiAppCode,
 		      otherModules != null ? Arrays.asList(otherModules) : null);		
 	}
 	public BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-														   final DBGuiceModuleBase dbGuiceModule,
-														   final Module... otherModules) {
+														   				  final DBGuiceModuleBase dbGuiceModule,
+														   				  final Module... otherModules) {
 		super(apiAppCode,
 			  dbGuiceModule,
 			  otherModules != null ? Arrays.asList(otherModules) : null);
 	}
 	public BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-														   final SearchGuiceModuleBase searchGuiceModule,
-														   final Module... otherModules) {
+														   				  final SearchGuiceModuleBase searchGuiceModule,
+														   				  final Module... otherModules) {
 		super(apiAppCode,
 			  searchGuiceModule,
 			  otherModules != null ? Arrays.asList(otherModules) : null);
 	}
 	public BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-														   final SearchGuiceModuleBase searchGuiceModule,
-														   final Collection<Module> otherModules) {
+														   				  final SearchGuiceModuleBase searchGuiceModule,
+														   				  final Collection<Module> otherModules) {
 		super(apiAppCode,
 			  searchGuiceModule,
 			  otherModules);
 	}
 	public BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-														   final DBGuiceModuleBase dbGuiceModule,
-														   final SearchGuiceModuleBase searchGuiceModule,
-														   final Collection<Module> otherModules) {
+														   				  final DBGuiceModuleBase dbGuiceModule,
+														   				  final SearchGuiceModuleBase searchGuiceModule,
+														   				  final Collection<Module> otherModules) {
 		super(apiAppCode,
 			  dbGuiceModule,
 			  searchGuiceModule,

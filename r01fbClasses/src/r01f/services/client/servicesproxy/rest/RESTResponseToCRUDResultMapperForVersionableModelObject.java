@@ -9,9 +9,9 @@ import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
 import r01f.persistence.CRUDError;
-import r01f.persistence.CRUDOnMultipleEntitiesError;
-import r01f.persistence.CRUDOnMultipleEntitiesOK;
-import r01f.persistence.CRUDOnMultipleEntitiesResult;
+import r01f.persistence.CRUDOnMultipleError;
+import r01f.persistence.CRUDOnMultipleOK;
+import r01f.persistence.CRUDOnMultipleResult;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.CRUDResultBuilder;
 import r01f.persistence.PersistenceRequestedOperation;
@@ -66,7 +66,7 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 										  .on(_modelObjectType)
 										  .not(requestedOp)													
 										  .becauseClientCannotConnectToServer(restResourceUrl)
-										 		.about(oid,version);
+										 		.about(oid,version).build();
 		} 
 		// [2] - Server error (the request could NOT be processed)
 		else if (httpResponse.isServerError()) {
@@ -74,7 +74,7 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 										  .on(_modelObjectType)
 										  .not(requestedOp)	
 										  .becauseServerError(httpResponseString)	// the rest endpoint response is the error as TEXT
-										 		.about(oid,version);
+										 		.about(oid,version).build();
 		}
 		// [3] - Error while request processing: the PersistenceCRUDError comes INSIDE the response
 		else {
@@ -86,11 +86,11 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public CRUDOnMultipleEntitiesResult<M> mapHttpResponseOnMultipleEntity(final UserContext userContext,
+	public CRUDOnMultipleResult<M> mapHttpResponseOnMultipleEntity(final UserContext userContext,
 																		   final PersistenceRequestedOperation requestedOp,
 																		   final VersionIndependentOID requestedOid,
 																		   final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
-		CRUDOnMultipleEntitiesResult<M> outOperationsResults = null;
+		CRUDOnMultipleResult<M> outOperationsResults = null;
 		
 		if (httpResponse.isSuccess()) {
 			outOperationsResults = _mapHttpResponseForSuccessOnMultipleEntity(userContext, 
@@ -108,11 +108,11 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 		return outOperationsResults;
 	}
 	@SuppressWarnings({ "unused" })
-	protected CRUDOnMultipleEntitiesOK<M> _mapHttpResponseForSuccessOnMultipleEntity(final UserContext userContext,
+	protected CRUDOnMultipleOK<M> _mapHttpResponseForSuccessOnMultipleEntity(final UserContext userContext,
 															   					   	 final PersistenceRequestedOperation requestedOp,
 															   					 	 final VersionIndependentOID requestedOid,
 															   					   	 final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
-		CRUDOnMultipleEntitiesOK<M> outOperationsResults = null;
+		CRUDOnMultipleOK<M> outOperationsResults = null;
 		
 		// [0] - Load the http response text
 		String responseStr = httpResponse.loadAsString();		// DO not move!!
@@ -124,11 +124,11 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 		// [2] - Return
 		return outOperationsResults;
 	}
-	protected CRUDOnMultipleEntitiesError<M> _mapHttpResponseForErrorOnMultipleEntities(final UserContext userContext,
+	protected CRUDOnMultipleError<M> _mapHttpResponseForErrorOnMultipleEntities(final UserContext userContext,
 															   	 						final PersistenceRequestedOperation requestedOp,
 															   	 						final VersionIndependentOID requestedOid,
 															   	 						final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
-		CRUDOnMultipleEntitiesError<M> outOpError = null;
+		CRUDOnMultipleError<M> outOpError = null;
 		
 		// [0] - Load the http response text
 		String responseStr = httpResponse.loadAsString();		// DO not move!!

@@ -20,6 +20,7 @@ import r01f.locale.Language;
 import r01f.locale.LanguageTexts;
 import r01f.locale.LanguageTextsMapBacked;
 import r01f.locale.Languages;
+import r01f.locale.LanguageTexts.LangTextNotFoundBehabior;
 import r01f.marshalling.simple.DataTypes.DataType;
 import r01f.marshalling.simple.DataTypes.DataTypeEnum;
 import r01f.reflection.Reflection;
@@ -256,7 +257,8 @@ class MappingReflectionUtils {
 				// ... en otro caso es un simple Mapa
 				if (dataType.asMap().getKeyElementsType().equals(Language.class) 
 				 && dataType.asMap().getValueElementsType().equals(String.class)) {
-					LanguageTexts langTexts = new LanguageTextsMapBacked(mapInstance.size());
+					LanguageTexts langTexts = new LanguageTextsMapBacked(mapInstance.size(),
+																		 LangTextNotFoundBehabior.RETURN_NULL);
 					for(Map.Entry<Object,Object> me : mapInstance.entrySet()) {					
 						langTexts.add((Language)me.getKey(),
 									  (String)me.getValue());

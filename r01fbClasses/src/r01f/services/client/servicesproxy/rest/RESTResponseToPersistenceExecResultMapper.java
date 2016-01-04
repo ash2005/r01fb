@@ -15,19 +15,16 @@ import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
 @Slf4j
-public class RESTResponseToPersistenceExecResultMapper<T> {
+public class RESTResponseToPersistenceExecResultMapper {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
 	protected final Marshaller _marshaller;
-	protected final Class<T> _type;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	public RESTResponseToPersistenceExecResultMapper(final Marshaller marshaller,
-													 final Class<T> type) {
+	public RESTResponseToPersistenceExecResultMapper(final Marshaller marshaller) {
 		_marshaller = marshaller;
-		_type = type;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -41,8 +38,8 @@ public class RESTResponseToPersistenceExecResultMapper<T> {
 	 * @return
 	 * @throws PersistenceException
 	 */
-	public PersistenceOperationExecResult<T> mapHttpResponse(final UserContext userContext,
-															 final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+	public <T> PersistenceOperationExecResult<T> mapHttpResponse(final UserContext userContext,
+															 	 final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
 		PersistenceOperationExecResult<T> outResult = null;
 		if (httpResponse.isSuccess()) {
 			outResult = _mapHttpResponseForSuccess(userContext,
@@ -54,8 +51,8 @@ public class RESTResponseToPersistenceExecResultMapper<T> {
 		return outResult;
 	}
 	@SuppressWarnings({ "unused" })
-	protected PersistenceOperationExecResult<T> _mapHttpResponseForSuccess(final UserContext userContext,
-												   	   			  		   final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+	protected <T> PersistenceOperationExecResult<T> _mapHttpResponseForSuccess(final UserContext userContext,
+												   	   			  		   	   final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
 		PersistenceOperationExecResult<T> outOperationResult = null;
 		
 		// [0] - Load the response		
@@ -68,8 +65,8 @@ public class RESTResponseToPersistenceExecResultMapper<T> {
 		// [2] - Return
 		return outOperationResult;
 	}
-	protected PersistenceOperationExecResult<T> _mapHttpResponseForError(final UserContext userContext,
-												    			  		 final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+	protected <T> PersistenceOperationExecResult<T> _mapHttpResponseForError(final UserContext userContext,
+																			 final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
 		PersistenceOperationExecResult<T> outOpError = null;
 		
 		// [0] - Load the http response text

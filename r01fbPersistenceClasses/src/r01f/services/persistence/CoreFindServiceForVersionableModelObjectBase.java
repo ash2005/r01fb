@@ -53,7 +53,7 @@ public abstract class CoreFindServiceForVersionableModelObjectBase<O extends OID
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIND
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public FindResult<M> findAllVersions(final UserContext userContext) {
 		return this.createDelegateAs(FindServicesForVersionableModelObject.class)
 						.findAllVersions(userContext);

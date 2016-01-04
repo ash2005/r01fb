@@ -93,8 +93,11 @@ public class ServiceBootstrapDef {
 	}
 	public void setServiceInterfacesToImplAndProxiesDefs(final Collection<ServiceToImplAndProxyDef<? extends ServiceInterface>> serviceInterfacesToImplAndProxiesDefs) {
 		if (CollectionUtils.isNullOrEmpty(serviceInterfacesToImplAndProxiesDefs)) {
-			throw new IllegalStateException(Throwables.message("There's NO service interface to impl and/or proxy binding for {}; check that the {} types @{} annotation appCode and module attributes are correct (they MUST match the ones in {}.client.properties.xml and {}.core.properties.xml)",
-															   _coreAppCodeAndModule,ServiceInterface.class.getName(),ServiceInterfaceFor.class.getSimpleName(),_coreAppCodeAndModule.getAppCode(),_coreAppCodeAndModule.getAppCode()));
+//			throw new IllegalStateException(Throwables.message("The core module {} is NOT accesible via a client-API service interface: there's NO client API service interface to impl and/or proxy binding for {}; check that the {} types @{} annotation appCode and module attributes are correct (they MUST match the ones in {}.client.properties.xml)",
+//															   _coreAppCodeAndModule,
+//															   _coreAppCodeAndModule,
+//															   ServiceInterface.class.getName(),ServiceInterfaceFor.class.getSimpleName(),
+//															   _coreAppCodeAndModule.getAppCode()));
 		}
 		_serviceInterfacesToImplAndProxiesDefs = serviceInterfacesToImplAndProxiesDefs;
 	}

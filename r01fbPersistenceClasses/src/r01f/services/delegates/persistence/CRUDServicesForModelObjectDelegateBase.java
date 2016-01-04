@@ -1,6 +1,8 @@
 package r01f.services.delegates.persistence;
 
 
+import com.google.common.eventbus.EventBus;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.OID;
@@ -12,12 +14,10 @@ import r01f.persistence.CRUDResultBuilder;
 import r01f.persistence.PersistenceOperationError;
 import r01f.persistence.PersistenceRequestedOperation;
 import r01f.persistence.db.DBCRUDForModelObject;
-import r01f.persistence.db.ModelObjectValidationResult;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.interfaces.CRUDServicesForModelObject;
 import r01f.usercontext.UserContext;
-
-import com.google.common.eventbus.EventBus;
+import r01f.validation.ObjectValidationResult;
 
 /**
  * Service layer delegated type for CRUD (Create/Read/Update/Delete) operations
@@ -58,15 +58,15 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 		CRUDResult<M> loadResult = this.load(userContext,
 														oid);
 		boolean outExists = loadResult.hasSucceeded();
-		if (loadResult.hasFailed() && !loadResult.asError()		// as(CRUDError.class)
+		if (loadResult.hasFailed() && !loadResult.asCRUDError()		// as(CRUDError.class)
 												 .wasBecauseClientRequestedEntityWasNOTFound()) {
 			log.error("Error trying to check the existence of record with oid={}: {}",oid,
-					  loadResult.asError()	// as(CRUDError.class)
+					  loadResult.asCRUDError()	// as(CRUDError.class)
 					  		    .getPersistenceException().getMessage());
 		}
 		return outExists;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> load(final UserContext userContext,
 				  			  final O oid) {
 		CRUDResult<M> outEntityLoadResult = null;
@@ -77,7 +77,7 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 									   .on(_modelObjectType)
 									   .notLoaded()
 									   .becauseClientBadRequest("The {} entity's oid cannot be null in order to be loaded",_modelObjectType)
-									   		.about(oid);
+									   		.about(oid).build();
 		}
 		// [1] - Load
 		outEntityLoadResult = this.getServiceImplAs(CRUDServicesForModelObject.class)
@@ -101,7 +101,7 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 										       .on(_modelObjectType)
 										       .badClientRequestData(PersistenceRequestedOperation.CREATE,
 										    		 			     "The {} entity cannot be null in order to be created",_modelObjectType)
-										    		 .about(modelObj);
+										    		 .about(modelObj).build();
 		}
 		// [1] check that it's NOT in read only status
 		CRUDResult<M> outOpResult = _errorIfReadOnlyOrNull(userContext,
@@ -149,7 +149,7 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 										       .on(_modelObjectType)
 										       .badClientRequestData(PersistenceRequestedOperation.UPDATE,
 										    		 			     "The {} entity cannot be null in order to be created",_modelObjectType)
-										    		 .about(modelObj);
+										    		 .about(modelObj).build();
 		}
 		// [1] check that it's NOT in read only status
 		CRUDResult<M> outOpResult = _errorIfReadOnlyOrNull(userContext,
@@ -186,7 +186,7 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 /////////////////////////////////////////////////////////////////////////////////////////
 //  DELETE
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public CRUDResult<M> delete(final UserContext userContext,
 								final O oid) {
 		// [0] - check the entity
@@ -195,7 +195,7 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 											   .on(_modelObjectType)
 											   .badClientRequestData(PersistenceRequestedOperation.DELETE,
 											    		 			 "The {} entity's oid cannot be null in order to be created",_modelObjectType)
-											    		.about(oid);
+											    		.about(oid).build();
 		}
 		// [1] check that it's NOT in read only status
 		CRUDResult<M> outOpResult = _errorIfReadOnlyOrNull(userContext,
@@ -226,13 +226,13 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 													   .on(_modelObjectType)
 													   .notCreated()
 													   .becauseClientBadRequest("The CRUD services object is in READ-ONLY status!")
-													   		.about(modelObject);
+													   		.about(modelObject).build();
 			} else if (reqOp.is(PersistenceRequestedOperation.UPDATE)) {
 				outError = CRUDResultBuilder.using(userContext)
 													   .on(_modelObjectType)
 													   .notUpdated()
 													   .becauseClientBadRequest("The CRUD services object is in READ-ONLY status!")
-													   		.about(modelObject);
+													   		.about(modelObject).build();
 			}
 		}
 		return outError;
@@ -247,13 +247,13 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 													   .on(_modelObjectType)
 													   .notUpdated()
 													   .becauseClientBadRequest("The CRUD services object is in READ-ONLY status!")
-													   		.about(oid);
+													   		.about(oid).build();
 			} else if (reqOp.is(PersistenceRequestedOperation.DELETE)) {
 				outError = CRUDResultBuilder.using(userContext)
 													   .on(_modelObjectType)
 													   .notDeleted()
 													   .becauseClientBadRequest("The CRUD services object is in READ-ONLY status!")
-													   		.about(oid);
+													   		.about(oid).build();
 			}
 		}
 		return outError;
@@ -269,7 +269,7 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 	private CRUDResult<M> _errorIfNOTValidOrNull(final UserContext userContext,
 												 final PersistenceRequestedOperation reqOp,
 												 final M modelObj) {
-		ModelObjectValidationResult<M> valid = null;
+		ObjectValidationResult<M> valid = null;
 		
 		// model object self validation
 		if (ReflectionUtils.isImplementing(_modelObjectType,SelfValidates.class)) {
@@ -294,13 +294,13 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 													   .on(_modelObjectType)
 													   .notCreated()
 													   .becauseClientSentEntityValidationErrors(valid.asNOKValidationResult())
-													   		.about(modelObj);
+													   		.about(modelObj).build();
 			} else if (reqOp.is(PersistenceRequestedOperation.UPDATE)) {
 				outError = CRUDResultBuilder.using(userContext)
 													   .on(_modelObjectType)
 													   .notUpdated()
 													   .becauseClientSentEntityValidationErrors(valid.asNOKValidationResult())
-													   		.about(modelObj);
+													   		.about(modelObj).build();
 			}
 		}
 		return outError;

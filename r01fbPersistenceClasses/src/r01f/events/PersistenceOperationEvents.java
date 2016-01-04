@@ -4,13 +4,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import r01f.debug.Debuggable;
-import r01f.guids.OID;
-import r01f.model.PersistableModelObject;
 import r01f.persistence.CRUDError;
 import r01f.persistence.CRUDOK;
 import r01f.persistence.PersistenceOperationError;
 import r01f.persistence.PersistenceOperationOK;
-import r01f.persistence.PersistenceOperationOnModelObjectResult;
+import r01f.persistence.PersistenceOperationOnObjectResult;
 import r01f.persistence.PersistenceOperationResult;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
@@ -40,11 +38,11 @@ public class PersistenceOperationEvents {
 			String dbg = null;
 			// [Success]
 			if (_operationResult.hasSucceeded()) {
-				if (_operationResult instanceof PersistenceOperationOnModelObjectResult) {
-					PersistenceOperationOnModelObjectResult<?> opOK = (PersistenceOperationOnModelObjectResult<?>)_operationResult;
+				if (_operationResult instanceof PersistenceOperationOnObjectResult) {
+					PersistenceOperationOnObjectResult<?> opOK = (PersistenceOperationOnObjectResult<?>)_operationResult;
 					dbg = Strings.of("Successful '{}' operation about {}")
 								 .customizeWith(opOK.getRequestedOperation(),
-										 		opOK.getModelObjectType())
+										 		opOK.getObjectType())
 								 .asString();
 				} else {
 					PersistenceOperationOK opOK = (PersistenceOperationOK)_operationResult;
@@ -54,14 +52,14 @@ public class PersistenceOperationEvents {
 			} 
 			// [Error]
 			else {
-				if (_operationResult instanceof PersistenceOperationOnModelObjectResult) {
+				if (_operationResult instanceof PersistenceOperationOnObjectResult) {
 					PersistenceOperationError opError = (PersistenceOperationError)_operationResult;
-					PersistenceOperationOnModelObjectResult<?> opErrOnModelObj = (PersistenceOperationOnModelObjectResult<?>)_operationResult;
+					PersistenceOperationOnObjectResult<?> opErrOnModelObj = (PersistenceOperationOnObjectResult<?>)_operationResult;
 					dbg = Strings.customized("Failed '{}' operation about {}: ({} error) --> {}" + 
 										     "\t-Client Error: {}\n" + 
 										     "\t-Message: {}",
 										     opErrOnModelObj.getRequestedOperation(),
-										     opErrOnModelObj.getModelObjectType(),
+										     opErrOnModelObj.getObjectType(),
 										     (opError.wasBecauseAClientError() ? "CLIENT" : "SERVER"),
 										     opError.getErrorMessage());
 				} else {
@@ -90,11 +88,11 @@ public class PersistenceOperationEvents {
 			return (PersistenceOperationOK)_operationResult;
 		}
 		@SuppressWarnings("unchecked")
-		public <M extends PersistableModelObject<? extends OID>> CRUDOK<M> getResultAsCRUDOperationOK() {
+		public <M> CRUDOK<M> getResultAsCRUDOperationOK() {
 			return (CRUDOK<M>)_operationResult;
 		}
 		@SuppressWarnings({ "unchecked","unused" })
-		public <M extends PersistableModelObject<? extends OID>> CRUDOK<M> getResultAsCRUDOperationOKOn(final Class<M> modelObjectType) {
+		public <M> CRUDOK<M> getResultAsCRUDOperationOKOn(final Class<M> modelObjectType) {
 			return (CRUDOK<M>)_operationResult;
 		}
 	}
@@ -112,7 +110,7 @@ public class PersistenceOperationEvents {
 			return (PersistenceOperationError)_operationResult;
 		}
 		@SuppressWarnings("unchecked")
-		public <M extends PersistableModelObject<? extends OID>> CRUDError<M> getResultAsCRUDOperationError() {
+		public <M> CRUDError<M> getResultAsCRUDOperationError() {
 			return (CRUDError<M>)_operationResult;
 		}
 	}

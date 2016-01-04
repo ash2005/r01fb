@@ -79,6 +79,9 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 	 * @return
 	 */
 	public Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> findServiceInterfacesToImplAndProxiesBindings(final Collection<AppCode> coreAppCodes) {
+		log.warn("\t\tFinding {}-implementing types at [{}] client app code and {} core app codes",
+				 ServiceInterface.class.getSimpleName(),_apiAppCode,coreAppCodes);
+		
 		// Find all the ServiceInterface implementing types
 		ServiceInterfaceImplementingTypes serviceInterfaceImplementingTypes = new ServiceInterfaceImplementingTypes(_apiAppCode,
 																													coreAppCodes);
@@ -159,6 +162,16 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 			}
 			defsForAppModule.add(serviceToImplDef);
 		}
+		
+		// A bit of debug
+		if (CollectionUtils.hasData(outServiceInterfacesToImpls)) {
+			for (Map.Entry<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> me : outServiceInterfacesToImpls.entrySet()) {
+				log.warn("\t\t-{}: {} matchings",
+						 me.getKey(),
+						 (me.getValue() != null ? me.getValue().size() : 0));
+			}
+		}
+		
 		return outServiceInterfacesToImpls;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -206,8 +219,6 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 						
 		public ServiceInterfaceImplementingTypes(final AppCode apiAppCode,
 												 final Collection<AppCode> coreAppCodes) {
-			log.warn("Finding {}-implementing types at [{}] client app code and {} core app codes",
-					 ServiceInterface.class.getSimpleName(),apiAppCode,coreAppCodes);
 			_apiAppCode = apiAppCode;
 			_coreAppCodes = coreAppCodes;
 			

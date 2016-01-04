@@ -36,7 +36,8 @@ public class RESTJerseyServletGuiceModuleBase
 		//		for every @Path annotated types defined at the injector
 		Map<String,String> params = new HashMap<String,String>();
 		params.put("javax.ws.rs.Application",
-				   _jerseyAppType.getName());		
+				   _jerseyAppType.getName());
+//		params.put("jersey.config.disableMetainfServicesLookup","1");
 		this.serve("/*").with(GuiceContainer.class,
 						 	  params);
 		log.info("REST Application: javax.ws.rs.Application={}",_jerseyAppType.getName());

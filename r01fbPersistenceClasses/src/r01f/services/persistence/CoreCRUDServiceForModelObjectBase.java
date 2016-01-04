@@ -56,7 +56,7 @@ public abstract class CoreCRUDServiceForModelObjectBase<O extends OID,M extends 
 //  CRUD
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Transactional
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> load(final UserContext userContext,
 							  final O oid) {
 		return this.createDelegateAs(CRUDServicesForModelObject.class)
@@ -64,7 +64,7 @@ public abstract class CoreCRUDServiceForModelObjectBase<O extends OID,M extends 
 							  oid);
 	}
 	@Transactional
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> create(final UserContext userContext, 
 								final M record) {
 		return this.createDelegateAs(CRUDServicesForModelObject.class)
@@ -72,7 +72,7 @@ public abstract class CoreCRUDServiceForModelObjectBase<O extends OID,M extends 
 								record);
 	}
 	@Transactional
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> update(final UserContext userContext, 
 								final M record) {
 		return this.createDelegateAs(CRUDServicesForModelObject.class)
@@ -80,7 +80,7 @@ public abstract class CoreCRUDServiceForModelObjectBase<O extends OID,M extends 
 								record);
 	}
 	@Transactional
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> delete(final UserContext userContext,
 							    final O oid) {
 		return this.createDelegateAs(CRUDServicesForModelObject.class)

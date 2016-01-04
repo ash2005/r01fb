@@ -208,9 +208,8 @@ public class RESTResponseTypeMappersForBasicTypes {
 	 * MessageBodyWriter for all {@link Collection} types (Map, List and Collection)
 	 * This type is used when the REST service has to return a {@link Collection} type
 	 */
-	@Provider
 	@SuppressWarnings("rawtypes")
-	public abstract static class CollectionResponseTypeMapperBase 
+	public static abstract class CollectionResponseTypeMapperBase 
 		                 extends XMLMarshalledObjectResultTypeMapperBase<Collection> {
 		
 		public CollectionResponseTypeMapperBase() {
@@ -224,10 +223,9 @@ public class RESTResponseTypeMappersForBasicTypes {
 	 * MessageBodyWriter for all {@link Collection} types (Map, List and Collection)
 	 * This type is used when the REST service has to return a {@link Collection} type
 	 */
-	@Provider
 	@SuppressWarnings("rawtypes")
-	public abstract static class MapResponseTypeMapperBase 
-		             extends XMLMarshalledObjectResultTypeMapperBase<Map> {
+	public static abstract class MapResponseTypeMapperBase 
+		                 extends XMLMarshalledObjectResultTypeMapperBase<Map> {
 		
 		public MapResponseTypeMapperBase() {
 			super(Map.class);
@@ -239,8 +237,7 @@ public class RESTResponseTypeMappersForBasicTypes {
 	/**
 	 * MessageBodyWriter for all {@link PersistenceOperationResult}
 	 */
-	@Provider
-	public abstract static class PersistenceOperationResultTypeMapperBase 
+	public static abstract class PersistenceOperationResultTypeMapperBase 
 		                 extends XMLMarshalledObjectResultTypeMapperBase<PersistenceOperationResult> {
 		
 		public PersistenceOperationResultTypeMapperBase() {
@@ -253,9 +250,8 @@ public class RESTResponseTypeMappersForBasicTypes {
 	/**
 	 * MessageBodyWriter for all {@link PersistenceOperationResult}
 	 */
-	@Provider
 	@RequiredArgsConstructor
-	public abstract static class XMLMarshalledObjectResultTypeMapperBase<T> 
+	public static abstract class XMLMarshalledObjectResultTypeMapperBase<T> 
 		              implements MessageBodyWriter<T> {
 		
 		private final Class<?> _mappedType;

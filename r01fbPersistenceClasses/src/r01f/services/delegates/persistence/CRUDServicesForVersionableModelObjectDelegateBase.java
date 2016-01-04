@@ -2,6 +2,8 @@ package r01f.services.delegates.persistence;
 
 import java.util.Date;
 
+import com.google.common.eventbus.EventBus;
+
 import lombok.extern.slf4j.Slf4j;
 import r01f.events.PersistenceOperationEvents.PersistenceOperationErrorEvent;
 import r01f.events.PersistenceOperationEvents.PersistenceOperationOKEvent;
@@ -10,9 +12,9 @@ import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
 import r01f.persistence.CRUDError;
-import r01f.persistence.CRUDOnMultipleEntitiesError;
-import r01f.persistence.CRUDOnMultipleEntitiesOK;
-import r01f.persistence.CRUDOnMultipleEntitiesResult;
+import r01f.persistence.CRUDOnMultipleError;
+import r01f.persistence.CRUDOnMultipleOK;
+import r01f.persistence.CRUDOnMultipleResult;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.CRUDResultBuilder;
 import r01f.persistence.PersistenceOperationError;
@@ -22,8 +24,6 @@ import r01f.persistence.db.DBCRUDForVersionableModelObject;
 import r01f.services.interfaces.CRUDServicesForVersionableModelObject;
 import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.eventbus.EventBus;
 
 @Slf4j
 public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extends OIDForVersionableModelObject,M extends PersistableModelObject<O> & HasVersionableFacet> 
@@ -48,7 +48,7 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 /////////////////////////////////////////////////////////////////////////////////////////
 //  LOAD
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> loadActiveVersionAt(final UserContext userContext,
 						   					 final VersionIndependentOID oid,final Date date) {
 		CRUDResult<M> outEntityLoadResult = null;
@@ -60,7 +60,7 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 															  .on(_modelObjectType)
 															  .badClientRequestData(PersistenceRequestedOperation.LOAD,
 																	  				"Cannot load {} entity since either the version independent oid is null",_modelObjectType)
-																	  .about(oid,theDate);
+																	  .about(oid,theDate).build();
 		}
 		// [1] - Do load
 		outEntityLoadResult = this.getServiceImplAs(CRUDServicesForVersionableModelObject.class)
@@ -68,7 +68,7 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 															 oid,theDate);
 		return outEntityLoadResult;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> loadWorkVersion(final UserContext userContext,
 							 			 final VersionIndependentOID oid) {
 		CRUDResult<M> outEntityLoadResult = null;
@@ -79,7 +79,7 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 															  .on(_modelObjectType)
 															  .badClientRequestData(PersistenceRequestedOperation.LOAD,
 																	  				"Cannot load {} work version entity since the version independent oid is null",_modelObjectType)
-																	  .aboutWorkVersion(oid);
+																	  .aboutWorkVersion(oid).build();
 		}
 		// [1] - Do load
 		outEntityLoadResult = this.getServiceImplAs(CRUDServicesForVersionableModelObject.class)
@@ -90,8 +90,8 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 /////////////////////////////////////////////////////////////////////////////////////////
 // 	DELETE 
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
-	public CRUDOnMultipleEntitiesResult<M> deleteAllVersions(final UserContext userContext,
+	@Override
+	public CRUDOnMultipleResult<M> deleteAllVersions(final UserContext userContext,
 															 final VersionIndependentOID oid) {
 		// [0] - Check the version info
 		if (oid == null) {
@@ -101,7 +101,7 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 											  				  "Cannot delete all {} entity versions since the provided entity oid is null",_modelObjectType);
 		}
 		// [1] - Delete
-		CRUDOnMultipleEntitiesResult<M> outResults = this.getServiceImplAs(CRUDServicesForVersionableModelObject.class)
+		CRUDOnMultipleResult<M> outResults = this.getServiceImplAs(CRUDServicesForVersionableModelObject.class)
 																.deleteAllVersions(userContext,
 							          					   	  	   				   oid);
 		// [2] - Throw an event for each successful deletion 
@@ -114,7 +114,7 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public CRUDResult<M> activate(final UserContext userContext,
 								  final M entityToBeActivated) {
 		// [0] - Check params
@@ -123,7 +123,7 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 											   .on(_modelObjectType)
 											   .badClientRequestData(PersistenceRequestedOperation.CREATE,
 													  				 "The {} entity cannot be null in order to activate that version",_modelObjectType)
-													  .about(entityToBeActivated);
+													  .about(entityToBeActivated).build();
 		}
 		
 		// [1] - Check that the requested version exists and is in DRAFT mode
@@ -140,19 +140,19 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 												   .notUpdated()
 											   	   .becauseTargetEntityWasInAnIllegalStatus("The entity with oid={} is NOT in draft mode. It cannot be activated!",
 												  					  		  				entityToBeActivated.getOid())
-												  		.about(entityToBeActivated.getOid());
+												  		.about(entityToBeActivated.getOid()).build();
 													  			
 			}
 		} 
 		// if the error is OTHER than the version to be activated does NOT exists
-		else if (!storedEntityToBeActivatedLoad.asError()		// as(CRUDError.class)
+		else if (!storedEntityToBeActivatedLoad.asCRUDError()		// as(CRUDError.class)
 											   .wasBecauseClientRequestedEntityWasNOTFound()) {
 			return CRUDResultBuilder.using(userContext)
 											   .on(_modelObjectType)
 											   .notUpdated()
-											   .because(storedEntityToBeActivatedLoad.asError()							// as(CRUDError.class)
+											   .because(storedEntityToBeActivatedLoad.asCRUDError()							// as(CRUDError.class)
 													   								 .getPersistenceException())
-											   		.about(entityToBeActivated.getOid());
+											   		.about(entityToBeActivated.getOid()).build();
 		}
 		
 		// [2] the activation date is right now!
@@ -191,12 +191,12 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 				if (!currentlyActiveRecordPassivated.asVersionable().isActive()) log.debug("... pasivation ok");
 			} else {
 				// passivation NOK
-				CRUDError<M> persistError = currentlyActiveEntityPassivation.asError();		// as(CRUDError.class)
+				CRUDError<M> persistError = currentlyActiveEntityPassivation.asCRUDError();		// as(CRUDError.class)
 				return CRUDResultBuilder.using(userContext)
 												   .on(_modelObjectType)
 												   .notUpdated()
 												   .because(persistError.getPersistenceException())
-												   		.about(entityToBeActivated.getOid());
+												   		.about(entityToBeActivated.getOid()).build();
 			}
 		}
 		// [4] Activate the version
@@ -221,18 +221,18 @@ public abstract class CRUDServicesForVersionableModelObjectDelegateBase<O extend
 	 * @param opResult
 	 */
 	protected void _fireEvents(final UserContext userContext,
-							   final CRUDOnMultipleEntitiesResult<M> opResults) {
+							   final CRUDOnMultipleResult<M> opResults) {
 		if (this.getEventBus() == null) return;		// do nothing
 		
 		log.debug("Publishing events for: {}",opResults.getClass());
 		if (opResults.hasFailed()) {
-			CRUDOnMultipleEntitiesError<M> opNOK = opResults.asError();		// as(CRUDOnMultipleEntitiesError.class)
+			CRUDOnMultipleError<M> opNOK = opResults.asCRUDOnMultipleError();
 			PersistenceOperationErrorEvent errorEvent = new PersistenceOperationErrorEvent(userContext,
 												 					         	 		   opNOK);
 			this.getEventBus().post(errorEvent);
 			
 		} else if (opResults.hasSucceeded()) {
-			CRUDOnMultipleEntitiesOK<M> opsPerformed = opResults.asOK();	// as(CRUDOnMultipleEntitiesOK.class)
+			CRUDOnMultipleOK<M> opsPerformed = opResults.asCRUDOnMultipleOK();	
 			// Post OK results
 			if (CollectionUtils.hasData(opsPerformed.getOperationsOK())) {
 				for (PersistenceOperationOK opOk : opsPerformed.getOperationsOK()) {

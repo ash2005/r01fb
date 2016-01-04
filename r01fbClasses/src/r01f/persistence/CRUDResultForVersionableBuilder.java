@@ -30,13 +30,13 @@ public class CRUDResultForVersionableBuilder<M extends PersistableModelObject<? 
 	protected final UserContext _userContext;
 	protected final Class<M> _entityType;
 	
-	public <DB extends DBEntity> CRUDOnMultipleEntitiesOK<M> deletedDBEntities(final Collection<DB> okDBEntities) {
+	public <DB extends DBEntity> CRUDOnMultipleOK<M> deletedDBEntities(final Collection<DB> okDBEntities) {
 		Function<DBEntity,M> defaultDBEntityToModelObjConverter = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
 																													_entityType);
 		return this.deletedDBEntities(okDBEntities,
 									  defaultDBEntityToModelObjConverter);
 	}
-	public <DB extends DBEntity> CRUDOnMultipleEntitiesOK<M> deletedDBEntities(final Collection<DB> okDBEntities,
+	public <DB extends DBEntity> CRUDOnMultipleOK<M> deletedDBEntities(final Collection<DB> okDBEntities,
 																			   final Function<DBEntity,M> converter) {
 		Collection<M> okEntities = Lists.newArrayListWithExpectedSize(okDBEntities.size());
 		for (DBEntity dbEntity : okDBEntities) {
@@ -44,8 +44,8 @@ public class CRUDResultForVersionableBuilder<M extends PersistableModelObject<? 
 		}
 		return this.deleted(okEntities);
 	}
-	public CRUDOnMultipleEntitiesOK<M> deleted(final Collection<M> delOKs) {
-		CRUDOnMultipleEntitiesOK<M> outMultipleCRUDOKs = new CRUDOnMultipleEntitiesOK<M>(_entityType,
+	public CRUDOnMultipleOK<M> deleted(final Collection<M> delOKs) {
+		CRUDOnMultipleOK<M> outMultipleCRUDOKs = new CRUDOnMultipleOK<M>(_entityType,
 																						 PersistenceRequestedOperation.DELETE,PersistencePerformedOperation.DELETED);
 		outMultipleCRUDOKs.addOperationsOK(delOKs,
 										   PersistenceRequestedOperation.DELETE);
@@ -71,35 +71,35 @@ public class CRUDResultForVersionableBuilder<M extends PersistableModelObject<? 
 		protected final PersistenceRequestedOperation _requestedOp;
 		
 		public CRUDResultOnMultipleBuilderErrorAboutStep<M> because(final Throwable th) {
-			CRUDOnMultipleEntitiesError<M> err = new CRUDOnMultipleEntitiesError<M>(_entityType,
+			CRUDOnMultipleError<M> err = new CRUDOnMultipleError<M>(_entityType,
 												 				 					_requestedOp,
 												 				 					th);
 			return new CRUDResultOnMultipleBuilderErrorAboutStep<M>(_userContext,
 																	err);
 		}
 		public CRUDResultOnMultipleBuilderErrorAboutStep<M> becauseClientBadRequest(final String msg,final Object... vars) {
-			CRUDOnMultipleEntitiesError<M> err = new CRUDOnMultipleEntitiesError<M>(_entityType,
+			CRUDOnMultipleError<M> err = new CRUDOnMultipleError<M>(_entityType,
 												 				 					_requestedOp,
 												 				 					Strings.customized(msg,vars),PersistenceErrorType.BAD_REQUEST_DATA);
 			return new CRUDResultOnMultipleBuilderErrorAboutStep<M>(_userContext,
 																	err);			
 		}
 		public CRUDResultOnMultipleBuilderErrorAboutStep<M> becauseClientCannotConnectToServer(final SerializedURL serverUrl) {
-			CRUDOnMultipleEntitiesError<M> err = new CRUDOnMultipleEntitiesError<M>(_entityType,
+			CRUDOnMultipleError<M> err = new CRUDOnMultipleError<M>(_entityType,
 												 				 					_requestedOp,
 												 				 					Strings.customized("Cannot connect to server at {}",serverUrl),PersistenceErrorType.CLIENT_CANNOT_CONNECT_SERVER);
 			return new CRUDResultOnMultipleBuilderErrorAboutStep<M>(_userContext,
 																	err);
 		}
 		public CRUDResultOnMultipleBuilderErrorAboutStep<M> becauseServerError(String errData,final Object... vars) {
-			CRUDOnMultipleEntitiesError<M> err = new CRUDOnMultipleEntitiesError<M>(_entityType,
+			CRUDOnMultipleError<M> err = new CRUDOnMultipleError<M>(_entityType,
 												 				 					_requestedOp,
 												 				 					Strings.customized(errData,vars),PersistenceErrorType.SERVER_ERROR);
 			return new CRUDResultOnMultipleBuilderErrorAboutStep<M>(_userContext,
 															 	    err);
 		}
 		public CRUDResultOnMultipleBuilderErrorAboutStep<M> becauseClientRequestedVersionWasNOTFound() {
-			CRUDOnMultipleEntitiesError<M> err = new CRUDOnMultipleEntitiesError<M>(_entityType,
+			CRUDOnMultipleError<M> err = new CRUDOnMultipleError<M>(_entityType,
 												 				 					_requestedOp,
 												 				 					PersistenceErrorType.ENTITY_NOT_FOUND);
 			return new CRUDResultOnMultipleBuilderErrorAboutStep<M>(_userContext,
@@ -109,13 +109,13 @@ public class CRUDResultForVersionableBuilder<M extends PersistableModelObject<? 
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 	public static class CRUDResultOnMultipleBuilderErrorAboutStep<M extends PersistableModelObject<? extends OIDForVersionableModelObject> & HasVersionableFacet> { 
 		protected final UserContext _userContext;
-		protected final CRUDOnMultipleEntitiesError<M> _err;
+		protected final CRUDOnMultipleError<M> _err;
 		
-		public CRUDOnMultipleEntitiesError<M> about(final VersionIndependentOID entityOid) {
+		public CRUDOnMultipleError<M> about(final VersionIndependentOID entityOid) {
 			_err.addTargetEntityIdInfo("versionIndependentOid",entityOid.asString());
 			return _err;
 		}
-		public CRUDOnMultipleEntitiesError<M> about(final VersionIndependentOID oid,final Date date) {
+		public CRUDOnMultipleError<M> about(final VersionIndependentOID oid,final Date date) {
 			_err.addTargetEntityIdInfo("versionIndependentOid",oid.asString());
 			_err.addTargetEntityIdInfo("date",Dates.format(date,Dates.formatAsEpochTimeStamp(date)));
 			return _err;

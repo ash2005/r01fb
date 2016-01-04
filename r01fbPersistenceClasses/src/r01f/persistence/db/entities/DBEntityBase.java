@@ -203,7 +203,7 @@ public abstract class DBEntityBase
 	 * @param modelObject
 	 * @return
 	 */
-	protected static <R extends PersistableModelObject<? extends OID>> String _internalName(final R modelObject) {
+	protected static <R extends PersistableModelObject<? extends OID>> String _persistableModelObjectInternalName(final R modelObject) {
 		String outName = null;
 		
 		// [1] try to get the name from the summary

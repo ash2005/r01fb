@@ -43,9 +43,9 @@ public class ServicesCoreForAppModulePrivateGuiceModule
 		Binder theBinder = this.binder();
 		
 		// Bind the CORE guice modules					
-		log.warn("[START]-Binding CORE modules====================================================================================");
 		boolean dbModulePresent = false;
 		if (CollectionUtils.hasData(_coreBootstrapDef.getPrivateBootstrapGuiceModuleInstances())) {
+			log.warn("[START]-Binding CORE modules for {}====================================================================================",_coreBootstrapDef.getCoreAppCodeAndModule());
 			// do NOT install the REST core buide modules (they're binded at ServicesMainGuiceBootstrap, otherwise they're not visible
 			// to the outside world and Guice Servlet filter cannot see REST resources)
 			for (ServicesCoreBootstrapGuiceModule coreGuiceModule : _coreBootstrapDef.getPrivateBootstrapGuiceModuleInstances()) {
@@ -54,12 +54,21 @@ public class ServicesCoreForAppModulePrivateGuiceModule
 				
 				// if the core bootstrap guice module has db persistence bindings, the jpa service handler must be exposed (see below)
 				if (!dbModulePresent && coreGuiceModule.isModuleInstalled(DBPersistenceGuiceModule.class)) dbModulePresent = true;
+				
+				// it the core bootstrap guice module exposes any of it's bindings
+				if (coreGuiceModule instanceof ServicesCoreBootstrapGuiceModuleExposesBindings) {
+					ServicesCoreBootstrapGuiceModuleExposesBindings exposes = (ServicesCoreBootstrapGuiceModuleExposesBindings)coreGuiceModule;
+					exposes.exposeBindings(this.binder());
+				}
 			}
+			log.warn("  [END]-Binding CORE modules for {}====================================================================================",_coreBootstrapDef.getCoreAppCodeAndModule());
 		}
-		log.warn("  [END]-Binding CORE modules====================================================================================");
 		
 		
-		log.warn("[START]-Binding serviceInterface to proxy ======================================================================");
+		if (_coreBootstrapDef.getServiceInterfacesToImplAndProxiesDefs() == null) return;	// this core module do is not exposed at API (usually a servlet module)
+		
+		
+		log.warn("[START]-Binding serviceInterface to proxy for {}======================================================================",_coreBootstrapDef.getCoreAppCodeAndModule());
 		// Bind service interface types to bean impl or proxy types and get a Map of the bindings
 		// 		- if the service bean implementation is available, the service interface is binded to the bean impl directly
 		//		- otherwise, the best suitable proxy to the service implementation is binded
@@ -101,6 +110,6 @@ public class ServicesCoreForAppModulePrivateGuiceModule
 			this.expose(ServiceHandler.class)
 				.annotatedWith(Names.named(_coreBootstrapDef.getCoreAppCodeAndModule().asString())); 
 		}
-		log.warn("  [END]-Binding serviceInterface to proxy ======================================================================");
+		log.warn("  [END]-Binding serviceInterface to proxy for {}======================================================================",_coreBootstrapDef.getCoreAppCodeAndModule());
 	}
 }

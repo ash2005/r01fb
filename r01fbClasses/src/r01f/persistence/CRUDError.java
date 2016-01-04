@@ -6,15 +6,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import r01f.guids.OID;
-import r01f.model.PersistableModelObject;
 
-@XmlRootElement(name="persistenceCRUDError")
+@XmlRootElement(name="crudOnObjectError")
 @Accessors(prefix="_")
-public class CRUDError<M extends PersistableModelObject<? extends OID>>
-	 extends PersistenceOperationOnModelObjectError<M>
-  implements CRUDResult<M>,
-  			 PersistenceOperationError {
+public class CRUDError<T>
+	 extends PersistenceOperationOnObjectError<T>
+  implements CRUDResult<T> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -23,51 +20,54 @@ public class CRUDError<M extends PersistableModelObject<? extends OID>>
 	 * field contains the client-sent data
 	 */
 	@XmlElement
-	@Getter @Setter private M _targetEntity;
+	@Getter @Setter private T _targetEntity;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR & BUILDER
 /////////////////////////////////////////////////////////////////////////////////////////
 	public CRUDError() {
 		// nothing
 	}
-	CRUDError(final Class<M> entityType,
-			  final PersistenceRequestedOperation requestedOp,
-			  final Throwable th) {
+	CRUDError(final Class<T> entityType,
+	  		  final PersistenceRequestedOperation requestedOp,
+	  		  final Throwable th) {
 		super(entityType,
 			  requestedOp,
 			  th);	
 	}
-	CRUDError(final Class<M> entityType,
-			  final PersistenceRequestedOperation requestedOp,
-			  final PersistenceErrorType errCode) {
+	CRUDError(final Class<T> entityType,
+	  		  final PersistenceRequestedOperation requestedOp,
+	  		  final PersistenceErrorType errCode) {
 		super(entityType,
 			  requestedOp,
 			  errCode);
 	}
-	CRUDError(final Class<M> entityType,
-			  final PersistenceRequestedOperation requestedOp,
-			  final String errMsg,final PersistenceErrorType errCode) {
+	CRUDError(final Class<T> entityType,
+	  		  final PersistenceRequestedOperation requestedOp,
+	  		  final String errMsg,final PersistenceErrorType errCode) {
 		super(entityType,
 			  requestedOp,
 			  errMsg,errCode);
 	}
+	public CRUDError(final Class<T> entityType,
+					 final CRUDError<?> otherCRUDError) {
+		super(entityType);
+		this.setError(otherCRUDError.getError());
+		this.setErrorDebug(otherCRUDError.getErrorDebug());
+		this.setErrorMessage(otherCRUDError.getErrorMessage());
+		this.setErrorType(otherCRUDError.getErrorType());
+		this.setExtendedErrorCode(otherCRUDError.getExtendedErrorCode());
+		this.setRequestedOperation(otherCRUDError.getRequestedOperation());
+		this.setRequestedOperationName(otherCRUDError.getRequestedOperationName());
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
-//  
+//  CAST
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public CRUDOK<M> asOK() {
+	public CRUDError<T> asCRUDError() {
+		return this;
+	}
+	@Override
+	public CRUDOK<T> asCRUDOK() {
 		throw new ClassCastException();
-	}
-	@Override
-	public CRUDError<M> asError() {
-		return this;
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public CRUDError<M> withExtendedErrorCode(final int extErrorCode) {
-		this.setExtendedErrorCode(extErrorCode);
-		return this;
 	}
 }

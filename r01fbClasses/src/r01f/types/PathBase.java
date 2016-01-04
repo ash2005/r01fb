@@ -7,19 +7,19 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlTransient;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import r01f.file.Files;
-import r01f.util.types.Strings;
-import r01f.util.types.collections.CollectionUtils;
-
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+import r01f.file.Files;
+import r01f.util.types.Strings;
+import r01f.util.types.collections.CollectionUtils;
 
 /**
  * path abstraction, simply using a String encapsulation
@@ -28,19 +28,26 @@ import com.google.common.collect.Lists;
 @NoArgsConstructor
 abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>> 
     implements IsPath,
-    		   Iterable<String> {
+    		   Iterable<String>,
+    		   Cloneable {
 
 	private static final long serialVersionUID = -2932591433085305985L;
 /////////////////////////////////////////////////////////////////////////////////////////
-//  
+//  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
 	@XmlTransient
 	@Getter protected LinkedList<String> _pathElements;
 	
+	@XmlTransient
+	@Getter protected boolean _readOnly;
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
 	private void _ensureList() {
 		if (_pathElements == null) _pathElements = Lists.newLinkedList();
 	}
 	private void _add(final Collection<String> pathEls) {
+		if (_readOnly) throw new IllegalStateException("The path is in read only mode");
 		Collection<String> normalizedPathEls =  PathBase.normalize(pathEls);
 		if (CollectionUtils.hasData(normalizedPathEls)) {
 			_ensureList();
@@ -51,6 +58,7 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 		_add(CollectionUtils.of(pathEls));
 	}
 	private void _prepend(final Collection<String> pathEls) {
+		if (_readOnly) throw new IllegalStateException("The path is in read only mode");
 		Collection<String> normalizedPathEls = PathBase.normalize(pathEls);
 		if (CollectionUtils.hasData(normalizedPathEls)) {
 			_ensureList();
@@ -85,6 +93,22 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	public PathBase(final String... elements) {
 		Preconditions.checkArgument(CollectionUtils.hasData(elements),"Cannot build a path from null");
 		_add(elements);
+	}
+	public PathBase(final boolean readOnly,final String newPath) {
+		this(newPath);
+		_readOnly = readOnly;
+	}
+	public PathBase(final boolean readOnly,final Object obj) {
+		this(obj);
+		_readOnly = readOnly;
+	}
+	public <P extends IsPath> PathBase(final boolean readOnly,final P otherPath) {
+		this(otherPath);
+		_readOnly = readOnly;
+	}
+	public PathBase(final boolean readOnly,final String... elements) {
+		this(elements);
+		_readOnly = readOnly;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -236,6 +260,7 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 */
 	@SuppressWarnings("unchecked")
 	public SELF_TYPE removeLastPathElement() {
+		if (_readOnly) throw new IllegalStateException("The path is in read only mode");
 		if (CollectionUtils.hasData(_pathElements)) {
 			_pathElements.removeLast();
 		}
@@ -388,14 +413,8 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 * @return
 	 */
 	protected static String asRelativeString(final LinkedList<String> pathElements) {
-		String outStr = null;
-		if (CollectionUtils.hasData(pathElements)) {
-			outStr = Joiner.on('/')
-						   .skipNulls()
-						   .join(pathElements);
-		} else {
-			outStr = "";
-		}
+		String outStr = _joinPathElements(pathElements);
+		if (outStr == null) outStr = "";
 		return outStr;
 	}
 	/**
@@ -404,12 +423,7 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 * @return
 	 */
 	protected static String asAbsoluteString(final LinkedList<String> pathElements) {
-		String outStr = null;
-		if (CollectionUtils.hasData(pathElements)) {
-			outStr = Joiner.on('/')
-						   .skipNulls()
-						   .join(pathElements);
-		}
+		String outStr = _joinPathElements(pathElements);
 		if (outStr == null) return "";
 		if (outStr.matches("([a-zA-Z]:|http://|https://).*")) return outStr;	// d: or http://
 		return "/" + outStr;
@@ -421,6 +435,17 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 */
 	protected static String asString(final LinkedList<String> pathElements) {
 		return PathBase.asRelativeString(pathElements);
+	}
+	private static String _joinPathElements(final LinkedList<String> pathElements) {
+		String outStr = null;
+		if (CollectionUtils.hasData(pathElements)) {
+			outStr = Joiner.on('/')
+						   .skipNulls()
+						   .join(pathElements);
+			outStr = outStr.replaceFirst("/\\?","?");									// fix query strings as foo/bar/?queryStr
+			if (outStr.endsWith("?")) outStr = outStr.substring(0,outStr.length()-1);	// fix empty query strings
+		}
+		return outStr;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  

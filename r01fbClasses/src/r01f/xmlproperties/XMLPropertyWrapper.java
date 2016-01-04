@@ -24,8 +24,10 @@ import r01f.locale.Language;
 import r01f.locale.Languages;
 import r01f.marshalling.Marshaller;
 import r01f.reflection.ReflectionUtils;
+import r01f.resources.ResourcesLoader;
 import r01f.resources.ResourcesLoaderDef;
 import r01f.types.Path;
+import r01f.types.TimeLapse;
 import r01f.types.contact.EMail;
 import r01f.types.weburl.Host;
 import r01f.types.weburl.SerializedURL;
@@ -444,6 +446,32 @@ public final class XMLPropertyWrapper {
 											   : defaultEMail;
 	}
 	/**
+	 * The property value as an {@link TimeLapse}
+	 * @return
+	 */
+	public TimeLapse asTimeLapse() {
+		String timeLapse = this.asString();
+		return Strings.isNOTNullOrEmpty(timeLapse) ? TimeLapse.createFor(timeLapse) : null;
+	}
+	/**
+	 * The property value as an {@link TimeLapse}
+	 * @param defaultTimeLapse
+	 * @return
+	 */
+	public TimeLapse asTimeLapse(final String defaultTimeLapse) {
+		return TimeLapse.createFor(this.asString(defaultTimeLapse));
+	}
+	/**
+	 * The property value as an {@link TimeLapse}
+	 * @param defaultTimeLapse
+	 * @return the property value or the default value if the property is NOT found
+	 */
+	public TimeLapse asTimeLapse(final TimeLapse defaultTimeLapse) {
+		String timeLapse = this.asString();
+		return Strings.isNOTNullOrEmpty(timeLapse) ? TimeLapse.createFor(timeLapse)
+											   	   : defaultTimeLapse;
+	}
+	/**
 	 * Gets the property as a {@link Host}
 	 * @return
 	 */
@@ -588,7 +616,7 @@ public final class XMLPropertyWrapper {
 	public <T> T asObjectFromString(final Class<T> objType) {
 		String valueAsString = this.asString();
 		if (valueAsString == null) valueAsString = "no_property_configured_at_" + _xPath;
-		return ReflectionUtils.createInstanceFromString(objType, 
+		return ReflectionUtils.<T>createInstanceFromString(objType, 
 														valueAsString);
 	}
 	/**
@@ -603,7 +631,7 @@ public final class XMLPropertyWrapper {
 									final T defaultValue) {
 		String valueAsString = this.asString();
 		if (valueAsString == null) return defaultValue;
-		return ReflectionUtils.createInstanceFromString(objType, 
+		return ReflectionUtils.<T>createInstanceFromString(objType, 
 														valueAsString);
 	}
 	/**
@@ -618,17 +646,28 @@ public final class XMLPropertyWrapper {
 									final String defaultValue) {
 		String valueAsString = this.asString();
 		if (valueAsString == null) valueAsString = defaultValue;
-		return ReflectionUtils.createInstanceFromString(objType, 
+		return ReflectionUtils.<T>createInstanceFromString(objType, 
 														valueAsString);
 	}
 	/**
-	 * Devuelve la propiedad como un objeto de definición de carga de recursos {@link ResourcesLoaderDef}
-	 * (obviamente el XML tiene que tener la estrucutra impuesta por {@link ResourcesLoaderDef}).
-	 * @return un objeto {@link ResourcesLoaderDef}
+	 * Returns the property as a {@link ResourcesLoader} definition object (a {@link ResourcesLoaderDef} object)
+	 * (obviously the definition xml MUST have the {@link ResourcesLoaderDef} xml structure).
+	 * @return
 	 * @see ResourcesLoaderDef
 	 */
 	public ResourcesLoaderDef asResourcesLoaderDef() {
 		return _props.getResourcesLoaderDef(_xPath);
+	}
+	/**
+	 * Returns the property as a {@link ResourcesLoader} definition object (a {@link ResourcesLoaderDef} object)
+	 * (obviously the definition xml MUST have the {@link ResourcesLoaderDef} xml structure).
+	 * @param defLoaderDef
+	 * @return
+	 * @see ResourcesLoaderDef
+	 */
+	public ResourcesLoaderDef asResourcesLoaderDef(final ResourcesLoaderDef defLoaderDef) {
+		ResourcesLoaderDef outDef = _props.getResourcesLoaderDef(_xPath);
+		return outDef != null ? outDef : defLoaderDef;
 	}
 	/**
 	 * Devuelve la propiedad como un elemento de un enum

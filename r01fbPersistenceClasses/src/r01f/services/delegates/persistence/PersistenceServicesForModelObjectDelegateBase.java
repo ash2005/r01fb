@@ -1,5 +1,7 @@
 package r01f.services.delegates.persistence;
 
+import com.google.common.eventbus.EventBus;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +14,6 @@ import r01f.persistence.CRUDOK;
 import r01f.persistence.CRUDResult;
 import r01f.services.interfaces.ServiceInterfaceForModelObject;
 import r01f.usercontext.UserContext;
-
-import com.google.common.eventbus.EventBus;
 
 @Slf4j
 @Accessors(prefix="_")
@@ -62,13 +62,13 @@ public abstract class PersistenceServicesForModelObjectDelegateBase<O extends OI
 				  opResult.hasSucceeded());
 		
 		if (opResult.hasFailed()) {
-			CRUDError<M> opNOK = opResult.asError();		// as(CRUDError.class)
+			CRUDError<M> opNOK = opResult.asCRUDError();		// as(CRUDError.class)
 			PersistenceOperationErrorEvent nokEvent = new PersistenceOperationErrorEvent(userContext,
 												 					         	 		 opNOK);
 			this.getEventBus().post(nokEvent);
 			
 		} else if (opResult.hasSucceeded()) {
-			CRUDOK<M> opOK = opResult.asOK();				// as(CRUDOK.class);
+			CRUDOK<M> opOK = opResult.asCRUDOK();				// as(CRUDOK.class);
 			PersistenceOperationOKEvent okEvent = new PersistenceOperationOKEvent(userContext,
 												 					      	  	  opOK);
 			this.getEventBus().post(okEvent);

@@ -8,7 +8,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import r01f.debug.Debuggable;
 import r01f.exceptions.EnrichedThrowable;
 import r01f.exceptions.Throwables;
 import r01f.marshalling.annotations.XmlCDATA;
@@ -18,8 +17,7 @@ import r01f.util.types.Strings.StringExtended.StringCustomizerVarsProvider;
 @Accessors(prefix="_")
 public class PersistenceOperationExecError<T>
 	 extends PersistenceOperationExecResult<T>
-  implements PersistenceOperationError,
-			 Debuggable {
+  implements PersistenceOperationError {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -130,19 +128,12 @@ public class PersistenceOperationExecError<T>
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public PersistenceOperationExecError<T> asError() {
+	public PersistenceOperationExecError<T> asOperationExecError() {
 		return this;
 	}
 	@Override
-	public PersistenceOperationExecOK<T> asOK() {
+	public PersistenceOperationExecOK<T> asOperationExecOK() {
 		throw new ClassCastException();
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	public PersistenceOperationExecError<T> withExtendedErrorCode(final int extErrorCode) {
-		this.setExtendedErrorCode(extErrorCode);
-		return this;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -175,6 +166,7 @@ public class PersistenceOperationExecError<T>
 	@Override
 	public CharSequence debugInfo() {
 		StringBuilder outDbgInfo = new StringBuilder();
+		outDbgInfo.append(this.getDetailedMessage());
 		if (_error != null) {
 			outDbgInfo.append("\n")
 					  .append(Throwables.getStackTraceAsString(_error));

@@ -3,11 +3,11 @@ package r01f.persistence.db;
 
 import javax.persistence.EntityManager;
 
+import com.google.inject.Provider;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.inject.Provider;
 
 
 /**

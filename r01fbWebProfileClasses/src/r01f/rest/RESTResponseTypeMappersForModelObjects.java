@@ -15,7 +15,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -110,7 +109,6 @@ public class RESTResponseTypeMappersForModelObjects {
 	/**
 	 * MessageBodyWriter for all {@link ModelObject}s
 	 */
-	@Provider
 	@Accessors(prefix="_")
 	public static abstract class ModelObjectResponseTypeMapperBase<M extends ModelObject> 
 		        		 extends XMLMarshalledObjectResultTypeMapperBase<M> {
@@ -129,7 +127,6 @@ public class RESTResponseTypeMappersForModelObjects {
 	/**
 	 * MessageBodyWriter for all {@link SearchModelObject}s
 	 */
-	@Provider
 	@Accessors(prefix="_")
 	public static abstract class SearchModelObjectResponseTypeMapperBase 
 		     			 extends XMLMarshalledObjectResultTypeMapperBase<SearchModelObject> {
@@ -147,7 +144,6 @@ public class RESTResponseTypeMappersForModelObjects {
 	/**
 	 * MessageBodyWriter for all {@link R01MModelObject}s
 	 */
-	@Provider
 	public static abstract class OIDResponseTypeMapperBase 
 		     		  implements MessageBodyWriter<OID> {
 		
@@ -192,7 +188,6 @@ public class RESTResponseTypeMappersForModelObjects {
 	/**
 	 * MessageBodyWriter for all {@link IndexManagementCommand}s
 	 */
-	@Provider
 	@Accessors(prefix="_")
 	public static abstract class IndexManagementCommandResponseTypeMapperBase 
 		     			 extends XMLMarshalledObjectResultTypeMapperBase<IndexManagementCommand> {
@@ -207,7 +202,6 @@ public class RESTResponseTypeMappersForModelObjects {
 	/**
 	 * MessageBodyWriter for all {@link EnqueuedJob}s
 	 */
-	@Provider
 	@Accessors(prefix="_")
 	public static abstract class EnqueuedJobResponseTypeMapperBase 
 		     			 extends XMLMarshalledObjectResultTypeMapperBase<EnqueuedJob> {

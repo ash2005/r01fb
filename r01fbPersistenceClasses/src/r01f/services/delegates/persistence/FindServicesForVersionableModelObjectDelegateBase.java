@@ -1,6 +1,8 @@
 package r01f.services.delegates.persistence;
 
 
+import com.google.common.eventbus.EventBus;
+
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
@@ -8,8 +10,6 @@ import r01f.persistence.FindResult;
 import r01f.persistence.db.DBFindForModelObject;
 import r01f.services.interfaces.FindServicesForVersionableModelObject;
 import r01f.usercontext.UserContext;
-
-import com.google.common.eventbus.EventBus;
 
 /**
  * Service layer delegated type for CRUD find operations

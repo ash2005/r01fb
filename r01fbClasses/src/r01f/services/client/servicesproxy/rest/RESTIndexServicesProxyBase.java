@@ -41,7 +41,7 @@ public abstract class RESTIndexServicesProxyBase<O extends OID,M extends Indexab
 /////////////////////////////////////////////////////////////////////////////////////////
 //  INDEX
 /////////////////////////////////////////////////////////////////////////////////////////	
-	@Override @SuppressWarnings({ "unchecked","cast" })
+	@Override @SuppressWarnings({ "cast" })
 	public EnqueuedJob index(final UserContext userContext,
 							 final M modelObject) {
 		if (!Facetables.hasFacet(modelObject,HasOID.class)) throw new IllegalArgumentException(Throwables.message("The {} model object does NOT implements {}",
@@ -51,7 +51,7 @@ public abstract class RESTIndexServicesProxyBase<O extends OID,M extends Indexab
 										   userContext,
 										   modelObject);
 	}
-	@Override @SuppressWarnings({ "unchecked","cast" })
+	@Override @SuppressWarnings({ "cast" })
 	public EnqueuedJob updateIndex(final UserContext userContext,
 							 	   final M modelObject) {
 		if (!Facetables.hasFacet(modelObject,HasOID.class)) throw new IllegalArgumentException(Throwables.message("The {} model object does NOT implements {}",
@@ -111,7 +111,6 @@ public abstract class RESTIndexServicesProxyBase<O extends OID,M extends Indexab
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@SuppressWarnings("unchecked")
 	private SerializedURL _indexSomeResourceUrl(final O oid) {
 		return this.composeIndexURIFor(Path.of("index")
 										   .add(this.getServicesRESTResourceUrlPathBuilderAs(ServicesRESTResourcePathBuilderForModelObject.class)

@@ -27,12 +27,12 @@ public abstract class LanguageTextsBase<SELF_TYPE extends LanguageTextsBase<SELF
 	 * Behavior when a required language text is NOT found 
 	 */
 	@XmlTransient
-	@Getter @Setter private transient LangTextNotFoundBehabior _langTextNotFoundBehabior = LangTextNotFoundBehabior.RETURN_NULL;
+	@Getter @Setter protected transient LangTextNotFoundBehabior _langTextNotFoundBehabior = LangTextNotFoundBehabior.RETURN_NULL;
 	/**
 	 * Default value
 	 */
 	@XmlTransient
-	@Getter @Setter private transient String _defaultValue = "*** No text for {} ***";
+	@Getter @Setter protected transient String _defaultValue = "*** No text for {} ***";
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -8,7 +8,7 @@ import r01f.marshalling.Marshaller;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
-import r01f.persistence.CRUDOnMultipleEntitiesResult;
+import r01f.persistence.CRUDOnMultipleResult;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.PersistenceRequestedOperation;
 import r01f.services.client.servicesproxy.rest.RESTServicesPathBuilders.ServicesRESTResourcePathBuilderForVersionableModelObjectBase;
@@ -87,8 +87,8 @@ public abstract class RESTVersionableCRUDServicesProxyBase<O extends OIDForVersi
 //  DELETE
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public CRUDOnMultipleEntitiesResult<M> deleteAllVersions(final UserContext userContext,
-													  	   	 final VersionIndependentOID oid) {
+	public CRUDOnMultipleResult<M> deleteAllVersions(final UserContext userContext,
+													  	   	 	 final VersionIndependentOID oid) {
 		// do the http call
 		SerializedURL restResourceUrl = this.composePersistenceURIFor(this.getServicesRESTResourceUrlPathBuilderAs(ServicesRESTResourcePathBuilderForVersionableModelObjectBase.class)
 															   .pathOfAllVersions(oid));
@@ -96,7 +96,7 @@ public abstract class RESTVersionableCRUDServicesProxyBase<O extends OIDForVersi
 		HttpResponse httpResponse = DelegateForRawREST.DELETE(restResourceUrl,
 															  userContextXml);
 		// map the response
-		CRUDOnMultipleEntitiesResult<M> outResults = this.getResponseToCRUDResultMapperForVersionableModelObject()
+		CRUDOnMultipleResult<M> outResults = this.getResponseToCRUDResultMapperForVersionableModelObject()
 																.mapHttpResponseOnMultipleEntity(userContext,
 												   					     	 		  			 PersistenceRequestedOperation.DELETE,
 												   					     	 		  			 oid,	

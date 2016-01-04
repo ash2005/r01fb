@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
 import r01f.patterns.Memoized;
+import r01f.types.CanBeRepresentedAsString;
 import r01f.types.annotations.Inmutable;
 
 /**
@@ -21,7 +22,8 @@ import r01f.types.annotations.Inmutable;
 @RequiredArgsConstructor
 @Accessors(prefix="_")
 public class FileName
-  implements Serializable {
+  implements CanBeRepresentedAsString,
+  			 Serializable {
 	
 	private static final long serialVersionUID = -7901960255575168878L;
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +54,29 @@ public class FileName
 	 */
 	public String getExtension() {
 		return _fileNameAndExtension.get()[1];
-	}		
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public String asString() {
+		return _fileName;
+	}
+	@Override
+	public String toString() {
+		return _fileName;
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public boolean equals(final Object obj) {
+		return _fileName.equals(obj);
+	}
+	@Override
+	public int hashCode() {
+		return _fileName.hashCode();
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////

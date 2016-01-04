@@ -2,6 +2,11 @@ package r01f.persistence;
 
 import java.util.Collection;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +18,6 @@ import r01f.persistence.db.DBEntityToModelObjectTransformerBuilder;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * Builder type for {@link FindResult}-implementing types:
@@ -66,7 +66,7 @@ public class FindResultBuilder
 //  Operation
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public class FindResultBuilderOperationStep<M extends PersistableModelObject<? extends OID>> {
+	public class FindResultBuilderOperationStep<M> {
 		protected final UserContext _userContext;
 		protected final Class<M> _entityType;
 		
@@ -79,20 +79,18 @@ public class FindResultBuilder
 		// ---------- SUCCESS FINDING 
 		public FindOK<M> foundEntities(final Collection<M> entities) {
 			FindOK<M> outFoundEntities = new FindOK<M>();
-			outFoundEntities.setModelObjectType(_entityType);
+			outFoundEntities.setFoundObjectType(_entityType);
 			outFoundEntities.setRequestedOperation(PersistenceRequestedOperation.FIND);
 			outFoundEntities.setPerformedOperation(PersistencePerformedOperation.FOUND);
 			outFoundEntities.setOperationExecResult(entities);	
 			return outFoundEntities;
 		}
-		public <DB extends DBEntity>
-			   FindOK<M> foundDBEntities(final Collection<DB> dbEntities) {
+		public <DB extends DBEntity> FindOK<M> foundDBEntities(final Collection<DB> dbEntities) {
 			return this.foundDBEntities(dbEntities,
 							  			DBEntityToModelObjectTransformerBuilder.<DB,M>createFor(_userContext,
 									  													  		_entityType));
 		}
-		public <DB extends DBEntity>
-			   FindOK<M> foundDBEntities(final Collection<DB> dbEntities,
+		public <DB extends DBEntity> FindOK<M> foundDBEntities(final Collection<DB> dbEntities,
 							   			 final Function<DB,M> transformer) {
 			Collection<M> entities = null;
 			if (CollectionUtils.hasData(dbEntities)) {
@@ -108,7 +106,7 @@ public class FindResultBuilder
 		}
 		public FindOK<M> noEntityFound() {
 			FindOK<M> outFoundEntities = new FindOK<M>();
-			outFoundEntities.setModelObjectType(_entityType);
+			outFoundEntities.setFoundObjectType(_entityType);
 			outFoundEntities.setRequestedOperation(PersistenceRequestedOperation.FIND);
 			outFoundEntities.setPerformedOperation(PersistencePerformedOperation.FOUND);
 			outFoundEntities.setOperationExecResult(Lists.<M>newArrayList());	// no data found
@@ -120,7 +118,7 @@ public class FindResultBuilder
 //  ERROR
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public class FindResultBuilderForError<M extends PersistableModelObject<? extends OID>> {
+	public class FindResultBuilderForError<M> {
 		protected final UserContext _userContext;
 		protected final Class<M> _entityType;
 		

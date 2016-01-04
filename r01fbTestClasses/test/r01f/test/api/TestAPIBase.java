@@ -7,18 +7,16 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.name.Names;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import r01f.concurrent.Threads;
 import r01f.inject.ServiceHandler;
 import r01f.services.client.ClientAPI;
-import r01f.services.interfaces.IndexManagementServices;
+import r01f.types.TimeLapse;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -31,91 +29,61 @@ import r01f.util.types.collections.CollectionUtils;
 @RequiredArgsConstructor
 public abstract class TestAPIBase<A extends ClientAPI> {
 /////////////////////////////////////////////////////////////////////////////////////////
-//  FIELDS 
+//  STATIC FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Getter protected A _api;
-	@Getter private Collection<String> _jpaPersistenceUnits;											
-	@Getter private Collection<Class<? extends IndexManagementServices>> _indexMgmtSrvcsTypes;
+	protected static Injector GUICE_INJECTOR;
+	protected static ClientAPI CLIENT_API;
+	protected static Collection<Key<? extends ServiceHandler>> _hasServiceHandlerTypes;
 	
-	protected void setApi(final A api) {
-		_api = api;
-	}
-	protected void setJpaPersistenceUnits(final Collection<String> units) {
-		if (CollectionUtils.hasData(units)) _jpaPersistenceUnits = units;
-	}
-	protected void setJpaPersistenceUnits(final String... units) {
-		if (CollectionUtils.hasData(units)) _jpaPersistenceUnits = Arrays.asList(units);
-	}
-	protected void setIndexMgmtSrvcsType(final Class<? extends IndexManagementServices>... indexMgmtSrvcsTypes) {
-		_indexMgmtSrvcsTypes = Lists.newArrayList(indexMgmtSrvcsTypes);
-	}
 /////////////////////////////////////////////////////////////////////////////////////////
-//  SETUP
+//  
 /////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * @return an api instance
-	 */
-	protected abstract A _provideApiInstance();
-	/**
-	 * @return a GUICE {@link Injector} instance
-	 */
-	protected abstract Injector _getGuiceInjector();
-	/**
-	 * Setups api, starts jpa persistence service...
-	 * @param instance
-	 */
-	protected void _setUp() {
-		// Create the API
-		_api = _provideApiInstance();
+	@SuppressWarnings("unchecked")
+	public A getClientApi() {
+		return (A)CLIENT_API;
+	}
+	@SuppressWarnings("static-method")
+	public Injector getGuiceInjector() {
+		return GUICE_INJECTOR;
+	}
+///////////////////////////////////////////////////////////////////////////////////////////	
+//  RUN EXACTLY ONCE AT THE VERY BEGINNING OF THE TEST AS A WHOLE
+//  (in fact they're run even before the type is constructed -that's why they're static)
+///////////////////////////////////////////////////////////////////////////////////////////
+	protected static void _setUpBeforeClass(final Injector guiceInjector,
+											final Class<? extends ClientAPI> apiType,
+										    final Key<? extends ServiceHandler>... hasServiceHandlerTypes) throws Exception {
+		// Store the guice injector
+		GUICE_INJECTOR = guiceInjector;
 		
-		// If stand-alone (no app-server is used), init the JPA servide
+		// Store the service handler types
+		_hasServiceHandlerTypes = CollectionUtils.hasData(hasServiceHandlerTypes) ? Arrays.asList(hasServiceHandlerTypes) : null;
+		
+		// Create the API
+		CLIENT_API = GUICE_INJECTOR.getInstance(apiType);
+		
+		// If stand-alone (no app-server is used), init the JPA service or any service that needs to be started
+		// like the search engine index
 		// 		If the core is available at client classpath, start it
 		// 		This is the case where there's no app-server
 		// 		(usually the JPA's ServiceHandler is binded at the Guice module extending DBGuiceModuleBase at core side)
-		if (CollectionUtils.hasData(_jpaPersistenceUnits)) {
-			for (String jpaPersistenceUnit : _jpaPersistenceUnits) {
-				ServiceHandler jpaServiceHandler = _getGuiceInjector().getInstance(Key.get(ServiceHandler.class,
-																		  		   Names.named(jpaPersistenceUnit)));
-				if (jpaServiceHandler != null) {
-					log.warn("\t--Init JPA's PersistenceService....");
-					jpaServiceHandler.start();
-				} else {
-					throw new IllegalStateException("No JPA persistence provider bound with name=" + jpaPersistenceUnit);
-				}
+		if (CollectionUtils.hasData(_hasServiceHandlerTypes)) {
+			for (Key<? extends ServiceHandler> hasServiceHandlerType : _hasServiceHandlerTypes) {
+				ServiceHandler serviceHandler = GUICE_INJECTOR.getInstance(hasServiceHandlerType);
+				log.warn("\t--START SERVICE using {} type: {}",ServiceHandler.class.getSimpleName(),hasServiceHandlerType);
+				serviceHandler.start();
 			}
 		}
 	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  TEAR DONW
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Releases resources (jpa persistence service, lucene index, etc)
-	 */
-	protected void _tearDown() {
-		// If stand-alone (no app-server is used):
-		//		[1]: init the JPA servide
-		// 				If the core is available at client classpath, start it
-		// 				This is the case where there's no app-server
-		// 				(usually the JPA's ServiceHandler is binded at the Guice module extending DBGuiceModuleBase at core side)
-		//		[2]: Close search engine indexes
-		if (CollectionUtils.hasData(_jpaPersistenceUnits)) {
-			for (String jpaPersistenceUnit : _jpaPersistenceUnits) {
-				ServiceHandler jpaServiceHandler = _getGuiceInjector().getInstance(Key.get(ServiceHandler.class,
-																		  		   Names.named(Strings.customized(jpaPersistenceUnit))));
-				if (jpaServiceHandler != null) {
-					log.warn("\t--Closing JPA's PersistenceService....");
-					jpaServiceHandler.stop();
-				} else {
-					throw new IllegalStateException("No JPA persistence provider bound with name=" + jpaPersistenceUnit);
-				}
-			}
-			if (CollectionUtils.hasData(_indexMgmtSrvcsTypes)) {
-				for (Class<? extends IndexManagementServices> indexMgmtSrvcType : _indexMgmtSrvcsTypes) {
-					ServiceHandler indexMgr = _getGuiceInjector().getInstance(indexMgmtSrvcType);
-					if (indexMgr != null) {
-						log.warn("\t--closing indexer using manger: {}",indexMgmtSrvcType);
-						indexMgr.stop();
-					}
+	protected static void _tearDownAfterClass() throws Exception {
+		// If stand-alone (no app-server is used), close the JPA service or any service that needs to be started
+		// like the search engine index
+		if (CollectionUtils.hasData(_hasServiceHandlerTypes)) {
+			for (Key<? extends ServiceHandler> hasServiceHandlerType : _hasServiceHandlerTypes) {
+				ServiceHandler serviceHandler = GUICE_INJECTOR.getInstance(hasServiceHandlerType);
+				if (serviceHandler != null) {
+					log.warn("\t--END SERVICE {} type: {}",ServiceHandler.class.getSimpleName(),hasServiceHandlerType);
+					serviceHandler.stop();
 				}
 			}
 		}
@@ -124,10 +92,7 @@ public abstract class TestAPIBase<A extends ClientAPI> {
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	protected void runTest(final int iterationNum) {
-		try {
-			// [1]-Set things up
-			_setUp();
-			
+		try {			
 			Stopwatch stopWatch = Stopwatch.createStarted();
 			
 			for (int i=0; i < iterationNum; i++) {
@@ -144,28 +109,39 @@ public abstract class TestAPIBase<A extends ClientAPI> {
 		} catch(Throwable th) {
 			th.printStackTrace(System.out);
 			
-		} finally {
-			// [99]-Tear things down
-			_tearDown();
-		}
+		} 
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected abstract void _doTest();
-	
-	
+	protected void _doTest() {
+		log.warn("MUST implement this!");
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected void _giveTimeForBackgroundJobsToFinish(final long milis) {
+	protected static void _giveTimeForBackgroundJobsToFinish(final long milis) {
+		_giveTimeForBackgroundJobsToFinish(milis,
+										   null);	// default msg
+	}
+	protected static void _giveTimeForBackgroundJobsToFinish(final TimeLapse lapse) {
+		_giveTimeForBackgroundJobsToFinish(lapse.asMilis(),
+										   null);	// default msg
+	}
+	protected static void _giveTimeForBackgroundJobsToFinish(final long milis,
+															 final String msg,final Object... msgParams) {
 		// wait for background jobs to complete (if there's any background job that depends on DB data -like lucene indexing-
 		// 										 if the DB data is deleted BEFORE the background job finish, it'll fail)
-			System.out.println(".... give " + milis + " milis for background jobs (ie lucene index) to complete before deleting created DB records (lucene indexing will fail if the DB record is deleted)");
-		try {
-			Thread.sleep(milis);
-		} catch(Throwable th) {
-			th.printStackTrace(System.out);
+		if (Strings.isNullOrEmpty(msg)) {
+			log.warn("... give {} milis for background jobs (ie lucene index) to complete before deleting created DB records (ie lucene indexing will fail if the DB record is deleted)",milis);
+		} else {
+			log.warn("... give {} milis for {}",milis,Strings.customized(msg,msgParams));
 		}
+		Threads.safeSleep(milis);
+	}
+	protected static void _giveTimeForBackgroundJobsToFinish(final TimeLapse lapse,
+															 final String msg,final Object... msgParams) {
+		_giveTimeForBackgroundJobsToFinish(lapse.asMilis(),
+										   msg,msgParams);
 	}
 }

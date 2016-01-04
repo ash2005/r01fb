@@ -10,7 +10,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.Provider;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -32,10 +31,9 @@ public class RESTRequestTypeMappersForModelObjects {
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Provider
 	@Accessors(prefix="_")
-	public static class ModelObjectRequestTypeMapperBase<M extends ModelObject> 
-		  	    extends XMLMarshalledObjectRequestTypeMapper<M> {
+	public static abstract class ModelObjectRequestTypeMapperBase<M extends ModelObject> 
+		  	    		 extends XMLMarshalledObjectRequestTypeMapper<M> {
 		
 		@Getter private final Marshaller _objectsMarshaller;
 		
@@ -47,9 +45,8 @@ public class RESTRequestTypeMappersForModelObjects {
 /////////////////////////////////////////////////////////////////////////////////////////
 //	OID
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Provider
-	public static class OIDRequestTypeMapperBase<O extends OID> 
-		  	 implements MessageBodyReader<O> {
+	public static abstract class OIDRequestTypeMapperBase<O extends OID> 
+		  	 		  implements MessageBodyReader<O> {
 		
 		private final Marshaller _marshaller;
 		
@@ -91,7 +88,6 @@ public class RESTRequestTypeMappersForModelObjects {
 	/**
 	 * MessageBodyReader for all {@link IndexManagementCommand}s
 	 */
-	@Provider
 	@Accessors(prefix="_")
 	public static abstract class IndexManagementCommandRequestTypeMapperBase 
 		     			 extends XMLMarshalledObjectRequestTypeMapper<IndexManagementCommand> {
@@ -106,7 +102,6 @@ public class RESTRequestTypeMappersForModelObjects {
 	/**
 	 * MessageBodyReader for all {@link EnqueuedJob}s
 	 */
-	@Provider
 	@Accessors(prefix="_")
 	public static abstract class EnqueuedJobRequestTypeMapperBase 
 		     			 extends XMLMarshalledObjectRequestTypeMapper<EnqueuedJob> {

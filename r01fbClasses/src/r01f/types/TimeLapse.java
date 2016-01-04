@@ -74,6 +74,21 @@ public class TimeLapse
 	public static TimeLapse createFor(final String timeSpec) {
 		return new TimeLapse(_parseTimeLapseSpec(timeSpec));
 	}
+	/**
+	 * Creates a {@link TimeLapse} from a textual spec like some of the following
+	 * <ul>
+	 * 		<li>1d for one day</li>
+	 * 		<li>1h for one hour</li>
+	 * 		<li>30m for 30 minutes</li>
+	 * 		<li>100s for 100 seconds</li>
+	 * </ul>
+	 * @param timeSpec the spec
+	 * @return
+	 */
+	@GwtIncompatible("uses regexp")
+	public static TimeLapse of(final String timeSpec) {
+		return new TimeLapse(_parseTimeLapseSpec(timeSpec));
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //	METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -98,11 +113,11 @@ public class TimeLapse
 			long periodValue = Long.parseLong(m.group(1));
 			String periodUnitStr = m.group(2);
 			if (periodUnitStr.equalsIgnoreCase("s")) {
-				outPeriod = periodValue * 1000l;				// 1 sg = 1000 millis
+				outPeriod = periodValue * 1000l;					// 1 sg = 1000 millis
 			} else if (periodUnitStr.equalsIgnoreCase("m")) {
-				outPeriod = periodValue * 60l * 1000l;		// 1 min = 60 sg = 60 * 1000 millis
+				outPeriod = periodValue * 60l * 1000l;				// 1 min = 60 sg = 60 * 1000 millis
 			} else if (periodUnitStr.equalsIgnoreCase("h")) {
-				outPeriod = periodValue * 60l * 60l * 1000l;	// 1 h = 60 min = 60 * 60 * 1000 millis
+				outPeriod = periodValue * 60l * 60l * 1000l;		// 1 h = 60 min = 60 * 60 * 1000 millis
 			}  else if (periodUnitStr.equalsIgnoreCase("d")) {
 				outPeriod = periodValue * 24l * 60l * 60l * 1000l;	// 1 d = 24h = 24 * 60 * 60 * 1000 millis
 			}

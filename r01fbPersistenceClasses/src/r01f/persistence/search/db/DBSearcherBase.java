@@ -6,6 +6,9 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,9 +38,6 @@ import r01f.types.summary.SummaryLanguageTextsBacked;
 import r01f.types.summary.SummaryStringBacked;
 import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 
 /**
  * Base type for types that implements db searching ({@link R01EDBSearcher} interface)
@@ -69,7 +69,7 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SEARCH   
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public int countRecords(final UserContext userContext,
 							final F filter) {
 		// [1]: Build the query
@@ -82,7 +82,7 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 		return !CollectionUtils.isNullOrEmpty(results) ? results.get(0) 
 													   : 0;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public SearchResults<F,I> filterRecords(final UserContext userContext,
 											final F filter,
 									   		final int firstResultItemOrder,final int numberOfResults) {

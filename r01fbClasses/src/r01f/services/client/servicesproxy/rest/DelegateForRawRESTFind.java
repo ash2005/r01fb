@@ -112,11 +112,11 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 		if (opResult.hasSucceeded()) {
 			log.info("Successful REST find oids operation at resoure with path={} > ({} results)",restResourceUrl,opResult.getOrThrow().size());
 		}
-		else if (opResult.asError().wasBecauseClientCouldNotConnectToServer()) {			// as(FindOIDsError.class)
+		else if (opResult.asCRUDError().wasBecauseClientCouldNotConnectToServer()) {			// as(FindOIDsError.class)
 			log.error("Client cannot connect to REST endpoint with path={}",restResourceUrl);
-		} else if (!opResult.asError().wasBecauseAClientError()) {							// as(FindOIDsError.class)
+		} else if (!opResult.asCRUDError().wasBecauseAClientError()) {							// as(FindOIDsError.class)
 			log.error("REST: On requesting the find oids operation, the REST resource with path={} returned an error code={}",
-					  restResourceUrl,opResult.asError().getErrorType().getCode());			// as(FindOIDsError.class)					
+					  restResourceUrl,opResult.asCRUDError().getErrorType().getCode());			// as(FindOIDsError.class)					
 			log.debug("[ERROR]: {}",opResult.getDetailedMessage());
 		} else {
 			log.debug("Client error on requesting the {} operation, the REST resource with path={} returned: {}",
@@ -128,11 +128,11 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 		if (opResult.hasSucceeded()) {
 			log.info("Successful REST find entities operation at resoure with path={} > ({} results)",restResourceUrl,opResult.getOrThrow().size());
 		}
-		else if (opResult.asError().wasBecauseClientCouldNotConnectToServer()) {		// as(FindError.class)
+		else if (opResult.asFindError().wasBecauseClientCouldNotConnectToServer()) {		// as(FindError.class)
 			log.error("Client cannot connect to REST endpoint with path={}",restResourceUrl);
-		} else if (!opResult.asError().wasBecauseAClientError()) {						// as(FindError.class)
+		} else if (!opResult.asFindError().wasBecauseAClientError()) {						// as(FindError.class)
 			log.error("REST: On requesting the find oids operation, the REST resource with path={} returned an error code={}",
-					  restResourceUrl,opResult.asError().getErrorType().getCode());		// as(FindError.class)				
+					  restResourceUrl,opResult.asFindError().getErrorType().getCode());		// as(FindError.class)				
 			log.debug("[ERROR]: {}",opResult.getDetailedMessage());
 		} else {
 			log.debug("Client error on requesting the {} operation, the REST resource with path={} returned: {}",
@@ -144,11 +144,11 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 		if (opResult.hasSucceeded()) {
 			log.info("Successful REST find summaries operation at resoure with path={} > ({} results)",restResourceUrl,opResult.getOrThrow().size());
 		}
-		else if (opResult.asError().wasBecauseClientCouldNotConnectToServer()) {		// as(FindSummariesError.class)
+		else if (opResult.asCRUDError().wasBecauseClientCouldNotConnectToServer()) {		// as(FindSummariesError.class)
 			log.error("Client cannot connect to REST endpoint with path={}",restResourceUrl);
-		} else if (!opResult.asError().wasBecauseAClientError()) {						// as(FindSummariesError.class)
+		} else if (!opResult.asCRUDError().wasBecauseAClientError()) {						// as(FindSummariesError.class)
 			log.error("REST: On requesting the find oids operation, the REST resource with path={} returned an error code={}",
-					  restResourceUrl,opResult.asError().getErrorType().getCode());		// as(FindSummariesError.class)				
+					  restResourceUrl,opResult.asCRUDError().getErrorType().getCode());		// as(FindSummariesError.class)				
 			log.debug("[ERROR]: {}",opResult.getDetailedMessage());
 		} else {
 			log.debug("Client error on requesting the {} operation, the REST resource with path={} returned: {}",

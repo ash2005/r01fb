@@ -56,7 +56,7 @@ public abstract class RESTCRUDServicesProxyBase<O extends OID,M extends Persista
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CRUD
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> load(final UserContext userContext,
 			   	  			  final O oid) {
 		// do the http call
@@ -104,7 +104,7 @@ public abstract class RESTCRUDServicesProxyBase<O extends OID,M extends Persista
 		_logResponse(restResourceUrl,outResponse);
 		return outResponse;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public CRUDResult<M> update(final UserContext userContext,
 								final M entity) {
 		// do the http call
@@ -128,7 +128,7 @@ public abstract class RESTCRUDServicesProxyBase<O extends OID,M extends Persista
 		_logResponse(restResourceUrl,outResponse);
 		return outResponse;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> delete(final UserContext userContext,
 							    final O oid) {
 		// do the http call
@@ -169,11 +169,11 @@ public abstract class RESTCRUDServicesProxyBase<O extends OID,M extends Persista
 		if (opResult.hasSucceeded()) {
 			log.info("Successful REST {} operation at resource path={} on entity with oid={}",opResult.getRequestedOperationName(),restResourceUrl,opResult.getOrThrow().getOid());
 		}
-		else if (opResult.asError().wasBecauseClientCouldNotConnectToServer()) {			// as(CRUDError.class)
+		else if (opResult.asCRUDError().wasBecauseClientCouldNotConnectToServer()) {			// as(CRUDError.class)
 			log.error("Client cannot connect to REST endpoint {}",restResourceUrl);
-		} else if (!opResult.asError().wasBecauseAClientError()) {							// as(CRUDError.class)
+		} else if (!opResult.asCRUDError().wasBecauseAClientError()) {							// as(CRUDError.class)
 			log.error("REST: On requesting the {} operation, the REST resource with path={} returned a persistence error code={}",
-					  opResult.getRequestedOperationName(),restResourceUrl,opResult.asError().getErrorType().getCode());					
+					  opResult.getRequestedOperationName(),restResourceUrl,opResult.asCRUDError().getErrorType().getCode());					
 			log.debug("[ERROR]: {}",opResult.getDetailedMessage());
 		} else {
 			log.debug("Client error on requesting the {} operation, the REST resource with path={} returned: {}",
