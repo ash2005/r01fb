@@ -182,7 +182,6 @@ public class HttpRequestFluentStatementForResponse
 		if (_method.hasPayload()) {
 			_sendPayload(conx);	// Sends the payload 
 		}
-		
 		_conx = conx;
 	}
 	/**

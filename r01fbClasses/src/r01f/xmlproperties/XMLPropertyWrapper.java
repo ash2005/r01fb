@@ -268,7 +268,7 @@ public final class XMLPropertyWrapper {
 	 */
 	public Path asPath() {
 		String path = _props.getString(_xPath);
-		return path != null ? Path.of(path)
+		return path != null ? Path.readOnlyOf(path)
 							: null;
 	}
 	/**

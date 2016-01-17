@@ -100,11 +100,11 @@
         <!-- ============================================================================================================================== -->
 		<!-- SPRING																		                                                    -->
 		<!-- ============================================================================================================================== -->
-		<dependency org="org.springframework" name="spring-beans" rev="4.2.3.RELEASE" transitive="false"/>			
-		<dependency org="org.springframework" name="spring-core" rev="4.2.3.RELEASE" transitive="false"/>
-		<dependency org="org.springframework" name="spring-context" rev="4.2.3.RELEASE" transitive="false"/>
-		<dependency org="org.springframework" name="spring-context-support" rev="4.2.3.RELEASE" transitive="false"/>	<!-- MailSender WTF! -->
-		<!--<dependency org="org.springframework" name="spring-instrument" rev="4.2.3.RELEASE" transitive="false"/>-->
+		<dependency org="org.springframework" name="spring-beans" rev="4.2.4.RELEASE" transitive="false"/>			
+		<dependency org="org.springframework" name="spring-core" rev="4.2.4.RELEASE" transitive="false"/>
+		<dependency org="org.springframework" name="spring-context" rev="4.2.4.RELEASE" transitive="false"/>
+		<dependency org="org.springframework" name="spring-context-support" rev="4.2.4.RELEASE" transitive="false"/>	<!-- MailSender WTF! -->
+		<!--<dependency org="org.springframework" name="spring-instrument" rev="4.2.4.RELEASE" transitive="false"/>-->
 		
          
         <!-- ============================================================================================================================== -->

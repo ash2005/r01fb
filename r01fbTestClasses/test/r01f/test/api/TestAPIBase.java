@@ -22,7 +22,7 @@ import r01f.util.types.collections.CollectionUtils;
 
 /**
  * JVM arguments:
- * -javaagent:D:/tools_workspaces/eclipse/local_libs/aspectj/lib/aspectjweaver.jar -Daj.weaving.verbose=true
+ * -javaagent:d:/eclipse/local_libs/aspectj/lib/aspectjweaver.jar -Daj.weaving.verbose=true
  */
 @Slf4j
 @Accessors(prefix="_")
@@ -33,7 +33,7 @@ public abstract class TestAPIBase<A extends ClientAPI> {
 /////////////////////////////////////////////////////////////////////////////////////////
 	protected static Injector GUICE_INJECTOR;
 	protected static ClientAPI CLIENT_API;
-	protected static Collection<Key<? extends ServiceHandler>> _hasServiceHandlerTypes;
+	protected static Collection<Key<? extends ServiceHandler>> HAS_SERVICE_HANDLER_TYPES;
 	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -57,7 +57,8 @@ public abstract class TestAPIBase<A extends ClientAPI> {
 		GUICE_INJECTOR = guiceInjector;
 		
 		// Store the service handler types
-		_hasServiceHandlerTypes = CollectionUtils.hasData(hasServiceHandlerTypes) ? Arrays.asList(hasServiceHandlerTypes) : null;
+		HAS_SERVICE_HANDLER_TYPES = CollectionUtils.hasData(hasServiceHandlerTypes) ? Arrays.asList(hasServiceHandlerTypes) 
+																					: null;
 		
 		// Create the API
 		CLIENT_API = GUICE_INJECTOR.getInstance(apiType);
@@ -67,8 +68,8 @@ public abstract class TestAPIBase<A extends ClientAPI> {
 		// 		If the core is available at client classpath, start it
 		// 		This is the case where there's no app-server
 		// 		(usually the JPA's ServiceHandler is binded at the Guice module extending DBGuiceModuleBase at core side)
-		if (CollectionUtils.hasData(_hasServiceHandlerTypes)) {
-			for (Key<? extends ServiceHandler> hasServiceHandlerType : _hasServiceHandlerTypes) {
+		if (CollectionUtils.hasData(HAS_SERVICE_HANDLER_TYPES)) {
+			for (Key<? extends ServiceHandler> hasServiceHandlerType : HAS_SERVICE_HANDLER_TYPES) {
 				ServiceHandler serviceHandler = GUICE_INJECTOR.getInstance(hasServiceHandlerType);
 				log.warn("\t--START SERVICE using {} type: {}",ServiceHandler.class.getSimpleName(),hasServiceHandlerType);
 				serviceHandler.start();
@@ -78,8 +79,8 @@ public abstract class TestAPIBase<A extends ClientAPI> {
 	protected static void _tearDownAfterClass() throws Exception {
 		// If stand-alone (no app-server is used), close the JPA service or any service that needs to be started
 		// like the search engine index
-		if (CollectionUtils.hasData(_hasServiceHandlerTypes)) {
-			for (Key<? extends ServiceHandler> hasServiceHandlerType : _hasServiceHandlerTypes) {
+		if (CollectionUtils.hasData(HAS_SERVICE_HANDLER_TYPES)) {
+			for (Key<? extends ServiceHandler> hasServiceHandlerType : HAS_SERVICE_HANDLER_TYPES) {
 				ServiceHandler serviceHandler = GUICE_INJECTOR.getInstance(hasServiceHandlerType);
 				if (serviceHandler != null) {
 					log.warn("\t--END SERVICE {} type: {}",ServiceHandler.class.getSimpleName(),hasServiceHandlerType);
@@ -114,6 +115,7 @@ public abstract class TestAPIBase<A extends ClientAPI> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
+	@SuppressWarnings("static-method")
 	protected void _doTest() {
 		log.warn("MUST implement this!");
 	}

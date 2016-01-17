@@ -82,7 +82,7 @@ public class FindResultBuilder
 			outFoundEntities.setFoundObjectType(_entityType);
 			outFoundEntities.setRequestedOperation(PersistenceRequestedOperation.FIND);
 			outFoundEntities.setPerformedOperation(PersistencePerformedOperation.FOUND);
-			outFoundEntities.setOperationExecResult(entities);	
+			outFoundEntities.setOperationExecResult(entities);
 			return outFoundEntities;
 		}
 		public <DB extends DBEntity> FindOK<M> foundDBEntities(final Collection<DB> dbEntities) {
@@ -91,7 +91,7 @@ public class FindResultBuilder
 									  													  		_entityType));
 		}
 		public <DB extends DBEntity> FindOK<M> foundDBEntities(final Collection<DB> dbEntities,
-							   			 final Function<DB,M> transformer) {
+							   			 					   final Function<DB,M> transformer) {
 			Collection<M> entities = null;
 			if (CollectionUtils.hasData(dbEntities)) {
 				Function<DB,M> dbEntityToModelObjectTransformer = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,

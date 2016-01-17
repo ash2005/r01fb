@@ -169,12 +169,15 @@ public class Path
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CLONE
 /////////////////////////////////////////////////////////////////////////////////////////
-	public Path copy() {
+	public Path mutableCopy() {
 		return Path.of(this);
+	}
+	public Path readOnlyCopy() {
+		return Path.readOnlyOf(this);
 	}
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		return this.copy();
+		return this.mutableCopy();
 	}
 	
 }

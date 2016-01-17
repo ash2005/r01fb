@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.junit.Assert;
 
+import r01f.concurrent.Threads;
 import r01f.guids.OID;
 import r01f.model.ModelObject;
 import r01f.model.PersistableModelObject;
@@ -55,12 +56,7 @@ public class TestPersistableModelObjectSearch<F extends SearchFilterForModelObje
 		modelObjFactory.setUpMockModelObjs(5);
 		
 		// [1]: give time to the objects being indexed
-		try {
-			System.out.println("... giving time for the objects to be indexed");
-			Thread.sleep(5000);
-		} catch(InterruptedException intEx) {
-			/* ignore */
-		}
+		Threads.safeSleep(5000);
 		
 		// [2]: Run tests		
 		System.out.println("SEARCH ENTITIES WITH THE FILTER: " + filter.toCriteriaString());
@@ -92,17 +88,13 @@ public class TestPersistableModelObjectSearch<F extends SearchFilterForModelObje
 		
 		// [2]: Give time for the objects to be indexed
 		System.out.println("... wait some time to give space for the indexer to index all objects");
-		try {
-			Thread.sleep(10000);		// give time
-		} catch(Throwable th) {
-			/* ignore */
-		}
+		Threads.safeSleep(10000);
 		
 		// [3]: Ensure that there're 10 indexed objects
 		F emptyFilter = ReflectionUtils.createInstanceOf(_searchAPI.getFilterType());		// empty filter
 		totalItems = _searchAPI.search(emptyFilter)		// an empty filter
-									.firstPage()
-									.getTotalItemsCount();
+							   .firstPage()
+							   .getTotalItemsCount();
 		Assert.assertTrue(totalItems == 10);
 		
 		// [4]: Wipe previously created objects
@@ -110,16 +102,12 @@ public class TestPersistableModelObjectSearch<F extends SearchFilterForModelObje
 		
 		// [5]: Give time for the objects to be unindexed
 		System.out.println("... wait some time to give space for the indexer to unindex all objects");
-		try {
-			Thread.sleep(10000);		// give time
-		} catch(Throwable th) {
-			/* ignore */
-		}
+		Threads.safeSleep(10000);
 		
 		// [6]: Ensure that there're 10 indexed objects
 		totalItems = _searchAPI.search(emptyFilter)		// an empty filter
-									.firstPage()
-									.getTotalItemsCount();
+							   .firstPage()
+							   .getTotalItemsCount();
 		Assert.assertTrue(totalItems == 0);
 		
 		System.out.println("[end ][TEST BASIC INDEX & UNINDEX] (elapsed time: " + NumberFormat.getNumberInstance(Locale.getDefault()).format(stopWatch.elapsed(TimeUnit.MILLISECONDS)) + " milis) -------------------------");

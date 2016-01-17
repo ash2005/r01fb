@@ -2,9 +2,9 @@ package r01f.internal;
 
 import java.nio.charset.Charset;
 
-import lombok.extern.slf4j.Slf4j;
-
 import com.google.common.base.Charsets;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -21,7 +21,9 @@ public class R01F {
 	public static Charset DEFAULT_CHARSET = Charsets.UTF_8; 
 	
 	public static int CORE_GROUP = 0;
-	
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
 	public static void initSystemEnv() {
 		log.warn("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
 		log.warn("Setting base system properties:");
@@ -36,6 +38,6 @@ public class R01F {
 		
 		// if DNS round robin based services are going to be used (like amazon S3 or a mail cluster),
 		// don’t forget to configure the DNS cache tiemout of Java (which is also infinite by default)
-		java.security.Security.setProperty("networkaddress.cache.ttl","10"); // Only cache DNS lookups for 10 seconds
+		java.security.Security.setProperty("networkaddress.cache.ttl","10"); 	// Only cache DNS lookups for 10 seconds
 	}
 }

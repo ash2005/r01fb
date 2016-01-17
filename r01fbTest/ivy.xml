@@ -54,6 +54,10 @@
 		<dependency org="com.ejie.r01.r01fb" name="r01fbPersistenceClasses" rev="latest.integration" conf="default->default;compile->compile;runtime->runtime"/>
 		<dependency org="com.ejie.r01.r01fb" name="r01fbEJIEClasses" rev="latest.integration" conf="default->default;compile->compile;runtime->runtime"/>
 		
+		<!-- ============================================================================================================================== -->
+		<!-- Velocity                                                                                          								-->
+		<!-- ============================================================================================================================== -->
+		<dependency org="org.apache.velocity" name="velocity" rev="1.7"/>	
 	</dependencies>
 	
 </ivy-module>

@@ -1,11 +1,7 @@
 package r01f.services.client;
 
 import lombok.experimental.Accessors;
-import r01f.marshalling.Marshaller;
-import r01f.model.annotations.ModelObjectsMarshaller;
 import r01f.usercontext.UserContext;
-
-import com.google.inject.Inject;
 
 
 
@@ -15,14 +11,6 @@ import com.google.inject.Inject;
 @Accessors(prefix="_")
 public abstract class ClientAPIImplBase<S extends ServiceProxiesAggregator> 
            implements ClientAPI {
-/////////////////////////////////////////////////////////////////////////////////////////
-//  INJECTION OF AUX OBJECT (see R01MClientAPIGuiceModule)
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * XML/Json<-->java marshaller
-	 */
-	@ModelObjectsMarshaller		// marshaller xml<->java 
-	@Inject protected Marshaller _marshaller;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR INJECTED
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -57,10 +45,6 @@ public abstract class ClientAPIImplBase<S extends ServiceProxiesAggregator>
 	@Override @SuppressWarnings("unchecked")
 	public <T extends ServiceProxiesAggregator> T getServiceProxiesAggregatorAs(final Class<T> aggregatorType) {
 		return (T)_serviceProxiesAggregator;
-	}
-	@Override
-	public Marshaller getModelObjectsMarshaller() {
-		return _marshaller;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  

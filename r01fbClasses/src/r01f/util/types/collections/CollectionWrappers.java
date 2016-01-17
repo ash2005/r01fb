@@ -237,7 +237,7 @@ public class CollectionWrappers {
 	     * Returns the {@link Collection} elements as a comma-separated {@link String}
 	     * @return 
 	     */
-	    public String toStringSeparatedWith(char ch) {
+	    public String toStringSeparatedWith(final char ch) {
 	    	if (CollectionUtils.isNullOrEmpty(_theCol)) return "";
 	    	StringBuilder sb = new StringBuilder();
 	    	for (Iterator<T> it = _theCol.iterator(); it.hasNext(); ) {

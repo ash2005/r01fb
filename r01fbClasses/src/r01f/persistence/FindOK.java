@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import r01f.exceptions.Throwables;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -48,8 +49,10 @@ public class FindOK<T>
 		T outEntity = null;
 		Collection<T> entities = this.getOrThrow();
 		if (CollectionUtils.hasData(entities)) {
-			outEntity = CollectionUtils.of(entities).pickOneAndOnlyElement("A single instance of {} was expected to be found BUT {} were found",_objectType,entities.size());
-		} 
+			outEntity = CollectionUtils.of(entities).pickOneAndOnlyElement("A single instance of {} was expected to be found BUT {} were found",_foundObjectType,entities.size());
+		} else {
+			throw new IllegalStateException(Throwables.message("A single instance of {} was expected to be found BUT NONE were found",_foundObjectType));
+		}
 		return outEntity;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

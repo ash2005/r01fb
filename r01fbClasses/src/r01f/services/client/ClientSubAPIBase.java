@@ -2,7 +2,6 @@ package r01f.services.client;
 
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import r01f.marshalling.Marshaller;
 import r01f.usercontext.UserContext;
 
 /**
@@ -39,13 +38,6 @@ public abstract class ClientSubAPIBase<S extends ClientAPI,
 	public P getServicesProxiesAggregator() {
 		P clientProxy = _clientAPIs.<P>getServiceProxiesAggregator();
 		return clientProxy;
-	}
-	/**
-	 * @return the model object's marshaller
-	 */
-	public Marshaller getModelObjectsMarshaller() {
-		Marshaller marshaller = _clientAPIs.getModelObjectsMarshaller();
-		return marshaller;
 	}
 	/**
 	 * @return the user context

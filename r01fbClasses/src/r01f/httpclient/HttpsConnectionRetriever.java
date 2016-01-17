@@ -77,7 +77,7 @@ public class HttpsConnectionRetriever
 	 * @throws IOException
 	 */
 	private static URLStreamHandler _getURLStreamHandler () throws IOException {
-		ClassLoader cl = Thread.currentThread().getContextClassLoader();	// No utilizar Class.forName... problemas en los EAR
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();	// do NOT use Class.forName... problems at EAR
 		String streamHandlerClass = _defaultURLStreamHandler;
 		try {
 			return (URLStreamHandler)cl.loadClass(streamHandlerClass).newInstance();

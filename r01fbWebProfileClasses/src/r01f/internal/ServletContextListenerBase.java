@@ -97,8 +97,8 @@ public abstract class ServletContextListenerBase
 		
 		// Stop background jobs
 		log.warn("\t--Release background threads");
-		ServiceHandler execSrvMgr = this.getInjector().getInstance(ExecutorServiceManager.class);	// binded at BeanServicesBootstrapGuiceModuleBase
-		if (execSrvMgr != null) {
+		if (this.getInjector().getExistingBinding(Key.get(ExecutorServiceManager.class)) != null) {
+			ServiceHandler execSrvMgr = this.getInjector().getInstance(ExecutorServiceManager.class);	// binded at BeanServicesBootstrapGuiceModuleBase
 			execSrvMgr.stop();	
 		} else {
 			log.warn("\t--NO executor services to close!!");

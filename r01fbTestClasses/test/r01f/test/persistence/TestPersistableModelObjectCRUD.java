@@ -48,8 +48,7 @@ public class TestPersistableModelObjectCRUD<O extends OID,M extends PersistableM
 		// [1] Create an entity
 		System.out.println("CREATE AN ENTITY OF TYPE " + _modelObjFactory.getModelObjType() + "_________________________________");
 		_modelObjFactory.setUpMockModelObjs(1);
-		O createdModelObjOid = CollectionUtils.of(_modelObjFactory.getCreatedMockModelObjectsOids())
-											  .pickOneElement();
+		O createdModelObjOid = _modelObjFactory.getAnyCreatedModelObjectOid();
 		M createdModelObj = _crudAPI.load(createdModelObjOid);	// load the created obj
 
 		System.out.println("---->Version id=" + createdModelObj.getEntityVersion());

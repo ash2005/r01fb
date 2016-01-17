@@ -770,12 +770,18 @@ public class GenericHttpProxyServlet
         // Handle the query string
         if (originalRequest.getQueryString() != null) {
         	targetURLPath.add("?" + originalRequest.getQueryString());
-        	addTrailingSlash = false;
         }
         
         // Set the protocol to HTTP
         String protocol = (originalRequest.isSecure()) ? "https://" : "http://";
-        String endPointURL = protocol + _getTargetServerHostAndPort() + targetURLPath.asAbsoluteString() + (addTrailingSlash ? "/" : "");
+        String endPointURL = protocol + _getTargetServerHostAndPort() + targetURLPath.asAbsoluteString();
+        if (addTrailingSlash) {
+        	if (endPointURL.contains("?")) {
+        		endPointURL = endPointURL.replace("?","/?");
+         	} else {
+         		endPointURL = endPointURL + "/";
+         	}
+        }
         return endPointURL;
     }
     private String _getTargetServerHostAndPort() {

@@ -29,7 +29,7 @@ public abstract class TestEntityBase<API extends ClientAPI,
 							 final API api) {
 		_entityType = entityType;
 		_api = api;
-		_factory = TestPersistableModelObjectFactoryDefaultImpl.create(_entityType,
+		_factory = TestPersistableModelObjectFactory.create(_entityType,
 																	   mockObjsFactory,
 																	   _clientCRUDApi(),
 																	   milisToWaitForBackgroundJobs);

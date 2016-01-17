@@ -1,8 +1,30 @@
-Create the BBDD
-===============
-create database r01t
-create user 'r01t'@'localhost' identified by 'r01t';
-grant all on r01t.* to 'r01t'@'localhost' ; 
+MySQL Install
+=============
+Download MySQL ZIP (portable) package
+Extract at d:/db_server/mysql-xxx-winx64
+Copy the my-default.ini file as my.ini
+Change the following lines at my.ini:
+	basedir = D:\db_server\mysql-xxx-winx64
+	datadir = D:\db_server\mysql_data
+Initialize mysql (see http://dev.mysql.com/doc/refman/5.7/en/data-directory-initialization-mysqld.html)
+	cd d:\db_server\mysql-xxx-winx64\bin
+	mysqld --initialize-insecure	
+Install as a windows service
+	mysqld --install pci_mysql
+Assign root password
+	mysql -u root --skip-password
+	mysql>ALTER USER 'root'@'localhost' IDENTIFIED BY 'pci';
+
+Download MySQLWorkbench ZIP (portable) package
+Start mysqlWorkbench
+Login as root/pci
+Create the schema pci and the user pci
+Grant all to pci on pci schem
+
+Alternative this can be done manually
+	create database pci
+	create user 'pci'@'localhost' identified by 'pci';
+	grant all on pci.* to 'pci'@'localhost' ; 
 
 
 

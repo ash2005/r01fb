@@ -71,7 +71,21 @@ public abstract class DBGuiceModuleBase
 	public DBGuiceModuleBase(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapGuiceModuleType) {
 		this(coreBootstrapGuiceModuleType,
 			 null);
-	} 
+	}
+	/**
+	 * Constructor to be used when it's the db guice module for an app divided into components
+	 * In this case, the app is composed by one or more modules and the properties are going to be looked after at
+	 * [appCode].[appComponent].persistence.properties.xml
+	 * @param coreBootstrapGuiceModuleType 
+	 */
+	public DBGuiceModuleBase(final AppCode coreAppCode,final AppComponent coreAppComponent,
+							 final AppCode bbddAppCode) {
+		super(coreAppCode,coreAppComponent);
+		_bbddAppCode = bbddAppCode != null ? bbddAppCode
+										   : this.getAppCode();
+		log.info("...init the {} for appCode/component={}/{}; the persistence properties will be looked after as {}.{}.persistence.properties.xml",
+				 this.getClass().getSimpleName(),this.getAppCode(),this.getAppComponent(),this.getAppCode(),this.getAppComponent());
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  dirty trick to return the real appcomponent
 /////////////////////////////////////////////////////////////////////////////////////////
