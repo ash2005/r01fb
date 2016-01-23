@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
 import lombok.Getter;
@@ -135,13 +135,20 @@ public class ContactInfo
 	 */
 	public Collection<EMail> getMailAddreses() {
 		Collection<EMail> mails = CollectionUtils.hasData(_mailAddresses)  
-										? Collections2.transform(_mailAddresses,
-															     new Function<ContactMail,EMail>() {
+										? FluentIterable.from(_mailAddresses)
+														.filter(new Predicate<ContactMail>() {
+																	@Override
+																	public boolean apply(final ContactMail contactMail) {
+																		return contactMail.getMail() != null;
+																	}
+																})
+														.transform(new Function<ContactMail,EMail>() {
 																		@Override
 																		public EMail apply(final ContactMail contactMail) {
 																			return contactMail.getMail();
 																		}
 															     })
+														.toList()
 										 : null;
 		return mails;
 	}
@@ -212,13 +219,20 @@ public class ContactInfo
 	 */
 	public Collection<Phone> getPhoneNumbers() {
 		Collection<Phone> phones = CollectionUtils.hasData(_phones)  
-										? Collections2.transform(_phones,
-															     new Function<ContactPhone,Phone>() {
+										? FluentIterable.from(_phones)
+														.filter(new Predicate<ContactPhone>() {
+																		@Override
+																		public boolean apply(final ContactPhone contactPhone) {
+																			return contactPhone.getNumber() != null;
+																		}
+																})
+													    .transform(new Function<ContactPhone,Phone>() {
 																		@Override
 																		public Phone apply(final ContactPhone contactPhone) {
 																			return contactPhone.getNumber();
 																		}
-															     })
+															       })
+													    .toList()
 										 : null;
 		return phones;
 	}

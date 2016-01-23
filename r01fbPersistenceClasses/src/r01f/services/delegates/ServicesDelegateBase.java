@@ -1,13 +1,13 @@
 package r01f.services.delegates;
 
+import com.google.common.eventbus.EventBus;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import r01f.events.HasEventBus;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.services.persistence.CoreServiceBase;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.common.eventbus.EventBus;
 
 @Accessors(prefix="_")
 public abstract class ServicesDelegateBase 

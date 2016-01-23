@@ -1,5 +1,5 @@
-MySQL Install
-=============
+MySQL Install Windows
+=====================
 Download MySQL ZIP (portable) package
 Extract at d:/db_server/mysql-xxx-winx64
 Copy the my-default.ini file as my.ini
@@ -15,11 +15,79 @@ Assign root password
 	mysql -u root --skip-password
 	mysql>ALTER USER 'root'@'localhost' IDENTIFIED BY 'pci';
 
-Download MySQLWorkbench ZIP (portable) package
-Start mysqlWorkbench
-Login as root/pci
-Create the schema pci and the user pci
-Grant all to pci on pci schem
+MySql Install Linux
+===================
+http://dev.mysql.com/doc/refman/5.7/en/binary-installation.html
+
+Pre-requisite:
+	sudo apt-get install libaio1 libaio-dev
+Create the mysql user&group
+	groupadd mysql
+	useradd -r -g mysql -s /bin/false mysql
+Extract the mysql bin package at /opt/db_server/mysql-[version]
+
+Create a my.cnf at /opt/db_server/mysql-[version]
+		# http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
+
+		[mysqld]
+
+		# Remove leading # and set to the amount of RAM for the most important data
+		# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+		# innodb_buffer_pool_size = 128M
+
+		# Remove leading # to turn on a very important data integrity option: logging
+		# changes to the binary log between backups.
+		# log_bin
+
+		# These are commonly set, remove the # and set as required.
+		basedir = /opt/db_server/mysql-5.7.10
+		datadir = /opt/db_server/mysql-data
+		# port = .....
+		# server_id = .....
+
+		# MySQL 5.7 compatibility issue: see http://stackoverflow.com/questions/32053655/command-denied-for-table-session-variables
+		show_compatibility_56 = on
+
+		# Remove leading # to set options mainly useful for reporting servers.
+		# The server defaults are faster for transactions and fast SELECTs.
+		# Adjust sizes as needed, experiment to find the optimal values.
+		# join_buffer_size = 128M
+		# sort_buffer_size = 2M
+		# read_rnd_buffer_size = 2M 
+
+		sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES 
+Create a sym link to the my.cnf file at /usr/local	
+	mkdir /etc/mysql
+	ln -s /opt/db_server/mysql-5.7.10/my.cnf /etc/mysql/my.cnf
+	chown -R mysql:mysql /etc/mysql
+	chmod -R 755 /etc/mysql
+Initalize mysql 
+	/opt/db_server/mysql-5.7.10/bin/mysqld --initialize --user=mysql
+	BEWARE!! write down the root password: WL_Y;(Cuy9Tr
+Start mysql
+	/opt/db_server/mysql-5.7.10/bin/mysqld --user=mysql &
+Stop mysql
+	/opt/db_server/mysql-5.7.10/bin/sudo mysqld stop
+
+
+ 
+MySqlWorkbench install
+======================
+Linux:
+	Prerequisites
+		sudo apt-get install libgfortran3 libgeos-3.5.0 libhdf5-10 libtinyxml2.6.2v5 libxerces-c3.1 libzip4 odbcinst odbcinst1debian2 python-ecdsa python-paramiko libctemplate2v5 libgeos-c1v5 libgif4 libgtkmm-2.4-1v5 libhdf4-0-alt libnetcdf7 libodbc1 libpcrecpp0v5 libpq5
+	Extract the .deb file in a temp location and copy to
+		cd /tmp/tmp_mysqlworkbench
+		sudo dpkg -x mysql-workbench-community-6.3.6-1ubu1510-amd64.deb .
+		sudo cp -r ./usr/* /usr/
+Windows:
+	Download MySQLWorkbench ZIP (portable) package
+	Start mysqlWorkbench
+	Login as root/pci
+	
+Create database
+	Create the schema pci and the user pci
+	Grant all to pci on pci schem
 
 Alternative this can be done manually
 	create database pci
@@ -46,3 +114,4 @@ Oracle Driver
 			http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html 
 			http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
 	2.- Place ojdbc6.jar at $CATALINA_HOME/lib
+

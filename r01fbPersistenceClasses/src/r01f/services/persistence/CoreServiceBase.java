@@ -29,6 +29,9 @@ public abstract class CoreServiceBase
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * This properties are set at ServicesCoreBootstrapGuiceModuleBase type
+	 */
 	@Inject @XMLPropertiesComponent("services")
 	@Getter protected XMLPropertiesForAppComponent _serviceProperties;
 	/**

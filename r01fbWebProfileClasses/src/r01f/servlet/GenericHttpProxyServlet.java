@@ -746,7 +746,6 @@ public class GenericHttpProxyServlet
             													// This method will return an empty string ("") if the servlet used to process 
             													// this request was matched using the "/*" pattern.
         addTrailingSlash = servletPath.endsWith("/");
-        
         if (Strings.isNullOrEmpty(_pathTrim)) {
         	// nothing to remove
             targetURLPath.add(servletPath);

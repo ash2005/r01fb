@@ -80,7 +80,6 @@ public class SignRetryer {
 		try {
 			result = retryer.call(signCmd);
 		    
-		    
 		} catch (RetryException e) {
 		    throw new Exception(e.getCause());
 		} catch (ExecutionException e) {

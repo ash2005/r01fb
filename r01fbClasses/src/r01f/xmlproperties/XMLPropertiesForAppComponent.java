@@ -1,6 +1,7 @@
 package r01f.xmlproperties;
 
 import lombok.RequiredArgsConstructor;
+import r01f.guids.CommonOIDs.AppCode;
 import r01f.guids.CommonOIDs.AppComponent;
 import r01f.util.types.Strings;
 
@@ -41,6 +42,12 @@ public class XMLPropertiesForAppComponent {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
+	public AppCode getAppCode() {
+		return _propertiesForAppManager.getAppCode();
+	}
+	public AppComponent getAppComponent() {
+		return _component;				
+	}
 	/**
 	 * Retrieves a property fron it's xPath in the XMLProperties file
 	 * @param xPath the XPath

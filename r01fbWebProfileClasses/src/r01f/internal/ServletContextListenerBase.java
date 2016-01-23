@@ -61,10 +61,9 @@ public abstract class ServletContextListenerBase
 	@Override
 	public void contextInitialized(final ServletContextEvent servletContextEvent) {
 		log.warn("\n\n\n=============================================\n" + 
-				       "Loading {} Servlet Context...\n" + 
+				       "Loading {} with class {} Servlet Context...\n" + 
 				       "=============================================\n",
-				 this.getClass().getSimpleName());
-		
+				 servletContextEvent.getServletContext().getContextPath(),this.getClass().getSimpleName());
 		super.contextInitialized(servletContextEvent);
 		
 		// Init JPA's Persistence Service, Lucene indexes and everything that has to be started

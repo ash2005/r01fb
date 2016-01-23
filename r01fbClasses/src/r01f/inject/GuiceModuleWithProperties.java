@@ -127,7 +127,7 @@ public abstract class GuiceModuleWithProperties
 	public XMLPropertyWrapper propertyAt(final String xPath) {
 		if (_appComponent == null) log.warn("The properties module name was NOT given to the {} constructor; 'default' module is assumed",this.getClass().getName());
 		AppComponent thePropsModule = _appComponent != null ? _appComponent
-													 	   : AppComponent.forId("default");
+													 	    : AppComponent.forId("default");
 		return this.getProperty(thePropsModule,xPath);
 	}
 }

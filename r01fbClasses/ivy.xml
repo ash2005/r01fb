@@ -48,7 +48,7 @@
 		<!-- ============================================================================================================================== -->
 		<!-- R01: Aspects                                                                                                                   -->
 		<!-- ============================================================================================================================== -->
-		<dependency org="com.ejie.r01.r01fb" name="r01fbAspectInterfaceClasses" rev="0.0.5" conf="default->default;compile->compile;runtime->runtime"/>
+		<dependency org="com.ejie.r01.r01fb" name="r01fbAspectInterfaceClasses" rev="latest.integration" conf="default->default;compile->compile;runtime->runtime"/>
 		
 		<!-- ============================================================================================================================== -->
 		<!-- Lombok                                                                                                                			-->

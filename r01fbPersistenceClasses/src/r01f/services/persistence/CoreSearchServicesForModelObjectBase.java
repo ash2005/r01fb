@@ -35,10 +35,10 @@ public abstract class CoreSearchServicesForModelObjectBase<F extends SearchFilte
 	@Getter protected Searcher<F,I> _searcher;
 	/**
 	 * Search properties
+	 * (this properties are set at BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase type)
 	 */
 	@Inject @XMLPropertiesComponent("searchpersistence")
 	@Getter protected XMLPropertiesForAppComponent _searchProperties;
-	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SEARCH
 /////////////////////////////////////////////////////////////////////////////////////////

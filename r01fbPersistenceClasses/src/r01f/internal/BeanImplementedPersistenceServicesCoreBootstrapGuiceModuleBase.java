@@ -22,6 +22,7 @@ import r01f.events.PersistenceOperationEventListeners.PersistenceOperationErrorE
 import r01f.events.PersistenceOperationEventListeners.PersistenceOperationOKEventListener;
 import r01f.events.crud.CRUDOperationErrorEventListener;
 import r01f.guids.CommonOIDs.AppCode;
+import r01f.inject.HasMoreBindings;
 import r01f.inject.Matchers;
 import r01f.persistence.internal.DBGuiceModuleBase;
 import r01f.persistence.internal.SearchGuiceModuleBase;
@@ -29,8 +30,6 @@ import r01f.persistence.jobs.EventBusProvider;
 import r01f.persistence.jobs.ExecutorServiceManagerProvider;
 import r01f.services.core.internal.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
 import r01f.types.ExecutionMode;
-import r01f.xmlproperties.XMLPropertiesComponentImpl;
-import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
 /**
  * Mappings internal to services core implementation
@@ -42,7 +41,8 @@ import r01f.xmlproperties.XMLPropertiesForAppComponent;
 @Slf4j
 @EqualsAndHashCode(callSuper=true)				// This is important for guice modules
 public abstract class BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase
-              extends BeanImplementedServicesCoreBootstrapGuiceModuleBase {
+              extends BeanImplementedServicesCoreBootstrapGuiceModuleBase
+           implements HasMoreBindings {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -101,28 +101,20 @@ public abstract class BeanImplementedPersistenceServicesCoreBootstrapGuiceModule
 	private boolean XMLPROPERTIES_FOR_SEARCH_SET = false;
 	
 	@Override 
-	protected void _configure(final Binder binder) {
+	public void configureMoreBindings(final Binder binder) {
 		log.warn("\tBootstraping services from: {} for {}",this.getClass().getName(),_coreAppCode);
 		
 		final Binder theBinder = binder;
 		
 		// [1]: Bind XMLProperties for persistence and search
 		if (!XMLPROPERTIES_FOR_PERSISTENCE_SET && this.isModuleInstalled(DBGuiceModuleBase.class)) {
-			String persistencePropertiesBindName = "persistence";
-			//log.warn("...binded persitence properties as {}",persistencePropertiesBindName);
-			theBinder.bind(XMLPropertiesForAppComponent.class)
-				  	 .annotatedWith(new XMLPropertiesComponentImpl(persistencePropertiesBindName))
-				  	 .toProvider(new XMLPropertiesForDBPersistenceProvider(_coreAppCode,_coreAppComponent))
-				  	 .in(Singleton.class);
+			_bindXMLPropertiesComponentProviderFor("dbpersistence",
+												   theBinder);	
 			XMLPROPERTIES_FOR_PERSISTENCE_SET = true;
 		}
 		if (!XMLPROPERTIES_FOR_SEARCH_SET && this.isModuleInstalled(SearchGuiceModuleBase.class)) {
-			String searchPersistencePropertiesBindName = "searchpersistence";
-			//log.warn("...binded search persistence properties as {}",searchPersistencePropertiesBindName);
-			theBinder.bind(XMLPropertiesForAppComponent.class)
-				  	 .annotatedWith(new XMLPropertiesComponentImpl(searchPersistencePropertiesBindName))
-				  	 .toProvider(new XMLPropertiesForSearchPersistenceProvider(_coreAppCode,_coreAppComponent))
-				  	 .in(Singleton.class);
+			_bindXMLPropertiesComponentProviderFor("searchpersistence",
+												   theBinder);
 			XMLPROPERTIES_FOR_SEARCH_SET = true;
 		}	
 		
@@ -133,22 +125,19 @@ public abstract class BeanImplementedPersistenceServicesCoreBootstrapGuiceModule
 		if (this instanceof ServicesBootstrapGuiceModuleBindsCRUDEventListeners) {
 			
 			// Get from the properties the way CRUD events are to be consumed: synchronously or asynchronously
-			ExecutionMode execMode = this.servicesProperties()
-												.propertyAt("services/crudEventsHandling/@mode")
-													.asEnumElement(ExecutionMode.class);
+			ExecutionMode execMode = _coreProps.propertyAt("services/crudEventsHandling/@mode")
+										  	   .asEnumElement(ExecutionMode.class);
 			if (execMode == null) {
-				String servicesComp = super._coreAppCode + ".services";
 				log.warn("CRUD Events Handling config could NOT be found at {}.{}.properties.xml, please ensure that the {}.{}.properties.xml" +
 						 "contains a 'crudEventsHandling' section; meanwhile SYNC event handling is assumed",
-						 servicesComp,servicesComp);
+						 _coreProps.getAppCode(),_coreProps.getAppComponent(),_coreProps.getAppCode(),_coreProps.getAppComponent());
 				execMode = ExecutionMode.SYNC;
 			}
 			// The EventBus needs an ExecutorService (a thread pool) to manage events in the background
 			ExecutorServiceManager execServiceManager = null;
 			if (execMode == ExecutionMode.ASYNC) {
-				int numberOfBackgroundThreads = this.servicesProperties()
-														.propertyAt("services/crudEventsHandling/numberOfThreadsInPool")
-																.asInteger(1); 	// single threaded by default
+				int numberOfBackgroundThreads = _coreProps.propertyAt("services/crudEventsHandling/numberOfThreadsInPool")
+													 	  .asInteger(1); 	// single threaded by default
 				execServiceManager = new ExecutorServiceManagerProvider(numberOfBackgroundThreads).get();
 			} 
 			

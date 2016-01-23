@@ -1,19 +1,11 @@
 package r01f.services.core.internal;
 
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-
-import com.google.appengine.api.search.query.QueryParser.sep_return;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -98,7 +90,6 @@ public class ServicesCoreBootstrapModulesFinder {
 			
 			AppCode coreAppCode = coreAppModule.getAppCode();
 			AppComponent module = coreAppModule.getAppComponent();
-			
 			
 			// [1] - Get the modules for the appCode
 			Collection<Class<? extends ServicesCoreBootstrapGuiceModule>> appModuleCoreBootstrapModuleTypes = coreBootstrapModuleTypesByApp.get(coreAppModule);
@@ -256,15 +247,14 @@ public class ServicesCoreBootstrapModulesFinder {
     @SuppressWarnings("unchecked")
     private static Set<Class<? extends ServicesCoreBootstrapGuiceModule>> _findCoreGuiceModulesOrNull(final Collection<AppCode> coreAppCodes,
     																		   		  		 		  final Class<? extends ServicesCoreBootstrapGuiceModule> coreGuiceModuleType) {
-		List<URL> urls = new ArrayList<URL>();	
-		urls.addAll(ClasspathHelper.forPackage(ServicesCoreBootstrapGuiceModule.class.getPackage().getName()));	
-		urls.addAll(ClasspathHelper.forPackage("r01f.internal"));
-		for (AppCode coreAppCode : coreAppCodes) urls.addAll(ClasspathHelper.forPackage(ServicesPackages.coreGuiceModulePackage(coreAppCode)));
-		
-		Reflections typeScanner = new Reflections(new ConfigurationBuilder()
-															.setUrls(urls)		// see https://code.google.com/p/reflections/issues/detail?id=53
-															.setScanners(new SubTypesScanner()));
-		Set<?> foundBootstrapModuleTypes = typeScanner.getSubTypesOf(coreGuiceModuleType);
+		List<String> pckgs = Lists.newLinkedList();
+		pckgs.add(ServicesCoreBootstrapGuiceModule.class.getPackage().getName());
+		pckgs.add("r01f.internal");										 
+		for (AppCode coreAppCode : coreAppCodes) {
+			pckgs.add(ServicesPackages.coreGuiceModulePackage(coreAppCode));
+		}
+		Set<?> foundBootstrapModuleTypes = ServicesPackages.findSubTypesAt(coreGuiceModuleType,
+															   		   	   pckgs);
 		
 		// Filter the interfaces
 		Set<Class<? extends ServicesCoreBootstrapGuiceModule>> outModuleTypes = (Set<Class<? extends ServicesCoreBootstrapGuiceModule>>)foundBootstrapModuleTypes;

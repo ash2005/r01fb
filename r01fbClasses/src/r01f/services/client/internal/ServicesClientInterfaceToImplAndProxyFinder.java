@@ -1,21 +1,15 @@
 package r01f.services.client.internal;
 
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -223,28 +217,26 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 			_coreAppCodes = coreAppCodes;
 			
 			// Find all service interface implementations...
-			List<URL> urls = new ArrayList<URL>();			
+			List<String> pckgs = Lists.newLinkedList();		
 			
 			// Service interfaces
-			urls.addAll(ClasspathHelper.forPackage(ServiceInterface.class.getPackage().getName()));					// service interfaces
-			urls.addAll(ClasspathHelper.forPackage(ServicesPackages.serviceInterfacePackage(apiAppCode)));			// xx.api.interfaces... 
+			pckgs.add(ServiceInterface.class.getPackage().getName());			// service interfaces
+			pckgs.add(ServicesPackages.serviceInterfacePackage(apiAppCode));	// xx.api.interfaces...
 			
 			// Proxies
-			urls.addAll(ClasspathHelper.forPackage(ServiceProxyImpl.class.getPackage().getName()));
-			urls.addAll(ClasspathHelper.forPackage(ServicesPackages.serviceProxyPackage(apiAppCode)));				// xxx.client.servicesproxy.(bean|rest|ejb...)
+			pckgs.add(ServiceProxyImpl.class.getPackage().getName());
+			pckgs.add(ServicesPackages.serviceProxyPackage(apiAppCode));		// xxx.client.servicesproxy.(bean|rest|ejb...)
 			
 			// Core implementations
 			if (CollectionUtils.hasData(coreAppCodes)) {
 				for (AppCode coreAppCode : coreAppCodes) {
-					urls.addAll(ClasspathHelper.forPackage(ServicesPackages.servicesCorePackage(coreAppCode)));		// impls
+					pckgs.add(ServicesPackages.servicesCorePackage(coreAppCode));	// impls
 				}
 			}
 			
 			// do find
-			Reflections servicesInterfaceScanner = new Reflections(new ConfigurationBuilder()	// Reflections library NEEDS to have both the interface containing package and the implementation containing package
-																			.setUrls(urls)		// see https://code.google.com/p/reflections/issues/detail?id=53
-																			.setScanners(new SubTypesScanner()));		
-	    	Set<Class<? extends ServiceInterface>> serviceInterfaceImplementingTypes = servicesInterfaceScanner.getSubTypesOf(ServiceInterface.class);
+			Set<Class<? extends ServiceInterface>> serviceInterfaceImplementingTypes = ServicesPackages.findSubTypesAt(ServiceInterface.class,
+																										   			   pckgs);
 	    	if (CollectionUtils.hasData(serviceInterfaceImplementingTypes)) {
 	    		for (Class<? extends ServiceInterface> serviceInterfaceType : serviceInterfaceImplementingTypes) {
 	    			this.add(serviceInterfaceType);

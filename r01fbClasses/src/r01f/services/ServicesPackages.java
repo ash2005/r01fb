@@ -1,17 +1,99 @@
 package r01f.services;
 
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.guids.AppAndComponent;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.guids.CommonOIDs.AppComponent;
 import r01f.reflection.ReflectionUtils;
+import r01f.services.client.internal.ServicesClientAPIFinder;
+import r01f.services.client.internal.ServicesClientBootstrapModulesFinder;
+import r01f.services.client.internal.ServicesClientInterfaceToImplAndProxyFinder;
 import r01f.services.core.ServicesCore;
 import r01f.services.core.internal.ServicesCoreBootstrapGuiceModule;
+import r01f.services.core.internal.ServicesCoreBootstrapModulesFinder;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.services.interfaces.ServiceInterfaceFor;
 import r01f.util.types.Strings;
+import r01f.util.types.collections.CollectionUtils;
 
+@Slf4j
 public class ServicesPackages {
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Finds subTypes of a given type scanning at given packages
+	 * Used at:
+	 * 		{@link ServicesClientAPIFinder}#findClientAPIProxyAggregatorTypes()
+	 * 		{@link ServicesCoreBootstrapModulesFinder}#_findCoreBootstrapGuiceModuleTypesByAppModule
+	 * 		{@link ServicesClientBootstrapModulesFinder}
+	 * 		{@link ServicesClientInterfaceToImplAndProxyFinder}.ServiceInterfaceImplementingTypes
+	 * @param superType
+	 * @param pckgNames
+	 * @return
+	 */
+	public static <T> Set<Class<? extends T>> findSubTypesAt(final Class<T> superType,
+													  		 final List<String> pckgNames) {
+		Set<Class<? extends T>> outSubTypes = null;
+		
+		log.info("...finding subtypes of {} at packages {}",superType,pckgNames);
+		List<URL> pckgUrls = _urlsForPackages(pckgNames);
+		
+		if (CollectionUtils.isNullOrEmpty(pckgUrls)) {
+			log.error("Could NOT get any URL for packages {} from any classloader!!!",pckgNames);
+			// The org.reflections' ClasspathHelper.forPackage method, at the end does: 
+	        // 		for (ClassLoader classLader : ClasspathHelper.classLoaders()) {
+			//			Enumeration<URL> urls = classLoader.getResources(<change package dots for />);
+			//			if (urls != null) convert the enumeration into a Collection<URL> and return
+			// 		}
+			// BUT for an unknown reason, when the package is INSIDE a JAR at APP-INF/lib,
+			// classLoader.getResources(pckgName) returns null
+			// WHAT TO DO???
+
+		} else {
+			// The usual case (at least in tomcat) is that the package resources URLs can be found 
+			// and org.Reflections can be used
+			Reflections typeScanner = new Reflections(new ConfigurationBuilder()		// Reflections library NEEDS to have both the interface containing package and the implementation containing package
+																.setUrls(pckgUrls)		// see https://code.google.com/p/reflections/issues/detail?id=53
+																.setScanners(new SubTypesScanner(true)));
+			outSubTypes = typeScanner.getSubTypesOf(superType);
+		}
+		return outSubTypes;
+	}
+	private static ClassLoader[] _scanClassLoaders() {
+		ClassLoader[] outClassLoaders =	ClasspathHelper.classLoaders(ClasspathHelper.staticClassLoader(),
+											 						 ClasspathHelper.contextClassLoader());
+		
+		return outClassLoaders;
+	}		
+	private static List<URL> _urlsForPackages(final List<String> pckgNames) {
+		if (CollectionUtils.isNullOrEmpty(pckgNames)) throw new IllegalArgumentException();
+		List<URL> outUrls = Lists.newLinkedList();
+		for (String pckgName : pckgNames) {
+			outUrls.addAll(_urlsForPackage(pckgName));
+		}
+		return outUrls;
+	}
+	private static Collection<URL> _urlsForPackage(final String pckg) {
+		ClassLoader[] classLoaders = _scanClassLoaders();
+		
+		Collection<URL> outUrls = ClasspathHelper.forPackage(pckg,
+										  					 classLoaders);
+		return outUrls;
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +162,8 @@ public class ServicesPackages {
 	 * @return
 	 */
 	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrNull(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
-		ServicesCore serviceCoreAnnot = ReflectionUtils.typeAnnotation(coreBootstrapType,ServicesCore.class);
+		ServicesCore serviceCoreAnnot = ReflectionUtils.typeAnnotation(coreBootstrapType,
+																	   ServicesCore.class);
 		return serviceCoreAnnot != null && Strings.isNOTNullOrEmpty(serviceCoreAnnot.moduleId()) ? AppComponent.forId(serviceCoreAnnot.moduleId())
 																								 : null;
 	}

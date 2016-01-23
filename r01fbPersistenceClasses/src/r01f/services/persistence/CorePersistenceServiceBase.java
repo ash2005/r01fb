@@ -27,8 +27,9 @@ public abstract class CorePersistenceServiceBase
 	@Getter protected Provider<EntityManager> _entityManagerProvider;	
 	/**
 	 * The {@link XMLProperties} for the db layer
+	 * (this properties are set at BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase type)
 	 */ 
-	@Inject @XMLPropertiesComponent("persistence")
+	@Inject @XMLPropertiesComponent("dbpersistence")
 	@Getter protected XMLPropertiesForAppComponent _persistenceProperties;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METHODS

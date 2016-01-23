@@ -47,7 +47,7 @@
 		<!-- ============================================================================================================================== -->
 		<!-- R01                                                                                                                            -->
 		<!-- ============================================================================================================================== -->
-		<dependency org="com.ejie.r01.r01fb" name="r01fbClasses" rev="0.0.5" conf="default->default;compile->compile;runtime->runtime">
+		<dependency org="com.ejie.r01.r01fb" name="r01fbClasses" rev="latest.integration" conf="default->default;compile->compile;runtime->runtime">
 			<exclude org="com.google.appengine" name="appengine-api-1.0-sdk"/>
 		</dependency>
 		

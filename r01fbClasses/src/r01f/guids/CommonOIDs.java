@@ -47,7 +47,6 @@ public class CommonOIDs {
 	@NoArgsConstructor
 	public static class AppCode 
 	            extends OIDBaseMutable<String> {
-		
 		private static final long serialVersionUID = -1130290632493385784L;
 	
 		public AppCode(final String oid) {
@@ -72,7 +71,6 @@ public class CommonOIDs {
 	@NoArgsConstructor
 	public static class AppComponent 
 	            extends OIDBaseMutable<String> {
-		
 		private static final long serialVersionUID = 137722031497569807L;
 		
 		public static final AppComponent DEFAULT = AppComponent.forId("default");

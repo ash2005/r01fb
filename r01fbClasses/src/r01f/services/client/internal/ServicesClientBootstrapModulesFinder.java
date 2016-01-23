@@ -1,13 +1,8 @@
 package r01f.services.client.internal;
 
-import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
-
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -16,7 +11,6 @@ import com.google.common.collect.Lists;
 import com.google.inject.Module;
 
 import lombok.extern.slf4j.Slf4j;
-import r01f.exceptions.Throwables;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.ServicesPackages;
@@ -50,17 +44,12 @@ public class ServicesClientBootstrapModulesFinder {
 		
 		// Try to find guice modules
     	String clientGuiceModulePackage = ServicesPackages.clientGuiceModulePackage(apiAppCode);
-		log.info("\t  Finding subtypes of {} at package {}",
-				 ServicesClientGuiceModule.class,clientGuiceModulePackage);
 		
-		Collection<URL> urls = Lists.newArrayListWithExpectedSize(2);
-		urls.addAll(ClasspathHelper.forPackage(ServicesClientGuiceModule.class.getPackage().getName()));	// beware to include also the package where ServicesClientGuiceModule is
-		urls.addAll(ClasspathHelper.forPackage(clientGuiceModulePackage));
-		
-		Reflections typeScanner = new Reflections(new ConfigurationBuilder()
-															.setScanners(new SubTypesScanner(true))
-															.setUrls(urls));
-		Set<Class<? extends ServicesClientGuiceModule>> foundModuleTypes = typeScanner.getSubTypesOf(ServicesClientGuiceModule.class);
+		List<String> pckgs = Lists.newArrayListWithExpectedSize(2);
+		pckgs.add(ServicesClientGuiceModule.class.getPackage().getName());	// beware to include also the package where ServicesClientGuiceModule is
+		pckgs.add(clientGuiceModulePackage);
+		Set<Class<? extends ServicesClientGuiceModule>> foundModuleTypes = ServicesPackages.findSubTypesAt(ServicesClientGuiceModule.class,
+																										   pckgs);
 		_clientBootstrapGuiceModuleTypes = foundModuleTypes;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -73,9 +62,14 @@ public class ServicesClientBootstrapModulesFinder {
      */
 	public Collection<Class<? extends ServicesClientAPIBootstrapGuiceModuleBase>> findProxyBingingsGuiceModuleTypes() {
 		Set<Class<? extends ServicesClientAPIBootstrapGuiceModuleBase>> bootstrapModuleTypes = _filterModulesOfType(ServicesClientAPIBootstrapGuiceModuleBase.class);
-		if (CollectionUtils.isNullOrEmpty(bootstrapModuleTypes)) throw new IllegalStateException(Throwables.message("There's NO binding for client bindings-module in the classpath! There MUST be AT LEAST a guice binding module extending {} at package {}.client.internal in the classpath: " + 
-																												    "The client-side bindings could NOT be bootstraped",
-																												    ServicesClientAPIBootstrapGuiceModuleBase.class,_apiAppCode));
+		if (CollectionUtils.isNullOrEmpty(bootstrapModuleTypes)) {
+			log.warn("There's NO binding for client bindings-module in the classpath! There MUST be AT LEAST a guice binding module extending {} at package {}.client.internal in the classpath: " + 
+					 "The client-side bindings could NOT be bootstraped",
+					 ServicesClientAPIBootstrapGuiceModuleBase.class,_apiAppCode);
+//			throw new IllegalStateException(Throwables.message("There's NO binding for client bindings-module in the classpath! There MUST be AT LEAST a guice binding module extending {} at package {}.client.internal in the classpath: " + 
+//														       "The client-side bindings could NOT be bootstraped",
+//															   ServicesClientAPIBootstrapGuiceModuleBase.class,_apiAppCode));
+		}
 		return bootstrapModuleTypes;
     }
 	private <M extends ServicesClientGuiceModule> Set<Class<? extends M>> _filterModulesOfType(final Class<M> moduleType) {

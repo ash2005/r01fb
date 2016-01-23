@@ -7,12 +7,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 
 import lombok.RequiredArgsConstructor;
 import r01f.exceptions.Throwables;
@@ -64,13 +63,11 @@ public class ServicesClientAPIFinder {
 /////////////////////////////////////////////////////////////////////////////////////////
 	public  Collection<Class<? extends ServiceProxiesAggregator>> findClientAPIProxyAggregatorTypes() {
 		// Find all ServiceProxiesAggregatorImpl interface subtypes
-		List<URL> proxyUrls = new ArrayList<URL>();
-		proxyUrls.addAll(ClasspathHelper.forPackage(ServicesPackages.serviceProxyPackage(_apiAppCode)));	// xxx.client.servicesproxy
-		proxyUrls.addAll(ClasspathHelper.forPackage(ServiceProxiesAggregator.class.getPackage().getName()));
-		Reflections serviceProxyAggregatorTypesScanner = new Reflections(new ConfigurationBuilder()					// Reflections library NEEDS to have both the interface containing package and the implementation containing package
-																				.setUrls(proxyUrls)		// see https://code.google.com/p/reflections/issues/detail?id=53
-																				.setScanners(new SubTypesScanner(true)));
-		Collection<Class<? extends ServiceProxiesAggregator>> proxyImplTypes = serviceProxyAggregatorTypesScanner.getSubTypesOf(ServiceProxiesAggregator.class);
+		List<String> proxyPckgs = Lists.newArrayListWithExpectedSize(2);
+		proxyPckgs.add(ServicesPackages.serviceProxyPackage(_apiAppCode));	// xxx.client.servicesproxy
+		proxyPckgs.add(ServiceProxiesAggregator.class.getPackage().getName());
+		Set<Class<? extends ServiceProxiesAggregator>> proxyImplTypes = ServicesPackages.findSubTypesAt(ServiceProxiesAggregator.class,
+																										proxyPckgs);
 		
 		if (CollectionUtils.isNullOrEmpty(proxyImplTypes)) throw new IllegalStateException(Throwables.message("NO type extending {} was found at package {}",
 																											  ServiceProxiesAggregator.class,
