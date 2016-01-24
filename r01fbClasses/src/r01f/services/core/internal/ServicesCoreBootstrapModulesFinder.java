@@ -245,8 +245,8 @@ public class ServicesCoreBootstrapModulesFinder {
      * @return
      */
     @SuppressWarnings("unchecked")
-    private static Set<Class<? extends ServicesCoreBootstrapGuiceModule>> _findCoreGuiceModulesOrNull(final Collection<AppCode> coreAppCodes,
-    																		   		  		 		  final Class<? extends ServicesCoreBootstrapGuiceModule> coreGuiceModuleType) {
+    private Set<Class<? extends ServicesCoreBootstrapGuiceModule>> _findCoreGuiceModulesOrNull(final Collection<AppCode> coreAppCodes,
+    																		   		  		   final Class<? extends ServicesCoreBootstrapGuiceModule> coreGuiceModuleType) {
 		List<String> pckgs = Lists.newLinkedList();
 		pckgs.add(ServicesCoreBootstrapGuiceModule.class.getPackage().getName());
 		pckgs.add("r01f.internal");										 
@@ -254,7 +254,8 @@ public class ServicesCoreBootstrapModulesFinder {
 			pckgs.add(ServicesPackages.coreGuiceModulePackage(coreAppCode));
 		}
 		Set<?> foundBootstrapModuleTypes = ServicesPackages.findSubTypesAt(coreGuiceModuleType,
-															   		   	   pckgs);
+															   		   	   pckgs,
+															   		   	   this.getClass().getClassLoader());
 		
 		// Filter the interfaces
 		Set<Class<? extends ServicesCoreBootstrapGuiceModule>> outModuleTypes = (Set<Class<? extends ServicesCoreBootstrapGuiceModule>>)foundBootstrapModuleTypes;

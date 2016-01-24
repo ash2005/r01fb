@@ -6,7 +6,9 @@ import javax.inject.Singleton;
 
 import com.google.inject.Binder;
 import com.google.inject.Inject;
+import com.google.inject.Key;
 import com.google.inject.Module;
+import com.google.inject.PrivateBinder;
 import com.google.inject.Provider;
 
 import lombok.RequiredArgsConstructor;
@@ -206,17 +208,9 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 			XMLPROPERTIES_FOR_SERVICES_SET = true;
 		}
 		
-//		// [3]: Give chance to subtypes to do particular bindings
-//		_configure(theBinder);
-		
 		log.warn("END_______________ {}.{} CORE Bean Bootstraping with {}_____________________________",
 				 _coreAppCode,_coreAppComponent,this.getClass());
 	}
-//	/**
-//	 * Module configurations: marshaller and other bindings
-//	 * @param binder
-//	 */
-//	protected abstract void _configure(final Binder binder);
 	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  XMLProperties PROVIDERS
@@ -224,20 +218,25 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 	protected void _bindXMLPropertiesComponentProviderFor(final String subComponent,
 														  final Binder binder) {
 		_doBindXMLPropertiesComponentProviderAs(subComponent,subComponent,
-												binder);
+												binder,false);	// bind BUT do NOT expose
 		_doBindXMLPropertiesComponentProviderAs(_componentPropertiesIdFor(_coreAppComponent,subComponent),subComponent,
-											    binder);	
-		log.warn("{}.{}.properties.xml properties are available for injection as @XMLPropertiesComponent(\"{}\") and @XMLPropertiesComponent(\"{}\")",
-				 _coreAppCode,_componentPropertiesIdFor(_coreAppComponent,subComponent),
-				 subComponent,
-				 _componentPropertiesIdFor(_coreAppComponent,subComponent));
+											    binder,true);	// bind and expose
 	}
 	private void _doBindXMLPropertiesComponentProviderAs(final String bindingName,final String subComponent,
-														 final Binder binder) {
+														 final Binder binder,final boolean expose) {
 		binder.bind(XMLPropertiesForAppComponent.class)
 			  .annotatedWith(new XMLPropertiesComponentImpl(bindingName))
 			  .toProvider(new XMLPropertiesForXProvider(_coreAppCode,_coreAppComponent,subComponent))
 			  .in(Singleton.class);
+		// Expose xml properties binding
+		if (expose && (binder instanceof PrivateBinder)) {
+			log.warn("{}.{}.properties.xml properties are available for injection as @XMLPropertiesComponent(\"{}\") and @XMLPropertiesComponent(\"{}\")",
+					 _coreAppCode,_componentPropertiesIdFor(_coreAppComponent,subComponent),
+					 subComponent,
+					 _componentPropertiesIdFor(_coreAppComponent,subComponent));
+			PrivateBinder pb = (PrivateBinder)binder;
+			pb.expose(Key.get(XMLPropertiesForAppComponent.class,new XMLPropertiesComponentImpl(bindingName)));
+		}
 	}
 
 	private static String _componentPropertiesIdFor(final AppComponent appComponent,final String subComponent) {

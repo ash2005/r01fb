@@ -49,7 +49,8 @@ public class ServicesClientBootstrapModulesFinder {
 		pckgs.add(ServicesClientGuiceModule.class.getPackage().getName());	// beware to include also the package where ServicesClientGuiceModule is
 		pckgs.add(clientGuiceModulePackage);
 		Set<Class<? extends ServicesClientGuiceModule>> foundModuleTypes = ServicesPackages.findSubTypesAt(ServicesClientGuiceModule.class,
-																										   pckgs);
+																										   pckgs,
+																										   this.getClass().getClassLoader());
 		_clientBootstrapGuiceModuleTypes = foundModuleTypes;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

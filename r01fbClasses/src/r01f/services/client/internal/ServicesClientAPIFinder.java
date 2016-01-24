@@ -61,13 +61,14 @@ public class ServicesClientAPIFinder {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  PROXY AGGREGATORS
 /////////////////////////////////////////////////////////////////////////////////////////
-	public  Collection<Class<? extends ServiceProxiesAggregator>> findClientAPIProxyAggregatorTypes() {
+	public Collection<Class<? extends ServiceProxiesAggregator>> findClientAPIProxyAggregatorTypes() {
 		// Find all ServiceProxiesAggregatorImpl interface subtypes
 		List<String> proxyPckgs = Lists.newArrayListWithExpectedSize(2);
 		proxyPckgs.add(ServicesPackages.serviceProxyPackage(_apiAppCode));	// xxx.client.servicesproxy
 		proxyPckgs.add(ServiceProxiesAggregator.class.getPackage().getName());
 		Set<Class<? extends ServiceProxiesAggregator>> proxyImplTypes = ServicesPackages.findSubTypesAt(ServiceProxiesAggregator.class,
-																										proxyPckgs);
+																										proxyPckgs,
+																										this.getClass().getClassLoader());
 		
 		if (CollectionUtils.isNullOrEmpty(proxyImplTypes)) throw new IllegalStateException(Throwables.message("NO type extending {} was found at package {}",
 																											  ServiceProxiesAggregator.class,

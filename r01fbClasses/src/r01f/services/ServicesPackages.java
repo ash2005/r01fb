@@ -46,11 +46,13 @@ public class ServicesPackages {
 	 * @return
 	 */
 	public static <T> Set<Class<? extends T>> findSubTypesAt(final Class<T> superType,
-													  		 final List<String> pckgNames) {
+													  		 final List<String> pckgNames,
+													  		 final ClassLoader otherClassLoader) {
 		Set<Class<? extends T>> outSubTypes = null;
 		
 		log.info("...finding subtypes of {} at packages {}",superType,pckgNames);
-		List<URL> pckgUrls = _urlsForPackages(pckgNames);
+		List<URL> pckgUrls = _urlsForPackages(pckgNames,
+											  otherClassLoader);
 		
 		if (CollectionUtils.isNullOrEmpty(pckgUrls)) {
 			log.error("Could NOT get any URL for packages {} from any classloader!!!",pckgNames);
@@ -62,6 +64,12 @@ public class ServicesPackages {
 			// BUT for an unknown reason, when the package is INSIDE a JAR at APP-INF/lib,
 			// classLoader.getResources(pckgName) returns null
 			// WHAT TO DO???
+			// see:
+			//		http://www.javaworld.com/article/2077352/java-se/smartly-load-your-properties.html
+			//		http://stackoverflow.com/questions/676250/different-ways-of-loading-a-file-as-an-inputstream
+			// 		https://github.com/Atmosphere/atmosphere/issues/1229
+			//		http://middlewaresnippets.blogspot.com.es/2011/05/class-loading-and-application-packaging.html
+			//		
 
 		} else {
 			// The usual case (at least in tomcat) is that the package resources URLs can be found 
@@ -73,22 +81,25 @@ public class ServicesPackages {
 		}
 		return outSubTypes;
 	}
-	private static ClassLoader[] _scanClassLoaders() {
+	private static ClassLoader[] _scanClassLoaders(final ClassLoader otherClassLoader) {
 		ClassLoader[] outClassLoaders =	ClasspathHelper.classLoaders(ClasspathHelper.staticClassLoader(),
-											 						 ClasspathHelper.contextClassLoader());
-		
+											 						 ClasspathHelper.contextClassLoader(),
+											 						 otherClassLoader);
 		return outClassLoaders;
 	}		
-	private static List<URL> _urlsForPackages(final List<String> pckgNames) {
+	private static List<URL> _urlsForPackages(final List<String> pckgNames,
+											  final ClassLoader otherClassLoader) {
 		if (CollectionUtils.isNullOrEmpty(pckgNames)) throw new IllegalArgumentException();
 		List<URL> outUrls = Lists.newLinkedList();
 		for (String pckgName : pckgNames) {
-			outUrls.addAll(_urlsForPackage(pckgName));
+			outUrls.addAll(_urlsForPackage(pckgName,
+										   otherClassLoader));
 		}
 		return outUrls;
 	}
-	private static Collection<URL> _urlsForPackage(final String pckg) {
-		ClassLoader[] classLoaders = _scanClassLoaders();
+	private static Collection<URL> _urlsForPackage(final String pckg,
+												   final ClassLoader otherClassLoader) {
+		ClassLoader[] classLoaders = _scanClassLoaders(otherClassLoader);
 		
 		Collection<URL> outUrls = ClasspathHelper.forPackage(pckg,
 										  					 classLoaders);

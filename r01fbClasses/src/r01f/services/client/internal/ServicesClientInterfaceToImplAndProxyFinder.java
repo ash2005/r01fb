@@ -236,7 +236,8 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 			
 			// do find
 			Set<Class<? extends ServiceInterface>> serviceInterfaceImplementingTypes = ServicesPackages.findSubTypesAt(ServiceInterface.class,
-																										   			   pckgs);
+																										   			   pckgs,
+																										   			   this.getClass().getClassLoader());
 	    	if (CollectionUtils.hasData(serviceInterfaceImplementingTypes)) {
 	    		for (Class<? extends ServiceInterface> serviceInterfaceType : serviceInterfaceImplementingTypes) {
 	    			this.add(serviceInterfaceType);
