@@ -10,7 +10,7 @@ import r01f.marshalling.Marshaller;
 import r01f.mime.MimeType;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 
 @Slf4j
@@ -26,7 +26,7 @@ public class DelegateForRawRESTIndex
 /////////////////////////////////////////////////////////////////////////////////////////
 //  INDEX
 /////////////////////////////////////////////////////////////////////////////////////////
-	public EnqueuedJob index(final SerializedURL restResourceUrl,
+	public EnqueuedJob index(final Url restResourceUrl,
 						     final UserContext userContext,
  							 final Object data) {
 		log.trace("\t\tINDEX resource: {}",restResourceUrl);
@@ -65,7 +65,7 @@ public class DelegateForRawRESTIndex
 																httpResponse);
 		return outJob;
 	}
-	public EnqueuedJob updateIndex(final SerializedURL restResourceUrl,
+	public EnqueuedJob updateIndex(final Url restResourceUrl,
 							   	   final UserContext userContext,
 							   	   final Object data) {
 		log.trace("\t\tINDEX resource: {}",restResourceUrl);
@@ -107,7 +107,7 @@ public class DelegateForRawRESTIndex
 /////////////////////////////////////////////////////////////////////////////////////////
 //  UNINDEX
 /////////////////////////////////////////////////////////////////////////////////////////
-	public EnqueuedJob removeFromIndex(final SerializedURL restResourceUrl,
+	public EnqueuedJob removeFromIndex(final Url restResourceUrl,
 							   		   final UserContext userContext,
 							   		   final Object data) {
 		log.trace("\t\tUN INDEX resource: {}",restResourceUrl);
@@ -150,7 +150,7 @@ public class DelegateForRawRESTIndex
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	public EnqueuedJob mapHttpResponseForEnqueuedJob(final UserContext userContext,
-													 final SerializedURL restResourceUrl,
+													 final Url restResourceUrl,
 													 final HttpResponse httpResponse) {
 		EnqueuedJob outJob = this.getResponseToResultMapper()
 										.mapHttpResponse(userContext,

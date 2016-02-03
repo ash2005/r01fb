@@ -17,17 +17,16 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import lombok.RequiredArgsConstructor;
 import r01f.httpclient.HttpClientProxySettings;
 import r01f.internal.R01F;
-import r01f.types.weburl.WebUrl;
+import r01f.types.url.Url;
 import r01f.util.types.Strings;
 import r01f.xml.XMLUtils;
 
@@ -159,7 +158,8 @@ public class GoogleGeoCoder {
 			String geoCoderRestURL = _googleAPIEndPoint + "?address=" + addr + "&language=es&region=es&sensor=false";
 			//System.out.println(geoCoderRestURL);
 			try {
-				Document response = XMLUtils.parse(WebUrl.from(geoCoderRestURL),_proxySettings,
+				Document response = XMLUtils.parse(Url.from(geoCoderRestURL),
+												   _proxySettings,
 												   _charsetUsedByGoogleGeoCoder);
 				//System.out.println(XMLUtils.write(response,null));
 				float[] lat_long = _extractGeoData(response,

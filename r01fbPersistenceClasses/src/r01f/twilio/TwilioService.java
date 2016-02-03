@@ -26,7 +26,8 @@ import r01f.guids.OIDBaseInmutable;
 import r01f.httpclient.HttpClientProxySettings;
 import r01f.services.ServiceCanBeDisabled;
 import r01f.types.contact.Phone;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
+import r01f.types.url.Url.UrlComponents;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -102,7 +103,7 @@ public class TwilioService
 	 * @return
 	 */
 	public Call makeCall(final Phone toPhone,
-						 final SerializedURL twmlUrl) throws TwilioRestException {
+						 final Url twmlUrl) throws TwilioRestException {
 		Preconditions.checkArgument(toPhone != null,"The destination phone must NOT be null!");
 		Preconditions.checkArgument(twmlUrl != null,"A twml URL is needed!");
 		Preconditions.checkState(_apiData.existsAccountData() && _apiData.canMakeVoicePhoneCalls(),"The API is NOT configured properly to make phone calls");
@@ -192,18 +193,19 @@ public class TwilioService
         TwilioRestClient outClient = new TwilioRestClient(_apiData.getAccountSID().asString(),
         											      _apiData.getAccountToken().asString());
 		if (_proxySettings != null && _proxySettings.isEnabled()) {
-			log.info("Connecting to twilio through {}:{}",_proxySettings.getProxyUrl().getSiteHostAsString(), 
-														  _proxySettings.getProxyUrl().getPort());
+			UrlComponents proxyUrlComps = _proxySettings.getProxyUrl().getComponents();
+			log.info("Connecting to twilio through {}:{}",proxyUrlComps.getHost(), 
+														  proxyUrlComps.getPort());
 			// Get the twilio api underlying http client
 			DefaultHttpClient httpClient = (DefaultHttpClient)outClient.getHttpClient();
 			
 			// Set proxy details
-			HttpHost proxy = new HttpHost(_proxySettings.getProxyUrl().getSiteHostAsString(),_proxySettings.getProxyUrl().getPort(),
+			HttpHost proxy = new HttpHost(proxyUrlComps.getHost().asString(),proxyUrlComps.getPort(),
 										  "http");
 			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,
 												proxy);
-			httpClient.getCredentialsProvider().setCredentials(new AuthScope(_proxySettings.getProxyUrl().getSiteHostAsString(), 
-															 				 _proxySettings.getProxyUrl().getPort()),
+			httpClient.getCredentialsProvider().setCredentials(new AuthScope(proxyUrlComps.getHost().asString(), 
+															 				 proxyUrlComps.getPort()),
 															   new UsernamePasswordCredentials(_proxySettings.getUserCode().asString(),
 																	   						   _proxySettings.getPassword().asString()));
 			httpClient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF,

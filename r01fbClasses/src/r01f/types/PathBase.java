@@ -12,10 +12,11 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import r01f.file.Files;
 import r01f.util.types.Strings;
@@ -25,7 +26,6 @@ import r01f.util.types.collections.CollectionUtils;
  * path abstraction, simply using a String encapsulation
  */
 @Accessors(prefix="_")
-@NoArgsConstructor
 abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>> 
     implements IsPath,
     		   Iterable<String>,
@@ -36,99 +36,25 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
 	@XmlTransient
-	@Getter protected LinkedList<String> _pathElements;
-	
-	@XmlTransient
-	@Getter protected boolean _readOnly;
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	private void _ensureList() {
-		if (_pathElements == null) _pathElements = Lists.newLinkedList();
-	}
-	private void _add(final Collection<String> pathEls) {
-		if (_readOnly) throw new IllegalStateException("The path is in read only mode");
-		Collection<String> normalizedPathEls =  PathBase.normalize(pathEls);
-		if (CollectionUtils.hasData(normalizedPathEls)) {
-			_ensureList();
-			_pathElements.addAll(normalizedPathEls);
-		}
-	}
-	private void _add(final String... pathEls) {
-		_add(CollectionUtils.of(pathEls));
-	}
-	private void _prepend(final Collection<String> pathEls) {
-		if (_readOnly) throw new IllegalStateException("The path is in read only mode");
-		Collection<String> normalizedPathEls = PathBase.normalize(pathEls);
-		if (CollectionUtils.hasData(normalizedPathEls)) {
-			_ensureList();
-			for (String normalizedPathEl : normalizedPathEls) _pathElements.addFirst(normalizedPathEl);
-		}
-	}
-	private void _prepend(final String... pathEls) {
-		_prepend(CollectionUtils.of(pathEls));
-	}
+	@Getter protected final ImmutableList<String> _pathElements;
 /////////////////////////////////////////////////////////////////////////////////////////
 //	CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
+	public PathBase(final Collection<String> pathEls) {
+		Preconditions.checkArgument(pathEls != null,"The path elements collection cannot be null or empty");
+		_pathElements = ImmutableList.copyOf(normalize(pathEls));
+	}
 	public PathBase(final String newPath) {
-		Preconditions.checkArgument(Strings.isNOTNullOrEmpty(newPath),"Cannot build a path from null");
-		_add(newPath);
+		this(Lists.newArrayList(newPath));
 	}
 	public PathBase(final Object obj) {
-		Preconditions.checkArgument(obj != null,"Cannot build a path from null");
-		if (obj.getClass().isArray()) {
-			Object[] array = (Object[])obj;
-			for(Object objEl : array) {
-				_add(objEl.toString());
-			}
-		} else {
-			_add(obj.toString());
-		}
+		this(Paths.pathElementsFrom(obj));
 	}
 	public <P extends IsPath> PathBase(final P otherPath) {
-		Preconditions.checkArgument(otherPath != null,"Cannot build a path from null");
-		_add(otherPath.getPathElements());
+		this(otherPath.getPathElements());
 	}
 	public PathBase(final String... elements) {
-		Preconditions.checkArgument(CollectionUtils.hasData(elements),"Cannot build a path from null");
-		_add(elements);
-	}
-	public PathBase(final boolean readOnly,final String newPath) {
-		this(newPath);
-		_readOnly = readOnly;
-	}
-	public PathBase(final boolean readOnly,final Object obj) {
-		this(obj);
-		_readOnly = readOnly;
-	}
-	public <P extends IsPath> PathBase(final boolean readOnly,final P otherPath) {
-		this(otherPath);
-		_readOnly = readOnly;
-	}
-	public PathBase(final boolean readOnly,final String... elements) {
-		this(elements);
-		_readOnly = readOnly;
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Sets the path from other path
-	 * @param otherPath the other path
-	 */
-	public <P extends IsPath> void replaceWith(final P otherPath) {
-		_pathElements = null;
-		if (otherPath != null) _add(otherPath.getPathElements());
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  READ-ONLY
-/////////////////////////////////////////////////////////////////////////////////////////
-	public void makeReadOnly() {
-		_readOnly = true;
-	}
-	public void makeMutable() {
-		_readOnly = false;
+		this(Lists.newArrayList(elements));
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //	OVERRIDEN METHODS	
@@ -142,138 +68,25 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public String asString() {
-		return PathBase.asString(_pathElements);
+		return Paths.asString(this);
 	}
 	@Override
 	public String asRelativeString() {
-		return PathBase.asRelativeString(_pathElements);
+		return Paths.asRelativeString(this);
 	}
 	@Override
 	public String asAbsoluteString() {
-		return PathBase.asAbsoluteString(_pathElements);
+		return Paths.asAbsoluteString(this);
 	}
 	@Override
-	public <P extends IsPath> String asStringFrom(final P parentPath) {
-		LinkedList<String> pathElements = Lists.newLinkedList();
-		if (parentPath != null && CollectionUtils.hasData(parentPath.getPathElements())) pathElements.addAll(parentPath.getPathElements());
-		if (CollectionUtils.hasData(_pathElements)) pathElements.addAll(_pathElements);
-		return PathBase.asString(pathElements);
+	public <P extends IsPath> String asAbsoluteStringFrom(final P parentPath) {
+		return Paths.asAbsoluteStringFrom(parentPath,
+					   	   		  		  this);
 	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Appends an element to the path calling the toString() method
-	 * @param element the element
-	 */
-	@SuppressWarnings("unchecked")
-	public SELF_TYPE add(final Object element) {
-		if (element == null) return (SELF_TYPE)this;
-		if (element.getClass().isArray()) {
-			Object[] array = (Object[])element;
-			for(Object objEl : array) {
-				this.add(objEl.toString());
-			}
-		} else {
-			this.add(element.toString());
-		}
-		return (SELF_TYPE)this;
-	}
-	/**
-	 * Appends a collection of elements to the path
-	 * @param elements
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	public SELF_TYPE add(final Collection<String> elements) {
-		for(String el : elements) {
-			this.add(el);
-		}
-		return (SELF_TYPE)this;
-	}
-	/**
-	 * Appends an element to the path
-	 * @param element the element to add
-	 */
-	@SuppressWarnings("unchecked")
-	public SELF_TYPE add(final String element) {
-		_add(element);
-		return (SELF_TYPE)this;
-	}
-	/**
-	 * Appends another path to the end of the current path
-	 * @param otherPath the path to add
-	 */
-	@SuppressWarnings("unchecked")
-	public <P extends IsPath> SELF_TYPE add(final P otherPath) {
-		if (otherPath != null) _add(otherPath.getPathElements());
-		return (SELF_TYPE)this;
-	}
-	/**
-	 * Appends an element to the path customizing it before appending 
-	 * @param element
-	 * @param vars
-	 * @return
-	 */
-	public SELF_TYPE addCustomized(final String element,final String... vars) {
-		String customized = Strings.of(element)
-								   .customizeWith(vars)
-								   .asString();
-		return this.add(customized);
-	}
-	/**
-	 * Appends an element to the path customizing it before appending 
-	 * @param element
-	 * @param vars
-	 * @return
-	 */
-	public SELF_TYPE addCustomized(final String element,final Object... vars) {
-		String customized = Strings.of(element)
-								   .customizeWith(vars)
-								   .asString();
-		return this.add(customized);
-	}
-	/**
-	 * Prepends another path to the beginning of the current path
-	 * @param otherPath the path to add
-	 */
-	@SuppressWarnings("unchecked")
-	public <P extends IsPath> SELF_TYPE prepend(final P otherPath) {
-		if (otherPath != null) _prepend(otherPath.getPathElements());
-		return (SELF_TYPE)this;
-	}
-	/**
-	 * Prepends another path element to the beginning of the current path
-	 * @param element
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	public SELF_TYPE prepend(final String element) {
-		_prepend(element);
-		return (SELF_TYPE)this;
-	}
-	/**
-	 * Prepends an element to the path customizing it before prepending 
-	 * @param element
-	 * @param vars
-	 * @return
-	 */
-	public SELF_TYPE prependCustomized(final String element,final String... vars) {
-		String customized = Strings.of(element)
-								   .customizeWith(vars)
-								   .asString();
-		return this.prepend(customized);
-	}
-	/**
-	 * Removes an element from the tail
-	 */
-	@SuppressWarnings("unchecked")
-	public SELF_TYPE removeLastPathElement() {
-		if (_readOnly) throw new IllegalStateException("The path is in read only mode");
-		if (CollectionUtils.hasData(_pathElements)) {
-			_pathElements.removeLast();
-		}
-	    return (SELF_TYPE)this;
+	@Override
+	public <P extends IsPath> String asRelativeStringFrom(final P parentPath) {
+		return Paths.asRelativeStringFrom(parentPath,
+					   	   		  		  this);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -282,7 +95,7 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 * @return the last path element
 	 */
 	public String getLastPathElement() {
-		String outPathElement = CollectionUtils.hasData(_pathElements) ? _pathElements.getLast()
+		String outPathElement = CollectionUtils.hasData(_pathElements) ? Iterables.getLast(_pathElements,null)
 																	   : null;
 		return outPathElement;
 	}
@@ -290,7 +103,7 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 * @return the first path element
 	 */
 	public String getFirstPathElement() {
-		String outPathElement = CollectionUtils.hasData(_pathElements) ? _pathElements.getFirst()
+		String outPathElement = CollectionUtils.hasData(_pathElements) ? Iterables.getFirst(_pathElements,null)
 																	   : null;
 		return outPathElement;
 	}
@@ -300,7 +113,7 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 * @return
 	 */
 	public String getPathElementAt(final int pos) {
-		String outPathElement = CollectionUtils.hasData(_pathElements) ? _pathElements.get(pos)
+		String outPathElement = CollectionUtils.hasData(_pathElements) ? Iterables.get(_pathElements,pos,null)
 																	   : null;
 		return outPathElement;
 	}
@@ -460,7 +273,7 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	protected static Collection<String> normalize(final Collection<String> els) {
-		if (CollectionUtils.isNullOrEmpty(els)) return null;
+		if (CollectionUtils.isNullOrEmpty(els)) return Lists.newArrayList();
 		Collection<String> outNormalizedEls = Lists.newLinkedList();
 		for (String el : els) {
 			Collection<String> normalizedEls = _normalizePathElement(el);

@@ -21,6 +21,7 @@ import r01f.reflection.ReflectionUtils;
 import r01f.services.client.internal.ServiceToImplAndProxyDef;
 import r01f.services.client.internal.ServicesClientAPIBootstrapGuiceModuleBase;
 import r01f.services.client.internal.ServicesClientBootstrapModulesFinder;
+import r01f.services.client.internal.ServicesClientGuiceModule;
 import r01f.services.client.internal.ServicesClientInterfaceToImplAndProxyFinder;
 import r01f.services.core.internal.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
 import r01f.services.core.internal.EJBImplementedServicesCoreGuiceModuleBase;
@@ -246,25 +247,29 @@ public class ServicesMainGuiceBootstrap {
 	 * @return
 	 */
 	private Module _bootstrapGuiceModuleFor(final AppCode apiAppCode) {
+		log.warn("\n\n\n\n");
+		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		log.warn("[Find CLIENT & CORE MODULES for {}]",apiAppCode);
+		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 		// [1] - Find the CLIENT API BOOTSTRAP guice module types
-    	log.warn("[START]-Find CLIENT binding modules====================================================================================");
+    	log.warn("[START]-Find CLIENT binding modules============================================");
     	ServicesClientBootstrapModulesFinder clientBootstrapModulesFinder = new ServicesClientBootstrapModulesFinder(apiAppCode);
     	
     	// The client bootstrap modules
 		final Collection<Class<? extends ServicesClientAPIBootstrapGuiceModuleBase>> clientAPIBootstrapModulesTypes = clientBootstrapModulesFinder.findProxyBingingsGuiceModuleTypes();
 		
 		ServicesClientBootstrapModulesFinder.logFoundModules(clientAPIBootstrapModulesTypes);
-		log.warn("  [END]-Find CLIENT binding modules====================================================================================");
+		log.warn("  [END]-Find CLIENT binding modules============================================");
 		
 		
 		// [2] - Find the CORE (server) bootstrap guice module types for the cores defined at r01m.client.properties.xml file
 		//		 for each app/component combination there might be multiple Bean/REST/EJB/Servlet, etc core bootstrap modules
-    	log.warn("[START]-Find CORE binding modules======================================================================================");
+    	log.warn("[START]-Find CORE binding modules==============================================");
     	ServicesCoreBootstrapModulesFinder coreBootstrapModulesFinder = new ServicesCoreBootstrapModulesFinder(apiAppCode,
     																										   _coreAppAndModules.get(apiAppCode));
 		final Map<AppAndComponent,
 				  Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> coreBootstrapModulesTypesByAppAndModule = coreBootstrapModulesFinder.findBootstrapGuiceModuleTypes();
-		log.warn("  [END]-Find CORE binding modules======================================================================================");
+		log.warn("  [END]-Find CORE binding modules==============================================");
 
 		
 		// [3] - Find the client-api service interface to proxy and / or impls matchings 
@@ -275,18 +280,22 @@ public class ServicesMainGuiceBootstrap {
 		//						<proxy appCode="coreAppCode2" id="moduleA2" impl="Bean">Module definition</proxy>
 		//					</proxies>
 		//		 now every client-api defined service interface is matched to a proxy implementation
-		log.warn("[START]-Find ServiceInterface to bean impl and proxy matchings ========================================================");
+		log.warn("[START]-Find ServiceInterface to bean impl and proxy matchings ================");
 		ServicesClientInterfaceToImplAndProxyFinder serviceIfaceToImplAndProxiesFinder = new ServicesClientInterfaceToImplAndProxyFinder(apiAppCode,
 																											   				        	 _coreAppAndModulesDefProxy.get(apiAppCode));
 		Collection<AppCode> coreAppCodes = _coreServicesAppCodes(_coreAppAndModulesDefProxy.get(apiAppCode).keySet());
 		final Map<AppAndComponent,
 				  Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceIfacesToImplAndProxiesByAppModule = serviceIfaceToImplAndProxiesFinder.findServiceInterfacesToImplAndProxiesBindings(coreAppCodes);
-		log.warn("  [END]-Find ServiceInterface to bean impl and proxy matchings =========================================================");
+		log.warn("  [END]-Find ServiceInterface to bean impl and proxy matchings ================");
 
 		
 		// [3] - Create a module for the API appCode that gets installed with:
 		//			- A module with the client API bindins
 		//			- A private module with the core bindings for each core app module
+		log.warn("\n\n\n\n");
+		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		log.warn("[Bind CLIENT & CORE MODULES for {}]",apiAppCode);
+		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 		return new Module() {
 					@Override
 					public void configure(final Binder binder) {
@@ -321,7 +330,26 @@ public class ServicesMainGuiceBootstrap {
 						// 3.3 - Install the modules
 						Binder theBinder = binder;
 						if (CollectionUtils.hasData(bootstrapModuleInstances)) {
+							
+							boolean clientBindingLogged = false;
+							boolean coreBindingLogged = false;
+							
 							for (Module module : bootstrapModuleInstances) {
+								// a bit of log
+								if (!clientBindingLogged && module instanceof ServicesClientGuiceModule) {
+									clientBindingLogged = true;
+									log.warn("=============================");
+									log.warn("[Bind CLIENT Modules]");
+									log.warn("=============================");
+									clientBindingLogged = true;
+								} else if (!coreBindingLogged && module instanceof ServicesCoreForAppModulePrivateGuiceModule) {
+									log.warn("=============================");
+									log.warn("[Bind PRIVATE CORE Modules]");
+									log.warn("=============================");
+									coreBindingLogged = true;
+								}
+								
+								// DO the install
 								theBinder.install(module);
 							}
 						}

@@ -16,22 +16,6 @@ import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.util.Set;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Cleanup;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import r01f.exceptions.Throwables;
-import r01f.guids.CommonOIDs.AppCode;
-import r01f.guids.OIDBaseInmutable;
-import r01f.httpclient.HttpClientProxySettings;
-import r01f.resources.ResourcesLoaderDef.ResourcesLoaderType;
-import r01f.types.FileToLoad;
-import r01f.types.Path;
-import r01f.types.contact.EMail;
-
 import com.google.api.client.googleapis.GoogleUtils;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
@@ -45,6 +29,23 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.SecurityUtils;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Cleanup;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import r01f.exceptions.Throwables;
+import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.OIDBaseInmutable;
+import r01f.httpclient.HttpClientProxySettings;
+import r01f.resources.ResourcesLoaderDef.ResourcesLoaderType;
+import r01f.types.FileToBeLoaded;
+import r01f.types.Path;
+import r01f.types.contact.EMail;
+import r01f.types.url.Url.UrlComponents;
 
 /**
  * Google API Helpper type
@@ -70,9 +71,9 @@ public class GoogleAPI {
 														 						    		IOException {
 			if (!proxySettings.isEnabled()) return this.noProxy();
 			
-			
-        	final String proxyHost = proxySettings.getProxyUrl().getSite().getHost().asString();
-        	final int proxyPort = proxySettings.getProxyUrl().getPort();
+			UrlComponents proxyUrlComps = proxySettings.getProxyUrl().getComponents();
+        	final String proxyHost = proxyUrlComps.getHost().asString();
+        	final int proxyPort = proxyUrlComps.getPort();
         	final String proxyUser = proxySettings.getUserCode().asString();
         	final char[] proxyPassword = proxySettings.getPassword().asString().toCharArray(); 
         	
@@ -298,7 +299,7 @@ public class GoogleAPI {
 		}
 	}
 	public static class GoogleAPIClientIDJsonKeyPath
-			    extends FileToLoad {
+			    extends FileToBeLoaded {
 		private static final long serialVersionUID = 7795614064183544708L;
 		private GoogleAPIClientIDJsonKeyPath(final ResourcesLoaderType resourcesLoaderType,
 											 final String path) {
@@ -328,7 +329,7 @@ public class GoogleAPI {
 		}
 	}
 	public static class GoogleAPIClientIDP12KeyPath
-			    extends FileToLoad {
+			    extends FileToBeLoaded {
 		private static final long serialVersionUID = 7962856594968469607L;
 		public GoogleAPIClientIDP12KeyPath(final ResourcesLoaderType resourcesLoaderType,
 										   final String path) {

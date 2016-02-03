@@ -15,7 +15,7 @@ import r01f.persistence.FindSummariesOK;
 import r01f.persistence.FindSummariesResult;
 import r01f.persistence.FindSummariesResultBuilder;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
@@ -38,7 +38,7 @@ public class RESTResponseToFindSummariesResultMapper<O extends OID,M extends Per
 //  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
 	public FindSummariesResult<M> mapHttpResponseForSummaries(final UserContext userContext,
-													 		  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+													 		  final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindSummariesResult<M> outOperationResult = null;
 		if (httpResponse.isSuccess()) {
 			outOperationResult = _mapHttpResponseForSuccessFindingSummaries(userContext,
@@ -51,7 +51,7 @@ public class RESTResponseToFindSummariesResultMapper<O extends OID,M extends Per
 	}
 	@SuppressWarnings({ "rawtypes","unused" })
 	protected FindSummariesOK<M> _mapHttpResponseForSuccessFindingSummaries(final UserContext userContext,
-												   	   			   			final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												   	   			   			final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindSummariesOK<M> outOperationResult = null;
 		
 		// [0] - Load the response		
@@ -66,7 +66,7 @@ public class RESTResponseToFindSummariesResultMapper<O extends OID,M extends Per
 		return outOperationResult;
 	}
 	protected FindSummariesError<M> _mapHttpResponseForErrorFindigSummaries(final UserContext userContext,
-												    			   			final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												    			   			final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindSummariesError<M> outOpError = null;
 		
 		// [0] - Load the http response text

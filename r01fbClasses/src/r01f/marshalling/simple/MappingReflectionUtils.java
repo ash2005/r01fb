@@ -15,12 +15,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.Sets;
+
 import lombok.extern.slf4j.Slf4j;
 import r01f.locale.Language;
 import r01f.locale.LanguageTexts;
+import r01f.locale.LanguageTexts.LangTextNotFoundBehabior;
 import r01f.locale.LanguageTextsMapBacked;
 import r01f.locale.Languages;
-import r01f.locale.LanguageTexts.LangTextNotFoundBehabior;
 import r01f.marshalling.simple.DataTypes.DataType;
 import r01f.marshalling.simple.DataTypes.DataTypeEnum;
 import r01f.reflection.Reflection;
@@ -30,8 +32,6 @@ import r01f.util.types.Dates;
 import r01f.util.types.Numbers;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.collect.Sets;
 
 
 /**
@@ -66,6 +66,7 @@ class MappingReflectionUtils {
 	 * @return la instancia de la clase creada
      * @throws ReflectionException si ocurre algún error al obtener la instancia
 	 */
+	@SuppressWarnings("unchecked")
 	static <T> T createObjectInstance(final BeanMap newBeanMap,
 									  final Class<?>[] constructorArgsTypes,final Object[] constructorArgs) throws ReflectionException {
 		T outObj = null;

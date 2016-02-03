@@ -1,17 +1,24 @@
 package r01f.util.types;
 
+import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+import r01f.exceptions.Throwables;
+import r01f.reflection.ReflectionUtils;
+import r01f.types.Provider;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.collect.Maps;
 
 /**
  * Helper type to build string-encoded parameters that encapsulates all the string building stuff by offering an api
@@ -48,6 +55,7 @@ import com.google.common.collect.Maps;
  * </pre> 
  */
 @Accessors(prefix="_")
+@Slf4j
 @RequiredArgsConstructor(access=AccessLevel.PROTECTED)
 public abstract class ParametersWrapperBase<SELF_TYPE extends ParametersWrapperBase<SELF_TYPE>> {
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +63,7 @@ public abstract class ParametersWrapperBase<SELF_TYPE extends ParametersWrapperB
 /////////////////////////////////////////////////////////////////////////////////////////
 	protected static final char DEFAUL_PARAM_SPLIT_CHAR = '&';
 	protected static final Pattern DEFAULT_PARAM_VALUE_SPLIT_PATTERN = Pattern.compile("([^=]+)=(.+)");
-	protected static final String DEFAULT_PARAM_VALUE_SERIALIZE_TEMPLATE = "{}= {}";
+	protected static final String DEFAULT_PARAM_VALUE_SERIALIZE_TEMPLATE = "{}={}";
 	protected static final ParamValueEncoderDecoder DEFAULT_URL_ENCODE_PARAM_VALUE_ENCODER_DECODER = new ParamValueEncoderDecoder() {
 																											@Override
 																											public String encodeValue(final String value) {
@@ -93,83 +101,136 @@ public abstract class ParametersWrapperBase<SELF_TYPE extends ParametersWrapperB
 	/**
 	 * Internal map holding the params
 	 */
-	@Getter private Map<String,String> _params;
+	@Getter protected final ImmutableMap<String,String> _params;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	public ParametersWrapperBase() {
+	public ParametersWrapperBase(final Map<String,String> params) {
 		_paramSplitChar = DEFAUL_PARAM_SPLIT_CHAR;
 		_paramAndValueSplitPattern = DEFAULT_PARAM_VALUE_SPLIT_PATTERN;
 		_paramAndValueSerializeTemplate = DEFAULT_PARAM_VALUE_SERIALIZE_TEMPLATE;
 		_paramValueEncoderDecoder = null;
+		_params = ImmutableMap.copyOf(params);
 	}
-	public ParametersWrapperBase(final ParamValueEncoderDecoder encoderDecoder) {
+	public ParametersWrapperBase(final Map<String,String> params,
+								 final ParamValueEncoderDecoder encoderDecoder) {
 		_paramSplitChar = DEFAUL_PARAM_SPLIT_CHAR;
 		_paramAndValueSplitPattern = DEFAULT_PARAM_VALUE_SPLIT_PATTERN;
 		_paramAndValueSerializeTemplate = DEFAULT_PARAM_VALUE_SERIALIZE_TEMPLATE;
 		_paramValueEncoderDecoder = encoderDecoder;
+		_params = params != null ? ImmutableMap.<String,String>copyOf(params)
+								 : ImmutableMap.<String,String>of();
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public interface ParamValueProvider {
-		public String provideValue();
-	}
-	public interface ParamValueEncoderDecoder {
+	protected interface ParamValueEncoderDecoder {
 		public String encodeValue(final String value);
 		public String decodeValue(final String value);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Adds a param from its name and value
-	 * @param paramName
-	 * @param paramValue
-	 * @return
-	 */
+	// a cache of the ParametersWrapperBase types constructor
+	private static Map<Class<? extends ParametersWrapperBase<?>>,Constructor<? extends ParametersWrapperBase<?>>> CONSTRUCTOR_REF_CACHE = Maps.newHashMap();
+	
 	@SuppressWarnings("unchecked")
-	public SELF_TYPE addParam(final String paramName,final String paramValue) {
-		if (Strings.isNOTNullOrEmpty(paramValue)) {
-			if (_params == null) _params = Maps.newLinkedHashMap();
-			_params.put(paramName,
-					    paramValue);
+	private static <PW extends ParametersWrapperBase<PW>> PW _createParameterWrapperInstanceFromElements(final Class<PW> pwType,
+																										 final Map<String,String> params) {
+		PW outParamWrapperInstance = null;
+		try {
+			Constructor<? extends ParametersWrapperBase<?>> constructor = CONSTRUCTOR_REF_CACHE.get(pwType);
+			if (constructor == null) {
+				// load the constructor
+				constructor = (Constructor<? extends ParametersWrapperBase<?>>)ReflectionUtils.getConstructor(pwType,
+	        												 												  new Class<?>[] {Map.class},
+	        												 												  true);
+				if (constructor == null) throw new IllegalStateException(Throwables.message("ParametersWrapper type {} does NOT have a Map<String,String> based constructor! It's mandatory!",
+																							pwType));
+				CONSTRUCTOR_REF_CACHE.put(pwType,constructor);
+			}
+			outParamWrapperInstance = (PW)constructor.newInstance(new Object[] {params});		// BEWARE!! the params are encapsulated in a ImmutableList
+		} catch(Throwable th) {
+			log.error("Could NOT create a {} instance: {}",pwType.getName(),th.getMessage(),th);
+			// should never happen
 		}
-		return (SELF_TYPE)this;
-	}
-	/**
-	 * Adds a param from its name and value which is provided by a {@link ParamValueProvider}
-	 * @param paramName the param name
-	 * @param paramValueProvider the param value provider to be used to get the value at runtime
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	public SELF_TYPE addParam(final String paramName,
-							  final ParamValueProvider paramValueProvider) {
-		String paramValue = paramValueProvider.provideValue();
-		if (Strings.isNOTNullOrEmpty(paramValue)) this.addParam(paramName,paramValue);
-		return (SELF_TYPE)this;
+		return outParamWrapperInstance;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected void _loadFromString(final String paramsStr,
-								   final boolean decodeParamValues) {
+	protected static <PW extends ParametersWrapperBase<PW>> PW _loadFromString(final Class<PW> pwType,
+																			   final String paramsStr,
+								   											   final boolean decodeParamValues) {
+		if (Strings.isNullOrEmpty(paramsStr)) return null;
+		
+		Map<String,String> paramMap = Maps.newHashMap();
 		Iterable<String> params = Strings.of(paramsStr)
-								 		 .splitter(_paramSplitChar)
+								 		 .splitter(DEFAUL_PARAM_SPLIT_CHAR)
 								 		 .split();
 		Iterator<String> paramsIt = params.iterator();
 		while(paramsIt.hasNext()) {
 			String param = paramsIt.next();
-			Matcher m = _paramAndValueSplitPattern.matcher(param);
+			Matcher m = DEFAULT_PARAM_VALUE_SPLIT_PATTERN.matcher(param);
 			if (m.find()) {
 				String paramName = m.group(1).trim();
 				String paramValue = m.group(2).trim();
-				String theParamValue = decodeParamValues && _paramValueEncoderDecoder != null ? _paramValueEncoderDecoder.decodeValue(paramValue)
-																		 					  : paramValue;
-				this.addParam(paramName,theParamValue);
+				String theParamValue = decodeParamValues ? DEFAULT_URL_ENCODE_PARAM_VALUE_ENCODER_DECODER.decodeValue(paramValue)
+														 : paramValue;
+				paramMap.put(paramName,theParamValue);
 			}			
 		}
+		return _createParameterWrapperInstanceFromElements(pwType,
+														   paramMap);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Adds a param from its name and value
+	 * @param pwType the type of the {@link ParametersWrapperBase} instance
+	 * @param paramWrapper 
+	 * @param paramName
+	 * @param paramValue
+	 * @return
+	 */
+	public static <PW extends ParametersWrapperBase<PW>> PW join(final Class<PW> pwType,
+																 final PW paramWrapper,
+																 final String paramName,final String paramValue) {
+		if (Strings.isNullOrEmpty(paramValue)) return paramWrapper;
+		
+		Map<String,String> newParams = Maps.newHashMapWithExpectedSize(paramWrapper.getParams().size() + 1);
+		newParams.putAll(paramWrapper.getParams());
+		newParams.put(paramName,paramValue);
+		return _createParameterWrapperInstanceFromElements(pwType,
+														   newParams);
+	}
+	/**
+	 * Adds a param from its name and value which is provided by a {@link ParamValueProvider}
+	 * @param pwType the type of the {@link ParametersWrapperBase} instance
+	 * @param paramWrapper 
+	 * @param paramValueProvider the param value provider to be used to get the value at runtime
+	 * @return
+	 */
+	public static <PW extends ParametersWrapperBase<PW>> PW join(final Class<PW> pwType,
+														   	  	 final PW paramWrapper,
+														   	  	 final String paramName,final Provider<String> paramValueProvider) {
+		String paramValue = paramValueProvider.provideValue();
+		return ParametersWrapperBase.join(pwType,
+					 					  paramWrapper,
+					 					  paramName,paramValue);
+	}
+	public static <PW extends ParametersWrapperBase<PW>> PW join(final Class<PW> pwType,
+																 final PW paramWrapper,
+																 final PW otherParamWrapper) {
+		if (otherParamWrapper == null) return paramWrapper;
+		if (paramWrapper == null) return otherParamWrapper;
+		
+		Map<String,String> params = paramWrapper.getParams();
+		Map<String,String> otherParams = paramWrapper.getParams();
+		Map<String,String> allParams = Maps.newHashMapWithExpectedSize(params.size() + otherParams.size());
+		return _createParameterWrapperInstanceFromElements(pwType,
+														   allParams);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ACCESSORS
@@ -263,6 +324,21 @@ public abstract class ParametersWrapperBase<SELF_TYPE extends ParametersWrapperB
 		return this.asString();
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
-//  
+//  EQUALS & HASHCODE
 /////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public boolean equals(final Object other) {
+		if (other instanceof ParametersWrapperBase
+		 && other.getClass() == this.getClass()) {
+				ParametersWrapperBase<?> pw = (ParametersWrapperBase<?>)other;
+				Map<String,String> otherParams = pw.getParams();
+				MapDifference<String,String> diff = Maps.difference(_params,otherParams);
+				return diff.entriesInCommon().size() == _params.size() && diff.entriesInCommon().size() == otherParams.size();
+		}
+		return false;
+	}
+	@Override
+	public int hashCode() {
+		return this.asString().hashCode();
+	}
 }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
+import r01f.locale.Language;
 import r01f.marshalling.annotations.XmlCDATA;
 import r01f.marshalling.annotations.XmlTypeDiscriminatorAttribute;
 import r01f.model.facets.FullTextSummarizable;
@@ -62,6 +63,11 @@ public class Person
 	 */
 	@XmlElement(name="salutation") @XmlCDATA
 	@Getter @Setter private PersonSalutation _salutation;
+	/**
+	 * Preferred language 
+	 */
+	@XmlElement(name="preferredLang") 
+	@Getter @Setter private Language _preferredLang;	
 	/**
 	 * Details about the person
 	 */

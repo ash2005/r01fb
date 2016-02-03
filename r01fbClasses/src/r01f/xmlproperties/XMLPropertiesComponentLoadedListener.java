@@ -1,12 +1,12 @@
 package r01f.xmlproperties;
 
 /**
- * Informa de que se ha cargado un nuevo componente.
+ * {@link XMLPropertiesForAppComponent} load listener
  */
 interface XMLPropertiesComponentLoadedListener {
 	/**
-	 * Se ha cargado un nuevo componente.
-	 * @param def La definición del componente
+	 * a new component has been loaded
+	 * @param def component definition
 	 */
 	public void newComponentLoaded(XMLPropertiesComponentDef def);
 }

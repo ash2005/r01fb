@@ -8,6 +8,9 @@ import java.util.regex.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.collect.BoundType;
+
 import lombok.AllArgsConstructor;
 import lombok.Delegate;
 import lombok.Getter;
@@ -25,9 +28,6 @@ import r01f.types.Range.RangeXMLCustomMarshallers;
 import r01f.types.annotations.Inmutable;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
-
-import com.google.common.annotations.GwtIncompatible;
-import com.google.common.collect.BoundType;
 
 /**
  * Wraps a Guava {@link com.google.common.collect.Range} in order to be serializable by the {@link Marshaller}

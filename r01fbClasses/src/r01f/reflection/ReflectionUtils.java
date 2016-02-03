@@ -24,25 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.crypto.Data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Accessors;
-
 import org.apache.commons.beanutils.MethodUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import r01f.exceptions.Throwables;
-import r01f.generics.ParameterizedTypeImpl;
-import r01f.util.types.Strings;
-import r01f.util.types.collections.ArrayFormatter;
-import r01f.util.types.collections.CollectionUtils;
 
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.base.Preconditions;
@@ -51,12 +39,23 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+import r01f.exceptions.Throwables;
+import r01f.generics.ParameterizedTypeImpl;
+import r01f.util.types.Strings;
+import r01f.util.types.collections.ArrayFormatter;
+import r01f.util.types.collections.CollectionUtils;
+
 
 
 /**
- * Clase auxiliar para metodos de introspeccion
+ * Reflection utils
  */
 @GwtIncompatible("GWT does NOT suppports Reflection")
+@Slf4j
 public class ReflectionUtils {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTANTS
@@ -1514,10 +1513,9 @@ public class ReflectionUtils {
 	            // Do not use setter accessor methods: use direct field access
 	        	boolean setted = _setFieldValueWithoutUsingAccessors(obj.getClass(),obj,fieldName,value);
 	        	if (!setted) {
-	        		Logger log = Logger.getLogger(ReflectionUtils.class.getName());
-	        		log.warning("The field " + fieldName + " does NOT exists in type " + obj.getClass() + " > " +
-	        					"to take into account R01's style of name private fields like _[fieldName], the field is going to be looked as _" + fieldName + 
-	        					" BUT it's recommended to add a setter method (do not matter if the setter method is private");
+	        		log.warn("The field {}'s setter method does NOT exists in type {} > " +
+	        					"Although it's value will be set directly to _{}, it's recommended to add a setter method (do not matter if the setter method is private",
+	        					fieldName,obj.getClass(),fieldName);
 	        		setted = _setFieldValueWithoutUsingAccessors(obj.getClass(),obj,"_" + fieldName,value);
 	        	}
 		    	if (!setted) throw ReflectionException.noFieldException(obj.getClass(),fieldName); 
@@ -1714,18 +1712,16 @@ public class ReflectionUtils {
 /////////////////////////////////////////////////////////////////////////////////////////
 	private static void _warnFieldAccessException(final Throwable th,
 										   		  final Object obj,final String fieldName) {
-    	Logger log = Logger.getLogger(ReflectionUtils.class.getName());
-		if (log.isLoggable(Level.FINEST)) {
+		if (log.isTraceEnabled()) {
     		StringBuilder methodsDbg = new StringBuilder();
     		Method[] methods = ReflectionUtils.allMethods(obj.getClass());
     		for (Method m : methods) {
     			methodsDbg.append("\t-").append(m.getName()).append("\r\n");
     		}
-    		log.finest(Strings.of("\r\n**** WARNING: R01F > ReflectionUtils: This is not strictly an error; an attempt to set the {} value in type {} was made using accessor, but NO accessor war found... the property is going to be accessed directly getting the field value!\r\n" +
-    				  			  "****                 The following is not strictly an error, but it's better if you correct it")
-    				  		  .customizeWith(fieldName,obj.getClass().getName())
-    				  		  .asString()); 
-    		log.finest(methodsDbg.toString());
+    		log.trace("\r\n**** WARNING: R01F > ReflectionUtils: This is not strictly an error; an attempt to set the {} value in type {} was made using accessor, but NO accessor war found... the property is going to be accessed directly getting the field value!\r\n" +
+    				  "****                 The following is not strictly an error, but it's better if you correct it",
+    				  fieldName,obj.getClass().getName());
+    		log.trace(methodsDbg.toString());
     		th.printStackTrace(System.out);
 		}
 	}

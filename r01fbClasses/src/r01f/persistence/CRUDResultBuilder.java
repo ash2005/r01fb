@@ -17,7 +17,7 @@ import r01f.model.facets.Versionable.HasVersionableFacet;
 import r01f.patterns.IsBuilder;
 import r01f.persistence.db.DBEntity;
 import r01f.persistence.db.DBEntityToModelObjectTransformerBuilder;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
@@ -204,7 +204,7 @@ public class CRUDResultBuilder
 			return new CRUDResultBuilderForErrorAboutStep<T>(_userContext,
 															 err);
 		}
-		public CRUDResultBuilderForErrorAboutStep<T> becauseClientCannotConnectToServer(final SerializedURL serverUrl) {
+		public CRUDResultBuilderForErrorAboutStep<T> becauseClientCannotConnectToServer(final Url serverUrl) {
 			CRUDError<T> err = new CRUDError<T>(_entityType,
 							    				_requestedOp,
 							    				Strings.customized("Cannot connect to server at {}",serverUrl),PersistenceErrorType.CLIENT_CANNOT_CONNECT_SERVER);

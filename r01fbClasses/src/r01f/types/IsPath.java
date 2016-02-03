@@ -1,6 +1,7 @@
 package r01f.types;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedList;
 
 
@@ -14,7 +15,7 @@ public interface IsPath
 	 * Returns the path elements as a {@link LinkedList}
 	 * @return
 	 */
-	public LinkedList<String> getPathElements();
+	public Collection<String> getPathElements();
 	/**
 	 * @return the path as a relative String (does not start with /)
 	 */
@@ -28,5 +29,11 @@ public interface IsPath
 	 * @param parentPath the parent path
 	 * @return the path as a String
 	 */
-	public <P extends IsPath> String asStringFrom(final P parentPath);
+	public <P extends IsPath> String asRelativeStringFrom(final P parentPath);
+	/**
+	 * Returns the path as a String prepending the parent path
+	 * @param parentPath the parent path
+	 * @return the path as a String
+	 */
+	public <P extends IsPath> String asAbsoluteStringFrom(final P parentPath);
 }

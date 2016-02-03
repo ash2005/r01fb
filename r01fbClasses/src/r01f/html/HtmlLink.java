@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.marshalling.annotations.XmlCDATA;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 
 @XmlRootElement(name="htmlLink")
 @Accessors(prefix="_")
@@ -22,7 +22,7 @@ public class HtmlLink {
 	 * Use R01MUrlBuilder.from(_url) to get a typed R01MUrl
 	 */
 	@XmlElement(name="url")
-	@Getter private SerializedURL _url;
+	@Getter private Url _url;
     /**
      * link presentation
      */
@@ -39,7 +39,7 @@ public class HtmlLink {
 	 * NOTA: The final url is provided to this url in a param as: ?R01PassThrough=[final url]
 	 */
 	@XmlElement(name="prePassThroughURL")
-	@Getter @Setter private SerializedURL _prePassThroughURL;
+	@Getter @Setter private Url _prePassThroughURL;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -47,12 +47,12 @@ public class HtmlLink {
 		// default no-args constructor
 	}
 	public HtmlLink(final String text,
-						final SerializedURL url) {
+						final Url url) {
 		_linkText = text;
 		_url = url;
 	}
 	public HtmlLink(final String text,
-						final SerializedURL url,
+						final Url url,
 						final HtmlLinkPresentationData presentation) {
 		_linkText = text;
 		_url = url;

@@ -22,7 +22,6 @@ import r01f.events.PersistenceOperationEventListeners.PersistenceOperationErrorE
 import r01f.events.PersistenceOperationEventListeners.PersistenceOperationOKEventListener;
 import r01f.events.crud.CRUDOperationErrorEventListener;
 import r01f.guids.CommonOIDs.AppCode;
-import r01f.inject.HasMoreBindings;
 import r01f.inject.Matchers;
 import r01f.persistence.internal.DBGuiceModuleBase;
 import r01f.persistence.internal.SearchGuiceModuleBase;
@@ -41,8 +40,7 @@ import r01f.types.ExecutionMode;
 @Slf4j
 @EqualsAndHashCode(callSuper=true)				// This is important for guice modules
 public abstract class BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase
-              extends BeanImplementedServicesCoreBootstrapGuiceModuleBase
-           implements HasMoreBindings {
+              extends BeanImplementedServicesCoreBootstrapGuiceModuleBase {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -101,7 +99,9 @@ public abstract class BeanImplementedPersistenceServicesCoreBootstrapGuiceModule
 	private boolean XMLPROPERTIES_FOR_SEARCH_SET = false;
 	
 	@Override 
-	public void configureMoreBindings(final Binder binder) {
+	public void configure(final Binder binder) {
+		super.configure(binder);
+		
 		log.warn("\tBootstraping services from: {} for {}",this.getClass().getName(),_coreAppCode);
 		
 		final Binder theBinder = binder;

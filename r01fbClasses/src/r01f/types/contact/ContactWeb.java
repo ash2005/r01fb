@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 
 
 /**
@@ -33,7 +33,7 @@ public class ContactWeb
 	 * Web
 	 */
 	@XmlElement(name="url")
-	@Getter @Setter private SerializedURL _web;
+	@Getter @Setter private Url _web;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR & BUILDER
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -45,12 +45,12 @@ public class ContactWeb
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FLUENT-API
 /////////////////////////////////////////////////////////////////////////////////////////
-	public ContactWeb url(final SerializedURL web) {
+	public ContactWeb url(final Url web) {
 		_web = web;
 		return this;
 	}
 	public ContactWeb url(final String web) {
-		_web = SerializedURL.create(web);
+		_web = Url.from(web);
 		return this;
 	}
 }

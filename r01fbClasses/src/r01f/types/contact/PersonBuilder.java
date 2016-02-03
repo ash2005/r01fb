@@ -3,6 +3,7 @@ package r01f.types.contact;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import r01f.locale.Language;
 import r01f.patterns.IsBuilder;
 
 /**
@@ -61,11 +62,23 @@ public class PersonBuilder
 	public abstract class PersonBuilderSalutationStep {
 		private final Person _person;
 		
-		public PersonBuilderDetailsStep useSalutation(final PersonSalutation salutation) {
+		public PersonBuilderPrefLangStep useSalutation(final PersonSalutation salutation) {
 			_person.setSalutation(salutation);
+			return new PersonBuilderPrefLangStep(_person) {/* nothing */};
+		}
+		public PersonBuilderPrefLangStep noSalutation() {
+			return new PersonBuilderPrefLangStep(_person) {/* nothing */};
+		}
+	}
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	public abstract class PersonBuilderPrefLangStep {
+		private final Person _person;
+		
+		public PersonBuilderDetailsStep preferredLanguage(final Language lang) {
+			_person.setPreferredLang(lang);
 			return new PersonBuilderDetailsStep(_person) {/* nothing */};
 		}
-		public PersonBuilderDetailsStep noSalutation() {
+		public PersonBuilderDetailsStep noPreferredLanguage() {
 			return new PersonBuilderDetailsStep(_person) {/* nothing */};
 		}
 	}

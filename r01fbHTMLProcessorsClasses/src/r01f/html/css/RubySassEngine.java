@@ -13,17 +13,16 @@ import java.util.regex.Pattern;
 
 import javax.script.ScriptException;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.ScriptingContainer;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import lombok.extern.slf4j.Slf4j;
 import r01f.types.Path;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * Saas engine implementation with the following goodies:
@@ -302,10 +301,7 @@ class RubySassEngine {
 				log.warn("ignoring gem dir " + gem.getName() + " at " + gemsRoot + " since it does NOT have the required name format ([a-z]+)_(.+))");
 				continue;
 			}
-			String gemDirPath = Path.of(gemsRoot)
-									.add(gem.getName())
-									.add("lib")
-									.asString();			// ie: gemsRoot + "sass-3.2.14/lib"
+			String gemDirPath = new Path(gemsRoot,gem.getName(),"lib").asString();	// ie: gemsRoot + "sass-3.2.14/lib"
 			log.warn("{} gem found at {}",gemName,gemDirPath);
 			outPaths.put(gemName,gemDirPath);
 		}

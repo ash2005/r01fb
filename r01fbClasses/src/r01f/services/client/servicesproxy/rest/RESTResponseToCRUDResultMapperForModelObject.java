@@ -19,7 +19,7 @@ import r01f.persistence.PersistenceException;
 import r01f.persistence.PersistenceRequestedOperation;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Numbers;
 import r01f.util.types.Strings;
@@ -44,7 +44,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 /////////////////////////////////////////////////////////////////////////////////////////
 	public PersistenceCRUDResultIdOnErrorStep mapHttpResponseForEntity(final UserContext userContext,
 															   	 	   final PersistenceRequestedOperation requestedOp,
-															   	 	   final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+															   	 	   final Url restResourceUrl,final HttpResponse httpResponse) {
 		return new PersistenceCRUDResultIdOnErrorStep(userContext,
 													  requestedOp,
 													  restResourceUrl,httpResponse);
@@ -53,7 +53,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 	public class PersistenceCRUDResultIdOnErrorStep {
 		private final UserContext userContext;
 	   	private final PersistenceRequestedOperation requestedOp;
-	   	private final SerializedURL restResourceUrl;
+	   	private final Url restResourceUrl;
 	   	private final HttpResponse httpResponse;
 	   	
 	   	public CRUDResult<M> identifiedOnErrorBy(final OID... oids) {
@@ -89,7 +89,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 	public CRUDResult<M> mapHttpResponseForEntity(final UserContext userContext,
 												  final PersistenceRequestedOperation requestedOp,
 												  final M targetEntity,
-												  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												  final Url restResourceUrl,final HttpResponse httpResponse) {
 		return this.mapHttpResponseForEntity(userContext,
 											 requestedOp,
 											 targetEntity.getOid(),
@@ -98,7 +98,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 	public CRUDResult<M> mapHttpResponseForEntity(final UserContext userContext,
 												  final PersistenceRequestedOperation requestedOp,
 												  final OID targetEntityOid,
-												  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												  final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDResult<M> outOperationResult = null;
 		if (httpResponse.isSuccess()) {
 			outOperationResult = _mapHttpResponseForSuccess(userContext,
@@ -118,7 +118,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 	@SuppressWarnings({ "unused" })
 	protected CRUDOK<M> _mapHttpResponseForSuccess(final UserContext userContext,
 												   final PersistenceRequestedOperation requestedOp,
-												   final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												   final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDOK<M> outOperationResult = null;
 		
 		// [0] - Load the response		
@@ -147,7 +147,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 	protected CRUDError<M> _mapHttpResponseForError(final UserContext userContext,
 												    final PersistenceRequestedOperation requestedOp,
 												    final OID requestedOid,
-												    final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												    final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDError<M> outOpError = null;
 		
 		// [0] - Load the http response text
@@ -220,7 +220,7 @@ public class RESTResponseToCRUDResultMapperForModelObject<O extends OID,M extend
 	protected CRUDError<M> _mapHttpResponseForError(final UserContext userContext,
 												    final PersistenceRequestedOperation requestedOp,
 												    final M requestedEntity,
-												    final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												    final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDError<M> outOpError = null;
 
 		// [0] - Load the http response text

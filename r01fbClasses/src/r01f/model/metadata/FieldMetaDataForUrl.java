@@ -4,7 +4,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import r01f.exceptions.Throwables;
 import r01f.locale.LanguageTexts;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 
 @XmlRootElement(name="metaDataConfigForURLField")
 public class FieldMetaDataForUrl
@@ -28,15 +28,15 @@ public class FieldMetaDataForUrl
 		super(fieldId,
 			  name,description,
 			  searchEngineIndexingConfig,
-			  SerializedURL.class);
+			  Url.class);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void checkIfIsAcceptableValueOrThrow(final Object value) {
-		boolean acceptable = value instanceof SerializedURL;
+		boolean acceptable = value instanceof Url;
 		if (!acceptable) throw new IllegalArgumentException(Throwables.message("The metaData {} is NOT defined as a {} FIELD (the provided value it's a {} type)",
-																			   _fieldId,SerializedURL.class.getSimpleName(),value.getClass())); 
+																			   _fieldId,Url.class.getSimpleName(),value.getClass())); 
 	}
 }

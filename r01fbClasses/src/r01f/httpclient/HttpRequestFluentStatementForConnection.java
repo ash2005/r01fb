@@ -6,15 +6,16 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 
+import com.google.common.collect.Maps;
+
 import r01f.guids.CommonOIDs.Password;
 import r01f.guids.CommonOIDs.UserCode;
 import r01f.mime.MimeType;
-import r01f.types.weburl.Host;
-import r01f.types.weburl.WebUrl;
+import r01f.types.url.Host;
+import r01f.types.url.Url;
+import r01f.types.url.Url.UrlComponents;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.collect.Maps;
 
 
 public class HttpRequestFluentStatementForConnection 
@@ -171,11 +172,12 @@ public class HttpRequestFluentStatementForConnection
 	 * @param user user
 	 * @param password
 	 */
-	public HttpRequestFluentStatementForConnection usingProxy(final WebUrl proxyUrl,
+	public HttpRequestFluentStatementForConnection usingProxy(final Url proxyUrl,
 											  				  final UserCode user,final Password password) {
 		if (proxyUrl == null) throw new IllegalArgumentException("The proxyUrl cannot be null!");
-		if (proxyUrl.getSite() == null || proxyUrl.getSite().getHost() == null) throw new IllegalArgumentException("The proxy url site or sitehost cannot be null!");
-		return this.usingProxy(proxyUrl.getSite().getHost(),Integer.toString(proxyUrl.getPort()),
+		UrlComponents proxyUrlComps = proxyUrl.getComponents();
+		if (proxyUrlComps.getHost() == null) throw new IllegalArgumentException("The proxy url site or host cannot be null!");
+		return this.usingProxy(proxyUrlComps.getHost(),Integer.toString(proxyUrlComps.getPort()),
 							   user,password);
 	}
 	/**

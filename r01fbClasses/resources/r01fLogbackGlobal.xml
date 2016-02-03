@@ -1,20 +1,67 @@
 <!-- 
 ================================================================================ 
-	 R01F LOGBACK CONFIG (see r01fbClasses/logback.xml)
+	 LOGBACK CONFIG
 ================================================================================
+Every project will have it's own logback.xml file like:
+	<configuration debug="false">
+		<property name="appName" value="appCode" />
+		
+		<jmxConfigurator contextName="appCode" />
+		
+		<include resource="r01fLogbackGlobal.xml"/>
+		<include resource="r01fLogback.xml"/>
+		
+		<include resource="appCode/appCodeLogback.xml"/>
+	</configuration>
+
+This main logback.xml is NOT ENVIRONMENT DEPENDENT so it's located at 
+[{appCode}Classes] project's /resources source folder alongside with the source code
+
+In order to set environment-dependent values, the included appCode/appCodeLogback.xml files 
+are used. These appCode/appCodeLogback.xml files are at [{appCode}Config] project
+which contains environment-dependent configuable values
 -->
 <included>
-	<!-- Se puede establecer el directorio "a mano" o usar el del usuario -->
 	<!-- <property name="USER_HOME" value="${user.home}" />  -->
-	<property name="DATA_HOME" value="d:/temp_dev/log" />	<!-- /datos -->
-	<property name="logPath" value="${DATA_HOME}/${appName}/log" />
+		
+	<!-- 
+		LogPath config:
+			- EJIE environments: 
+				Usually the /r01fb/r01fbEnvironment.xml file WILL NOT be present at the EJIE environment so 
+				the ${DATA_HOME} will NOT be defined ad the ${logPath} var will get the DEFAULT value: /datos
+				BEWARE!!!	If the /r01fb/r01fbEnvironment.xml is present a the environment CHECK the ${DATA_HOME} var value
+				
+			- Local environment:
+				The [r01fbConfig] project will be present in the eclipse workspace and if the /r01fb/r01fbEnvironment.xml is 
+				classpath-accesible, the ${DATA_HOME} var will have the d:/temp_dev/log value
+				BEWARE!!!	Ensure the /r01fb/r01fbEnvironment.xml is accesible at the classpath
+	-->
+	<include resource="r01fb/r01fbEnvironment.xml"/>	<!-- BEWARE! this include usually is ONLY accesible at local environment -->
+	
+	<!-- 
+		local (see [Condigional processing of configuration files at http://logback.qos.ch/manual/configuration.html)
+		-requires Janino dependency- 
+	 -->
+	<!-- 
+	<if condition='isNull("DATA_HOME")'>
+		<then>
+			<if condition='property("os.name").contains("win")'>
+				<then>
+					<property name="DATA_HOME" value="d:/temp_dev/log" />
+				</then>
+			</if>
+		</then>
+	</if>
+	-->
+	
+	<property name="logPath" value="${DATA_HOME:-/datos}/${appName}/log" />
 
 	<!-- 1 por día. Nivel DEBUG. 10 días de historia
 		 logger{10} líneas de stacktrace para las excepciones
 	-->
 	<appender name="datos_app_log" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>WARN</level>
+			<level>DEBUG</level>
 		</filter>
 		<!-- When in a weblogic cluster and logs located in a NAS, if the log file name does NOT include something 
 			 for each cluster node (like the server's name), N JVMs will be writing at the same file; this is a performance botlenect.

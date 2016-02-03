@@ -14,7 +14,7 @@ import r01f.persistence.FindOIDsOK;
 import r01f.persistence.FindOIDsResult;
 import r01f.persistence.FindOIDsResultBuilder;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
@@ -37,7 +37,7 @@ public class RESTResponseToFindOIDsResultMapper<O extends OID,M extends Persista
 //  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
 	public FindOIDsResult<O> mapHttpResponseForOids(final UserContext userContext,
-													final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+													final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindOIDsResult<O> outOperationResult = null;
 		if (httpResponse.isSuccess()) {
 			outOperationResult = _mapHttpResponseForSuccessFindingOids(userContext,
@@ -50,7 +50,7 @@ public class RESTResponseToFindOIDsResultMapper<O extends OID,M extends Persista
 	}
 	@SuppressWarnings({ "unused" })
 	protected FindOIDsOK<O> _mapHttpResponseForSuccessFindingOids(final UserContext userContext,
-												   	   			  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												   	   			  final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindOIDsOK<O> outOperationResult = null;
 		
 		// [0] - Load the response		
@@ -65,7 +65,7 @@ public class RESTResponseToFindOIDsResultMapper<O extends OID,M extends Persista
 		return outOperationResult;
 	}
 	protected FindOIDsError<O> _mapHttpResponseForErrorFindigOids(final UserContext userContext,
-												    			  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												    			  final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindOIDsError<O> outOpError = null;
 		
 		// [0] - Load the http response text

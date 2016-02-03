@@ -24,7 +24,7 @@ import r01f.marshalling.simple.SimpleMarshallerBuilder;
 import r01f.model.latinia.LatiniaObject;
 import r01f.services.XLNetsAuthenticatedServiceApiData;
 import r01f.services.latinia.LatiniaServiceApiDataProvider.LatiniaServiceAPIData;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.xml.XMLUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
@@ -85,8 +85,8 @@ public class LatiniaServiceApiDataProvider
 	public LatiniaServiceApiDataProvider(final AppCode appCode,
 										 final XMLPropertiesForAppComponent props,final String propsRootNode,
 								  		 final Marshaller marshaller) {
-		SerializedURL latiniaWSUrl = props.propertyAt(propsRootNode + "/latinia/wsURL")
-										  .asURL(SerializedURL.of("http://svc.extra.integracion.jakina.ejiedes.net/ctxapp/W91dSendSms?WSDL"));
+		Url latiniaWSUrl = props.propertyAt(propsRootNode + "/latinia/wsURL")
+										  .asUrl("http://svc.extra.integracion.jakina.ejiedes.net/ctxapp/W91dSendSms?WSDL");
 		Document latiniaAuthToken = _createLatiniaAuthToken(props,
 															propsRootNode);
 		_apiData = new LatiniaServiceAPIData(latiniaWSUrl, 
@@ -101,7 +101,7 @@ public class LatiniaServiceApiDataProvider
 	@RequiredArgsConstructor
 	public class LatiniaServiceAPIData 
 	  implements XLNetsAuthenticatedServiceApiData {
-		@Getter private final SerializedURL _webServiceUrl;
+		@Getter private final Url _webServiceUrl;
 		@Getter private final Document _latiniaAuthToken;
 		@Getter private final Document _XLNetsAuthToken;
 		@Getter private final Marshaller _latiniaObjsMarshaller;

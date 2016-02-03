@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import r01f.exceptions.Throwables;
 import r01f.html.HtmlLinkTargetResourceData.RelationBetweenTargetAndLinkContainerDocuments;
 import r01f.locale.Languages;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -98,7 +98,7 @@ public class HtmlLinkLoader {
 				}
 			}
 			outLinkData = new HtmlLink(linkText,
-										   SerializedURL.of(hrefStr),
+										   Url.from(hrefStr),
 										   presentation);
 		} else {
 			throw new IllegalArgumentException(Throwables.message("The link {} does NOT match the pattern {}",linkAsString,LINK_REGEX));

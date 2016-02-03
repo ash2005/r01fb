@@ -19,7 +19,7 @@ import r01f.model.metadata.FieldMetaDataForPolymorphicType;
 import r01f.reflection.ReflectionUtils;
 import r01f.types.CanBeRepresentedAsString;
 import r01f.types.IsPath;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.util.types.Strings;
 
 /**
@@ -64,7 +64,7 @@ public enum IndexDocumentStandardFieldType
 			outType = String;
 		} else if (ReflectionUtils.isImplementing(type,Enum.class)) {
 			outType = _fieldTypeForEnum((Class<? extends Enum<?>>)type);
-		} else if (ReflectionUtils.isImplementing(type,SerializedURL.class)) {
+		} else if (ReflectionUtils.isImplementing(type,Url.class)) {
 			outType = String;
 		} else if (ReflectionUtils.isImplementing(type,IsPath.class)) {
 			outType = String;

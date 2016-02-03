@@ -9,10 +9,14 @@ import r01f.httpclient.HttpResponse.HttpResponseCode;
 import r01f.marshalling.Marshaller;
 import r01f.services.ServiceException;
 import r01f.services.ServiceExceptionType;
-import r01f.services.client.servicesproxy.rest.RESTServicesPathBuilders.ServicesRESTResourcePathBuilder;
+import r01f.services.client.servicesproxy.rest.RESTServiceResourceUrlPathBuilders.RESTServiceResourceUrlPathBuilder;
 import r01f.services.interfaces.ProxyForRESTImplementedService;
 import r01f.types.Path;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.Paths;
+import r01f.types.UrlPath;
+import r01f.types.url.Url;
+import r01f.types.url.UrlQueryString;
+import r01f.types.url.Urls;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
@@ -30,43 +34,19 @@ public abstract class RESTServicesProxyBase
 /////////////////////////////////////////////////////////////////////////////////////////
 			protected final Marshaller _marshaller;
 	
-	@Getter private final ServicesRESTResourcePathBuilder _servicesRESTResourceUrlPathBuilder;
+	@Getter private final RESTServiceResourceUrlPathBuilder _servicesRESTResourceUrlPathBuilder;
 	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  PATH BUILDING
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Returns a concrete subtype of {@link ServicesRESTResourcePathBuilder} used to compose the service's REST resource url {@link Path}
+	 * Returns a concrete subtype of {@link RESTServiceResourceUrlPathBuilder} used to compose the service's REST resource url {@link Path}
 	 * @param type
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked" })
-	protected <P extends ServicesRESTResourcePathBuilder> P getServicesRESTResourceUrlPathBuilderAs(final Class<P> type) {
+	protected <P extends RESTServiceResourceUrlPathBuilder> P getServicesRESTResourceUrlPathBuilderAs(final Class<P> type) {
 		return (P)this.getServicesRESTResourceUrlPathBuilder();
-	}
-	/**
-	 * Composes the complete REST endpoint URI for a path
-	 * @param path
-	 * @return
-	 */
-	protected SerializedURL composePersistenceURIFor(final Path path) {
-		ServicesRESTResourcePathBuilder pathBuilder = this.getServicesRESTResourceUrlPathBuilder();
-		Path uri = Path.of(pathBuilder.getHost())
-					   .add(pathBuilder.getPersistenceEndPointBasePath())
-					   .add(path);
-		return SerializedURL.create(uri.asString());
-	}
-	/**
-	 * Composes the complete REST endpoint URI for a path
-	 * @param path
-	 * @return
-	 */
-	protected SerializedURL composeSearchURIFor(final Path path) {
-		ServicesRESTResourcePathBuilder pathBuilder = this.getServicesRESTResourceUrlPathBuilder();
-		Path uri = Path.of(pathBuilder.getHost())
-					   .add(pathBuilder.getSearchIndexEndPointBasePath())
-					   .add(path);
-		return SerializedURL.create(uri.asString());
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ERROR
@@ -79,7 +59,7 @@ public abstract class RESTServicesProxyBase
 	 * @throws ServiceException
 	 */
 	protected static void _throwServiceExceptionFor(final UserContext userContext,
-												    final SerializedURL restResourceUrl,
+												    final Url restResourceUrl,
 												    final HttpResponse httpResponse) throws ServiceException {
 		HttpResponseCode responseCode = httpResponse.getCode();
 		String errorCode = httpResponse.getSingleValuedHeaderAsString("x-r01-errorCode");
@@ -106,5 +86,33 @@ public abstract class RESTServicesProxyBase
 		} 
 		throw new ServiceException(errorMsg,
 								   ServiceExceptionType.SERVER);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Composes the complete REST endpoint URI for a path
+	 * @param path
+	 * @return
+	 */
+	protected Url composeURIFor(final UrlPath path) {
+		RESTServiceResourceUrlPathBuilder pathBuilder = this.getServicesRESTResourceUrlPathBuilderAs(RESTServiceResourceUrlPathBuilder.class);
+		return Urls.join(pathBuilder.getHost(),
+						 Paths.forUrlPaths().join(pathBuilder.getEndPointBasePath(),
+					   		   	  	  			  path));
+	}
+	/**
+	 * Composes the complete REST endpoint URI for a path
+	 * @param path
+	 * @param qryString
+	 * @return
+	 */
+	protected Url composeURIFor(final UrlPath path,
+								final UrlQueryString qryString) {
+		RESTServiceResourceUrlPathBuilder pathBuilder = this.getServicesRESTResourceUrlPathBuilderAs(RESTServiceResourceUrlPathBuilder.class);
+		return Urls.join(pathBuilder.getHost(),
+						 Paths.forUrlPaths().join(pathBuilder.getEndPointBasePath(),
+					   		   	  	  			  path),
+						 qryString);
 	}
 }

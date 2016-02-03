@@ -10,7 +10,7 @@ import r01f.persistence.PersistenceException;
 import r01f.persistence.PersistenceOperationExecResult;
 import r01f.persistence.PersistenceOperationExecResultBuilder;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
@@ -39,7 +39,7 @@ public class RESTResponseToPersistenceExecResultMapper {
 	 * @throws PersistenceException
 	 */
 	public <T> PersistenceOperationExecResult<T> mapHttpResponse(final UserContext userContext,
-															 	 final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+															 	 final Url restResourceUrl,final HttpResponse httpResponse) {
 		PersistenceOperationExecResult<T> outResult = null;
 		if (httpResponse.isSuccess()) {
 			outResult = _mapHttpResponseForSuccess(userContext,
@@ -52,7 +52,7 @@ public class RESTResponseToPersistenceExecResultMapper {
 	}
 	@SuppressWarnings({ "unused" })
 	protected <T> PersistenceOperationExecResult<T> _mapHttpResponseForSuccess(final UserContext userContext,
-												   	   			  		   	   final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												   	   			  		   	   final Url restResourceUrl,final HttpResponse httpResponse) {
 		PersistenceOperationExecResult<T> outOperationResult = null;
 		
 		// [0] - Load the response		
@@ -66,7 +66,7 @@ public class RESTResponseToPersistenceExecResultMapper {
 		return outOperationResult;
 	}
 	protected <T> PersistenceOperationExecResult<T> _mapHttpResponseForError(final UserContext userContext,
-																			 final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+																			 final Url restResourceUrl,final HttpResponse httpResponse) {
 		PersistenceOperationExecResult<T> outOpError = null;
 		
 		// [0] - Load the http response text

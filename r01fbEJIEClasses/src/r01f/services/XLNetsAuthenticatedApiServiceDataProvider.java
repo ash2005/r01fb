@@ -12,11 +12,10 @@ import r01f.enums.EnumWithCode;
 import r01f.enums.EnumWithCodeWrapper;
 import r01f.exceptions.Throwables;
 import r01f.httpclient.HttpClient;
-import r01f.resources.ResourcesLoader;
 import r01f.resources.ResourcesLoaderBuilder;
-import r01f.resources.ResourcesLoaderDefBuilder;
-import r01f.types.Path;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
+import r01f.types.url.UrlQueryStringParam;
+import r01f.types.url.Urls;
 import r01f.util.types.Strings;
 import r01f.xml.XMLUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
@@ -68,8 +67,9 @@ public abstract class XLNetsAuthenticatedApiServiceDataProvider<A extends XLNets
 			} 
 			else if (tokenType == XLNetsAuthTokenType.HTTP_PROVIDED) {
 				// http provided (ie: http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet?login_app=X42T)
-				SerializedURL xlnetsProviderUrl = props.propertyAt(propsRootNode + "/xlnets/sessionToken").asURL();
-				xlnetsProviderUrl.addQueryStringParam("login_app",loginAppId);
+				Url xlnetsProviderUrl = Urls.join(props.propertyAt(propsRootNode + "/xlnets/sessionToken")
+													   .asUrl(),
+												  new UrlQueryStringParam("login_app",loginAppId));
 				log.warn("Geting a xlnets auth token for appCode={} from url={}",loginAppId,xlnetsProviderUrl);
 				
 				outAuthToken = XMLUtils.parse(HttpClient.forUrl(xlnetsProviderUrl)

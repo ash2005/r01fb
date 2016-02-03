@@ -10,7 +10,7 @@ import r01f.guids.CommonOIDs.AppCode;
 import r01f.services.XLNetsAuthenticatedApiServiceDataProvider;
 import r01f.services.XLNetsAuthenticatedServiceApiData;
 import r01f.services.shf.SignatureServiceApiDataProvider.SignatureServiceAPIData;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
 import com.google.inject.Provider;
@@ -56,8 +56,8 @@ public class SignatureServiceApiDataProvider
 	@SuppressWarnings("unused")
 	public SignatureServiceApiDataProvider(final AppCode appCode,
 										   final XMLPropertiesForAppComponent props,final String propsRootNode)  {
-		SerializedURL webServiceUrl = props.propertyAt(propsRootNode + "/signatureService/wsURL")
-						      			   .asURL(SerializedURL.of("http://svc.intra.integracion.jakina.ejgvdns/ctxapp/X43FNSHF2?WSDL"));
+		Url webServiceUrl = props.propertyAt(propsRootNode + "/signatureService/wsURL")
+						      	 .asUrl("http://svc.intra.integracion.jakina.ejgvdns/ctxapp/X43FNSHF2?WSDL");
 		Document authToken = _createXLNetsAuthToken(props,propsRootNode);
 		String certificateId = props.propertyAt(propsRootNode + "/signatureService/certificateId").asString("0035");
 		
@@ -72,7 +72,7 @@ public class SignatureServiceApiDataProvider
 	@RequiredArgsConstructor
 	public class SignatureServiceAPIData
 	  implements XLNetsAuthenticatedServiceApiData {
-		@Getter private final SerializedURL _webServiceUrl;
+		@Getter private final Url _webServiceUrl;
 		@Getter private final Document _XLNetsAuthToken;
 		@Getter private final String _certificateId;
 	}

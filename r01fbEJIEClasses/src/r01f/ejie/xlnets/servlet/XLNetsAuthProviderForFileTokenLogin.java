@@ -48,8 +48,8 @@ public class XLNetsAuthProviderForFileTokenLogin
         // En este caso como se toma todo de un fichero, simplemente, abrir el
         // fichero xml con la sesion y cargar los datos
     	try {
-	        Document doc = XMLUtils.parse(Path.of(_providerDef.getInitParameter("xmlsDir"))
-	        								  .add(_providerDef.getInitParameter("sessionFileName")));
+	        Document doc = XMLUtils.parse(new Path(_providerDef.getInitParameter("xmlsDir"),
+	        								  	   _providerDef.getInitParameter("sessionFileName")));
 	
 	    	
 	    	// [1] - Obtener la información de sesión

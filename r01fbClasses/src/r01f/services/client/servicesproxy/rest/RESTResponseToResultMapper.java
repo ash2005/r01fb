@@ -7,7 +7,7 @@ import r01f.marshalling.Marshaller;
 import r01f.persistence.PersistenceException;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
@@ -37,7 +37,7 @@ public class RESTResponseToResultMapper {
 	 */
 	@SuppressWarnings("cast")
 	public <T> T mapHttpResponse(final UserContext userContext,
-								 final SerializedURL restResourceUrl,
+								 final Url restResourceUrl,
 								 final HttpResponse httpResponse,
 								 final Class<T> expectedType) {
 		T outObj = null;

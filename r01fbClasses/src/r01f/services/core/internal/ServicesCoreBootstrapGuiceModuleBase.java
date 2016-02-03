@@ -182,7 +182,7 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 	
 	@Override
 	public void configure(final Binder binder) {
-		log.warn("START____________ {}.{} CORE Bean Bootstraping with {}_____________________________",
+		log.warn("____________START [{}.{}] CORE Bean Bootstraping with {}",
 				 _coreAppCode,_coreAppComponent,this.getClass());
 		
 		Binder theBinder = binder; 
@@ -208,7 +208,7 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 			XMLPROPERTIES_FOR_SERVICES_SET = true;
 		}
 		
-		log.warn("END_______________ {}.{} CORE Bean Bootstraping with {}_____________________________",
+		log.warn("______________END [{}.{}] CORE Bean Bootstraping with {}",
 				 _coreAppCode,_coreAppComponent,this.getClass());
 	}
 	
@@ -224,15 +224,22 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 	}
 	private void _doBindXMLPropertiesComponentProviderAs(final String bindingName,final String subComponent,
 														 final Binder binder,final boolean expose) {
+		log.debug("{}.{}.properties.xml properties are available for injection as a {} object annotated with @XMLPropertiesComponent(\"{}\") INTERNALLY and @XMLPropertiesComponent(\"{}\") EXTERNALLY",
+				  _coreAppCode,_componentPropertiesIdFor(_coreAppComponent,subComponent),
+				  XMLPropertiesForAppComponent.class.getSimpleName(),
+				  subComponent,
+				  _componentPropertiesIdFor(_coreAppComponent,subComponent));
+		
+		// do the binding
 		binder.bind(XMLPropertiesForAppComponent.class)
 			  .annotatedWith(new XMLPropertiesComponentImpl(bindingName))
 			  .toProvider(new XMLPropertiesForXProvider(_coreAppCode,_coreAppComponent,subComponent))
 			  .in(Singleton.class);
 		// Expose xml properties binding
 		if (expose && (binder instanceof PrivateBinder)) {
-			log.warn("{}.{}.properties.xml properties are available for injection as @XMLPropertiesComponent(\"{}\") and @XMLPropertiesComponent(\"{}\")",
+			log.warn("{}.{}.properties.xml properties are available for injection as a {} object annotated with @XMLPropertiesComponent(\"{}\")",
 					 _coreAppCode,_componentPropertiesIdFor(_coreAppComponent,subComponent),
-					 subComponent,
+					 XMLPropertiesForAppComponent.class.getSimpleName(),
 					 _componentPropertiesIdFor(_coreAppComponent,subComponent));
 			PrivateBinder pb = (PrivateBinder)binder;
 			pb.expose(Key.get(XMLPropertiesForAppComponent.class,new XMLPropertiesComponentImpl(bindingName)));

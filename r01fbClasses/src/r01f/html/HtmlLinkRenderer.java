@@ -10,7 +10,7 @@ import r01f.guid.GUIDDispenserDef;
 import r01f.guid.SimpleGUIDDispenser;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.locale.Languages;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -51,7 +51,7 @@ public class HtmlLinkRenderer {
 	 * @return
 	 */
 	public static String render(final String linkText,
-								final SerializedURL url,
+								final Url url,
 								final HtmlLinkPresentationData presentation) {
 		String outLink = Strings.of("<a href='{}' {}>{}</a>")
 								.customizeWith(url.asStringNotUrlEncodingQueryStringParamsValues(),
@@ -70,7 +70,7 @@ public class HtmlLinkRenderer {
 	 * @return
 	 */
 	public static String renderWithData(final String linkText,
-									    final SerializedURL url,
+									    final Url url,
 										final HtmlLinkPresentationData presentation,
 										final String xmlData) {
 		// An id for the link is mandatory so if none is provided one is generated

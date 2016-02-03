@@ -11,7 +11,7 @@ import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
 import r01f.persistence.db.DBEntity;
 import r01f.persistence.db.DBEntityToModelObjectTransformerBuilder;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
@@ -84,7 +84,7 @@ public class CRUDResultForVersionableBuilder<M extends PersistableModelObject<? 
 			return new CRUDResultOnMultipleBuilderErrorAboutStep<M>(_userContext,
 																	err);			
 		}
-		public CRUDResultOnMultipleBuilderErrorAboutStep<M> becauseClientCannotConnectToServer(final SerializedURL serverUrl) {
+		public CRUDResultOnMultipleBuilderErrorAboutStep<M> becauseClientCannotConnectToServer(final Url serverUrl) {
 			CRUDOnMultipleError<M> err = new CRUDOnMultipleError<M>(_entityType,
 												 				 					_requestedOp,
 												 				 					Strings.customized("Cannot connect to server at {}",serverUrl),PersistenceErrorType.CLIENT_CANNOT_CONNECT_SERVER);

@@ -14,8 +14,12 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeFieldType;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+import org.joda.time.Partial;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -349,6 +353,12 @@ public abstract class Dates {
     			     || fmt.equalsIgnoreCase("utc") 
     			     || fmt.equalsIgnoreCase("iso8601")
     			     || fmt.equalsIgnoreCase(Dates.ISO8601);
+    	if (isISO) {
+    		// java 6 does NOT supports iso8601 date formatting... resorting to joda time
+    		// see
+    		DateTimeFormatter jtParser = ISODateTimeFormat.dateTimeParser();
+    		return jtParser.parseDateTime(theDateStr).toDate();
+    	}
    	
         if ((fmt.equalsIgnoreCase("millis") || fmt.equalsIgnoreCase("milis")) && Numbers.isLong(dateStr)) {		// bug with millis WTF!
             return new Date( Long.parseLong(dateStr) );
@@ -356,12 +366,10 @@ public abstract class Dates {
             return new Date( Long.parseLong(dateStr)*1000L );
         } else if (fmt.equalsIgnoreCase("epoch")) {
         	fmt = Dates.EPOCH;		// "MMM dd yyyy HH:mm:ss.SSS zzz"
-        } else if (isISO) {
-        	fmt = Dates.ISO8601;
-        }
+        } 
         SimpleDateFormat formatter = new SimpleDateFormat(fmt);
         if (isISO) formatter.setTimeZone(TimeZone.getTimeZone("UTC"));		// BEWARE!! when the input string is in UTC format
-        formatter.setLenient(false);    // strict format
+        formatter.setLenient(true);    // strict format
         ParsePosition pos = new ParsePosition(0);
         Date outDate = formatter.parse(theDateStr,pos);        
         
@@ -614,18 +622,89 @@ public abstract class Dates {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
+    public static long DAY_MILIS = 24 * 60 * 60 * 1000;
 	/**
 	 * Returns a Joda-Time's {@link Interval} object with a date day start and day end
 	 * @param date
 	 * @return
 	 */
-	public static Interval dateDayStartAndEndIntervalFor(final Date date) {
+	public static Interval dayIntervalOf(final Date date) {
+		DateTime dayStart = Dates.dayStartOf(date);	
+		DateTime nextDayStart = Dates.nextDayStartOf(date);
+		Interval dateInterval = new Interval(dayStart,nextDayStart);
+		return dateInterval;
+	}
+	/**
+	 * Returns the first day datetime (00:00:01)
+	 * @param date
+	 * @return
+	 */
+	public static DateTime dayStartOf(final Date date) {
 		DateTime dateTime = new DateTime(date,
 										 DateTimeZone.getDefault());
-		DateTime dayStart = dateTime.withTimeAtStartOfDay();		// start of the day	
-		DateTime dayAfterStart = dateTime.plusDays(1)				// 
-										 .withTimeAtStartOfDay();	// start of the date after
-		Interval dateInterval = new Interval( dayStart, dayAfterStart );
-		return dateInterval;
+		DateTime dayStart = dateTime.withTimeAtStartOfDay();
+		return dayStart;
+	}
+	/**
+	 * Returns the first day datetime (00:00:01)
+	 * @param date
+	 * @return
+	 */
+	public static DateTime nextDayStartOf(final Date date) {
+		DateTime dateTime = new DateTime(date,
+										 DateTimeZone.getDefault());
+		DateTime dayEnd = dateTime.plusDays(1)
+								  .withTimeAtStartOfDay();
+		return dayEnd;
+	}	
+	/**
+	 * Returns the first instant of a week given it's number within a year
+	 * @param year
+	 * @param weekOfYear
+	 * @return
+	 */
+	public static DateTime weekFirstInstant(final int year,final int weekOfYear) {
+		Partial weekFirstInstant = new Partial(
+                   new DateTimeFieldType[] {DateTimeFieldType.weekyear(),DateTimeFieldType.weekOfWeekyear(),DateTimeFieldType.dayOfWeek(),
+                   							DateTimeFieldType.hourOfDay(),DateTimeFieldType.minuteOfHour(),DateTimeFieldType.secondOfMinute(),DateTimeFieldType.millisOfSecond()},
+                                            new int[] {year,weekOfYear,1,	// first day of week
+                                            		   0,0,0,1});			// first mili of week
+		return weekFirstInstant.toDateTime(new DateTime());
+	}
+	/**
+	 * Returns the first instant of a week given it's number within a year
+	 * @param year
+	 * @param weekOfYear
+	 * @return
+	 */
+	public static DateTime weekLastInstant(final int year,final int weekOfYear) {
+		return Dates.weekFirstInstant(year,weekOfYear)
+						.plusWeeks(1)
+						.minusMillis(2);
+	}
+	/**
+	 * Returns the first instant of a month
+	 * @param year
+	 * @param monthOfYear
+	 * @return
+	 */
+	public static DateTime monthFirstInstant(final int year,final int monthOfYear) {
+		Partial monthFirstInstant = new Partial(
+                   new DateTimeFieldType[] {DateTimeFieldType.weekyear(),DateTimeFieldType.monthOfYear(),DateTimeFieldType.dayOfMonth(),
+                   							DateTimeFieldType.hourOfDay(),DateTimeFieldType.minuteOfHour(),DateTimeFieldType.secondOfMinute(),DateTimeFieldType.millisOfSecond()},
+                                            new int[] {year,monthOfYear,1,	// first day of month
+                                            		   0,0,0,1});			// first mili of month
+		return monthFirstInstant.toDateTime(new DateTime());
+	}
+	/**
+	 * Returns the first instant of a month
+	 * @param year
+	 * @param monthOfYear
+	 * @return
+	 */
+	public static DateTime monthLastInstant(final int year,final int monthOfYear) {
+		return Dates.monthFirstInstant(year,monthOfYear)
+						.plusMonths(1)
+						.minusMillis(2);
 	}
 }

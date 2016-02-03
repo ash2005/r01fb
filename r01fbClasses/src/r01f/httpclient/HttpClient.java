@@ -10,11 +10,8 @@ import r01f.enums.EnumExtendedWrapper;
 import r01f.exceptions.Throwables;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.httpclient.HttpResponse.HttpResponseCode;
-import r01f.types.weburl.SerializedURL;
-import r01f.types.weburl.WebUrlBase;
-import r01f.types.weburl.WebUrlEnvironment;
-import r01f.types.weburl.WebUrlSecurityZone;
-import r01f.types.weburl.WebUrlSite;
+import r01f.types.url.Url;
+import r01f.types.url.Url.UrlComponents;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
 
@@ -69,7 +66,7 @@ public abstract class HttpClient {
 	 * @param newURLStr destination url
 	 * @throws MalformedURLException if the newURLStr is not a valid url
 	 */
-	public static HttpRequestFluentStatementForConnection forUrl(final SerializedURL newURLStr) throws MalformedURLException {
+	public static HttpRequestFluentStatementForConnection forUrl(final Url newURLStr) throws MalformedURLException {
 		return HttpClient.forUrl(newURLStr.asString());
 	}
 	/**
@@ -79,17 +76,6 @@ public abstract class HttpClient {
 	 */
 	public static HttpRequestFluentStatementForConnection forUrl(final URL newTargetURL) throws MalformedURLException {
 		return HttpClient.forUrl(newTargetURL.toExternalForm());
-	}
-	/**
-	 * Constructor from a URL to the destination
-	 * @param webUrl the url
-	 * @throws MalformedURLException if the url is not valid
-	 */
-	public static <SITE extends WebUrlSite<? extends WebUrlSecurityZone<?>,
-										   ? extends WebUrlEnvironment<?>>,
-				    W extends WebUrlBase<SITE>> HttpRequestFluentStatementForConnection forUrl(final W webUrl) throws MalformedURLException {
-		return HttpClient.forUrl(webUrl.asSerializedUrl()
-									   .asStringNotUrlEncodingQueryStringParamsValues());
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METHODS
@@ -177,15 +163,17 @@ public static enum RequestMethod
 																																												  propsRootNode + "/proxy",appCode));
 		boolean inetConxThroughProxy = HttpClient.testProxyInternetConnection(proxySettings,
 																		 	  true);		// ignore proxySettings enabled state
-		if (inetConxThroughProxy && !proxySettings.isEnabled()) { 
+		if (inetConxThroughProxy && !proxySettings.isEnabled()) {
+			UrlComponents proxyUrlComp = proxySettings.getProxyUrl().getComponents();
 			log.warn("A proxy ({}:{}) is configured BUT not enabled at {} in {} properties file and it seems there's internet connection through it... overriding the enabled state of the config",
-					 proxySettings.getProxyUrl().getSiteHostAsString(),proxySettings.getProxyUrl().getPort(),
+					 proxyUrlComp.getHost(),proxyUrlComp.getPort(),
 					 propsRootNode + "/proxy",appCode);
 			proxySettings.setEnabled(true);
 		}
-		if (!inetConxThroughProxy) {				
+		if (!inetConxThroughProxy) {	
+			UrlComponents proxyUrlComp = proxySettings.getProxyUrl().getComponents();
 			throw new IllegalStateException(Throwables.message("It seems that there's NO internet connection; tried direct connection and through a proxy at {}:{} BUT it both failed",
-															   proxySettings.getProxyUrl().getSiteHostAsString(),proxySettings.getProxyUrl().getPort()));
+															   proxyUrlComp.getHost(),proxyUrlComp.getPort()));
 		}
 		return proxySettings;
 	}
@@ -245,15 +233,15 @@ public static enum RequestMethod
 					  					 .getConnection()
 					  					 .getResponseCode();
 			if (HttpResponseCode.of(responseCode).is(HttpResponseCode.OK)) {
-				log.info("There's internet connection using proxy: {}",proxySettings.getProxyUrl().asSerializedUrl());
+				log.info("There's internet connection using proxy: {}",proxySettings.getProxyUrl());
 				outConnection = true;
 			}
 		} catch(IOException ioEx) {
 			// ignore
-			log.warn("There's NO internet connection using proxy: {}",proxySettings.getProxyUrl().asSerializedUrl());
+			log.warn("There's NO internet connection using proxy: {}",proxySettings.getProxyUrl());
 		} catch(Throwable thEx) {
 			// ignore
-			log.warn("There's NO internet connection using proxy: {}",proxySettings.getProxyUrl().asSerializedUrl());
+			log.warn("There's NO internet connection using proxy: {}",proxySettings.getProxyUrl());
 		}
 		return outConnection;
 		

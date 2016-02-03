@@ -5,9 +5,8 @@ import java.util.Properties;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-import r01f.types.weburl.Host;
-
-import com.google.api.client.repackaged.com.google.common.base.Strings;
+import r01f.types.url.Host;
+import r01f.util.types.Strings;
 
 
 /**

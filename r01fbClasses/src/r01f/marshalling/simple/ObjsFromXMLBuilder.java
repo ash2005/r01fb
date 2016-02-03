@@ -26,12 +26,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import lombok.Cleanup;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
-
 import org.slf4j.Logger;
 import org.w3c.dom.Node;
 import org.xml.sax.Attributes;
@@ -40,6 +34,13 @@ import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.google.common.collect.Maps;
+
+import lombok.Cleanup;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import r01f.encoding.TextEncoder;
 import r01f.exceptions.Throwables;
 import r01f.locale.Language;
@@ -52,8 +53,6 @@ import r01f.reflection.ReflectionUtils;
 import r01f.util.types.Numbers;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.collect.Maps;
 
 
 /**
@@ -89,7 +88,7 @@ final class ObjsFromXMLBuilder<T> {
     						final Charset xmlCharset,
     						final TextEncoder encoder) throws MarshallerException {
         if (xmlStr == null) throw new MarshallerException("El XML es nulo; NO se puede obtener un objeto");
-        return _parseXML(Strings.of(xmlStr).asInputStream(),xmlCharset,encoder);
+        return _parseXML(Strings.converterOf(xmlStr).asInputStream(),xmlCharset,encoder);
     }
     public final T beanFrom(final InputStream is,
     						final Charset xmlCharset,
@@ -496,7 +495,7 @@ private class ObjsFromXMLLoader
 		        	StringBuilder text = Strings.create(len + sb.length())	// crear un buffer del tamaño adecuado = texto existente + texto nuevo
 		        								.add(buff,offset,len)		// añadir el texto que llega en el método characters
 		        								.decodeUsing(_textEncoder)	// decodificarlo
-		        								.asStringBuilder();			// devolver como un stringBuilder
+		        								.convert().asStringBuilder();			// devolver como un stringBuilder
 		    		sb.append(text);	// añadir al buffer existente el nuevo texto
 		    		
 		        } else if (beanAndField.getFieldInstance() != null 

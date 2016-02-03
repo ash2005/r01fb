@@ -9,12 +9,12 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+
 import r01f.exceptions.Throwables;
 import r01f.mime.MimeType;
-import r01f.types.weburl.WebUrl;
+import r01f.types.url.Url;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.collect.Lists;
 
 /**
  * Aux type to do REST client-calls.
@@ -68,7 +68,7 @@ public class HttpRESTClient {
 	 * @param headers the HTTP headers
 	 * @return the server-returned result
 	 */
-	public static HttpResponse doGET(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doGET(final Url url,final Map<String,String> urlParameters,
 									 final Map<String, String> headers) {
 		HttpResponse outResponse = null;
 		try {
@@ -93,7 +93,7 @@ public class HttpRESTClient {
 	 * @return the server-returned result
 
 	 */
-	public static HttpResponse doHEAD(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doHEAD(final Url url,final Map<String,String> urlParameters,
 									  final Map<String,String> headers) {
 		HttpResponse outResponse = null;
 		try {
@@ -117,7 +117,7 @@ public class HttpRESTClient {
 	 * @param headers the HTTP headers
 	 * @return the server-returned result
 	 */
-	public static HttpResponse doDELETE(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doDELETE(final Url url,final Map<String,String> urlParameters,
 										final Map<String,String> headers) {
 		HttpResponse outResponse = null;
 		try {
@@ -142,7 +142,7 @@ public class HttpRESTClient {
 	 * @param postPayload the PUTed data
 	 * @return the server-returned result
 	 */
-	public static HttpResponse doPUT(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doPUT(final Url url,final Map<String,String> urlParameters,
 									  final Map<String,String> headers,
 									  final InputStream postPayload) {
 		HttpResponse outResponse = HttpRESTClient.doPUT(url,urlParameters,
@@ -159,7 +159,7 @@ public class HttpRESTClient {
 	 * @param mimeType the content-type of the posted data (if null application/xml is assumed)
 	 * @return the server-returned result
 	 */
-	public static HttpResponse doPUT(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doPUT(final Url url,final Map<String,String> urlParameters,
 									 final Map<String,String> headers,
 									 final InputStream postPayload,
 									 final MimeType mimeType) {
@@ -189,7 +189,7 @@ public class HttpRESTClient {
 	 * @param formParams the PUTed form data
 	 * @return the server-returned result
 	 */
-	public static HttpResponse doPUTForm(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doPUTForm(final Url url,final Map<String,String> urlParameters,
 										 final Map<String,String> headers,
 										 final Map<String,String> formParams) {
 		HttpResponse outResponse = null;
@@ -224,7 +224,7 @@ public class HttpRESTClient {
 	 * @param mimeType the content-type of the posted data (if null application/xml is assumed)
 	 * @return the server-returned result
 	 */
-	public static HttpResponse doPOST(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doPOST(final Url url,final Map<String,String> urlParameters,
 									  final Map<String,String> headers,
 									  final InputStream postPayload,
 									  final MimeType mimeType) {
@@ -255,7 +255,7 @@ public class HttpRESTClient {
 	 * @param postPayload the POSTed data
 	 * @return the server-returned result
 	 */
-	public static HttpResponse doPOST(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doPOST(final Url url,final Map<String,String> urlParameters,
 									  final Map<String,String> headers,
 									  final InputStream postPayload) {
 		HttpResponse outResponse = HttpRESTClient.doPOST(url,urlParameters,
@@ -271,7 +271,7 @@ public class HttpRESTClient {
 	 * @param formParams the POSTed form data
 	 * @return the server-returned result
 	 */
-	public static HttpResponse doPOSTForm(final WebUrl url,final Map<String,String> urlParameters,
+	public static HttpResponse doPOSTForm(final Url url,final Map<String,String> urlParameters,
 										  final Map<String,String> headers,
 										  final Map<String,String> formParams) {
 		HttpResponse outResponse = null;

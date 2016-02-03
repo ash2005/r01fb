@@ -10,7 +10,7 @@ import r01f.httpclient.HttpResponse;
 import r01f.marshalling.Marshaller;
 import r01f.mime.MimeType;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.util.types.Strings;
 
 @Slf4j
@@ -42,7 +42,7 @@ public abstract class DelegateForRawREST {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static HttpResponse GET(final SerializedURL restResourceUrl,
+	public static HttpResponse GET(final Url restResourceUrl,
 								   final String userContextXml) {
 		log.trace("\t\tGET resource: {}",restResourceUrl);
 			
@@ -58,7 +58,7 @@ public abstract class DelegateForRawREST {
 		}
 		return outHttpResponse;
 	}
-	public static HttpResponse POST(final SerializedURL restResourceUrl,
+	public static HttpResponse POST(final Url restResourceUrl,
 									final String userContextXml,
 							     	final String entityXml,
 							     	final HttpRequestHeader... headers) {
@@ -87,7 +87,7 @@ public abstract class DelegateForRawREST {
 		}				
 		return outHttpResponse;
 	}
-	public static HttpResponse PUT(final SerializedURL restResourceUrl,
+	public static HttpResponse PUT(final Url restResourceUrl,
 								   final String userContextXml,
 				 			  	   final String entityXml,
 				 			  	   final HttpRequestHeader... headers) {
@@ -117,7 +117,7 @@ public abstract class DelegateForRawREST {
 		}		
 		return outHttpResponse;
 	}
-	public static HttpResponse DELETE(final SerializedURL restResourceUrl,
+	public static HttpResponse DELETE(final Url restResourceUrl,
 									  final String userContextXml) {
 		log.trace("\t\tDELETE resource: {}",restResourceUrl);
 		HttpResponse outHttpResponse = null;

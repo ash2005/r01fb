@@ -16,7 +16,7 @@ import r01f.persistence.CRUDResult;
 import r01f.persistence.CRUDResultBuilder;
 import r01f.persistence.PersistenceRequestedOperation;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
@@ -37,7 +37,7 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 	public CRUDResult<M> mapHttpResponseForEntity(final UserContext userContext,
 												  final PersistenceRequestedOperation requestedOp,
 												  final VersionIndependentOID oid,final Object version,
-												  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												  final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDResult<M> outOperationResult = null;
 		if (httpResponse.isSuccess()) {
 			outOperationResult = _mapHttpResponseForSuccess(userContext,
@@ -54,7 +54,7 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 	private CRUDError<M> _mapHttpResponseForError(final UserContext userContext,
 												  final PersistenceRequestedOperation requestedOp,
 												  final VersionIndependentOID oid,final Object version,
-												  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												  final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDError<M> outOpError = null;
 		
 		// [0] - Load the http response text
@@ -89,7 +89,7 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 	public CRUDOnMultipleResult<M> mapHttpResponseOnMultipleEntity(final UserContext userContext,
 																		   final PersistenceRequestedOperation requestedOp,
 																		   final VersionIndependentOID requestedOid,
-																		   final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+																		   final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDOnMultipleResult<M> outOperationsResults = null;
 		
 		if (httpResponse.isSuccess()) {
@@ -111,7 +111,7 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 	protected CRUDOnMultipleOK<M> _mapHttpResponseForSuccessOnMultipleEntity(final UserContext userContext,
 															   					   	 final PersistenceRequestedOperation requestedOp,
 															   					 	 final VersionIndependentOID requestedOid,
-															   					   	 final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+															   					   	 final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDOnMultipleOK<M> outOperationsResults = null;
 		
 		// [0] - Load the http response text
@@ -127,7 +127,7 @@ public class RESTResponseToCRUDResultMapperForVersionableModelObject<O extends O
 	protected CRUDOnMultipleError<M> _mapHttpResponseForErrorOnMultipleEntities(final UserContext userContext,
 															   	 						final PersistenceRequestedOperation requestedOp,
 															   	 						final VersionIndependentOID requestedOid,
-															   	 						final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+															   	 						final Url restResourceUrl,final HttpResponse httpResponse) {
 		CRUDOnMultipleError<M> outOpError = null;
 		
 		// [0] - Load the http response text

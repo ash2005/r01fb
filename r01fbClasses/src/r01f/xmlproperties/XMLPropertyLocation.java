@@ -33,8 +33,10 @@ public class XMLPropertyLocation
 /////////////////////////////////////////////////////////////////////////////////////////
 	@XmlAttribute(name="appCode")
 	@Getter @Setter private AppCode _appCode;
+	
 	@XmlAttribute(name="component")
 	@Getter @Setter private AppComponent _component;
+	
 	@XmlValue
 	@Getter @Setter private Path _xPath;
 
@@ -64,7 +66,7 @@ public class XMLPropertyLocation
 		return outLoc;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS
+//  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * @return an id like {appCode}${component}${xPath} 

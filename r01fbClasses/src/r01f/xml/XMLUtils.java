@@ -20,8 +20,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import lombok.Cleanup;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -29,10 +27,11 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import lombok.Cleanup;
 import r01f.httpclient.HttpClient;
 import r01f.httpclient.HttpClientProxySettings;
 import r01f.types.Path;
-import r01f.types.weburl.WebUrl;
+import r01f.types.url.Url;
 import r01f.util.types.Strings;
 
 
@@ -159,7 +158,7 @@ public final class XMLUtils {
      */
     public static Document parse(final Path filePath,
     							 final String... ignoredEntities) throws SAXException {
-    	return XMLUtils.parse(Strings.of(filePath.asAbsoluteString()).asInputStream(),
+    	return XMLUtils.parse(Strings.converterOf(filePath.asAbsoluteString()).asInputStream(),
     						  ignoredEntities);
     }
     /**
@@ -172,7 +171,7 @@ public final class XMLUtils {
     public static Document parse(final File file) throws IOException,
     													 SAXException {
         return XMLUtils.parse(Strings.of(file)
-        							 .asInputStream());
+        							 .convert().asInputStream());
     }
     /**
      * Loads a XML from a remote url, parses it and returns a DOM {@link Document}
@@ -183,7 +182,7 @@ public final class XMLUtils {
      * @throws SAXException 
      * @throws IOException 
      */
-    public static Document parse(final WebUrl url,
+    public static Document parse(final Url url,
     					  		 final String[]... cookies) throws IOException,
     															   SAXException {
     	return XMLUtils.parse(url,
@@ -199,7 +198,7 @@ public final class XMLUtils {
      * @throws SAXException 
      * @throws IOException 
      */
-    public static Document parse(final WebUrl url,
+    public static Document parse(final Url url,
     					  		 final Charset charset,
     					  		 final String[]... cookies) throws IOException,
     					  		 								   SAXException {
@@ -216,7 +215,7 @@ public final class XMLUtils {
      * @throws SAXException 
      * @throws IOException 
      */
-    public static Document parse(final WebUrl url,final HttpClientProxySettings proxySettings,
+    public static Document parse(final Url url,final HttpClientProxySettings proxySettings,
     					  		 final String[]... cookies) throws IOException,
     														  	   SAXException {
     	return XMLUtils.parse(url,proxySettings,
@@ -234,7 +233,7 @@ public final class XMLUtils {
      * @throws IOException 
      */
 	@SuppressWarnings("resource")
-	public static Document parse(final WebUrl url,final HttpClientProxySettings proxySettings,
+	public static Document parse(final Url url,final HttpClientProxySettings proxySettings,
     					  		 final Charset charset,
     					  		 final String[]... cookies) throws IOException,
     														  	   SAXException {
@@ -254,7 +253,7 @@ public final class XMLUtils {
      * @return 
      * @throws IOException 
      */
-    private static HttpURLConnection _getURLConnection(final WebUrl url,final HttpClientProxySettings proxySettings,
+    private static HttpURLConnection _getURLConnection(final Url url,final HttpClientProxySettings proxySettings,
     												   final Charset charset,
     												   final String[]... cookies) throws IOException {
     	//System.setProperty("javax.net.debug","all");

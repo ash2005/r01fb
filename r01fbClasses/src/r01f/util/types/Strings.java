@@ -1,12 +1,10 @@
 package r01f.util.types;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Serializable;
-import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.util.Collection;
@@ -19,7 +17,13 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.EncoderException;
-import org.apache.commons.lang3.StringEscapeUtils;
+
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Predicate;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import r01f.debug.Debuggable;
 import r01f.encoding.TextEncoder;
@@ -28,15 +32,9 @@ import r01f.resources.ResourcesLoader;
 import r01f.resources.ResourcesLoaderBuilder;
 import r01f.resources.ResourcesLoaderFromClassPath;
 import r01f.resources.ResourcesLoaderFromFileSystem;
+import r01f.types.CanBeRepresentedAsString;
 import r01f.types.Path;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.annotations.GwtIncompatible;
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Predicate;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 
 /**
@@ -255,6 +253,7 @@ public class Strings {
 ///////////////////////////////////////////////////////////////////////////////
 	public static class StringExtended 
 	         implements CharSequence,
+	         			CanBeRepresentedAsString,
 	                    Serializable {
 		private static final long serialVersionUID = -7028698392502771655L;
 		/**
@@ -305,35 +304,15 @@ public class Strings {
 		public String toString() {
 			return _buffer.toString();
 		}
-		/**
-		 * Returns as a {@link String}
-		 */
+		@Override
 		public String asString() {
-			return this.toString();
+			return _buffer != null ? _buffer.toString() : null;
 		}
 		/**
-		 * Returns as an {@link Integer}
+		 * @return a string to any type converter
 		 */
-		public int asInteger() {
-			return Strings.asInteger(_buffer);
-		}
-		/** 
-		 * Returns as a {@link Long}
-		 */
-		public long asLong() {
-			return Strings.asLong(_buffer);
-		}
-		/**
-		 * Returns as a {@link Double}
-		 */
-		public double asDouble() {
-			return Strings.asDouble(_buffer);
-		}
-		/**
-		 * Returns as a {@link Float}
-		 */
-		public Float asFloat() {
-			return Strings.asFloat(_buffer);
+		public StringConverter convert() {
+			return new StringConverter(_buffer.toString());
 		}
 		/**
 		 * Returns as a byte array encoded on the system's default charset
@@ -351,59 +330,11 @@ public class Strings {
 			return Strings.getBytes(_buffer,charset);
 		}
 		/**
-		 * Returns as a {@link StringBuilder}
-		 */
-		public StringBuilder asStringBuilder() {
-			return _buffer;
-		}
-		/**
-		 * Returns as a {@link StringBuffer}
-		 */
-		public StringBuffer asStringBuffer() {
-			return Strings.asStringBuffer(_buffer);
-		}
-		/**
-		 * Returns as a char array
-		 */
-		public char[] asCharArray() {
-			return Strings.asCharArray(_buffer);
-		}
-		/**
-		 * Returns an {@link InputStream} to the buffer, that's the {@link String} as an {@link InputStream}
-		 * (the stream's byte charset is the System's default charset)
-		 */
-		@GwtIncompatible("IO is NOT supported by GWT")
-		public InputStream asInputStream() {
-			return Strings.asInputStream(_buffer);
-		}
-		/**
-		 * Returns an {@link InputStream} to the buffer, that's the {@link String} as an {@link InputStream}
-		 * the stream's byte charset is provided 
-		 * @param charset 
-		 */
-		@GwtIncompatible("IO is NOT supported by GWT")
-		public InputStream asInputStream(final Charset charset) {
-			return Strings.asInputStream(_buffer,charset);
-		}
-		/**
-		 * Returns a {@link Reader} to the buffer, that's the {@link String} as a {@link Reader}
-		 */
-		@GwtIncompatible("IO is NOT supported by GWT")
-		public Reader asReader() {
-			return Strings.asReader(_buffer);
-		}
-		/**
 		 * Returns an array of {@link String}s with each line of the original {@link String}
 		 */
 		public String[] getLines() {
 			return Strings.getLines(_buffer);
 		}	
-		/**
-		 * Provides access to the XML operations
-		 */
-		public XMLString asXml() {
-			return new XMLString(_buffer);
-		}
 		/**
 		 * Ensures that the {@link String} matches the provided regular expression, if NO match is found
 		 * an {@link IllegalArgumentException} is thrown
@@ -439,7 +370,7 @@ public class Strings {
 		@GwtIncompatible("Locale is NOT supported by GWT")
 		public StringExtended format(final Locale l,final Object args) {
 			if (_buffer == null) return this;
-			_buffer = new StringBuilder(String.format(l,this.asString(),args));
+			_buffer = new StringBuilder(String.format(l,this.convert().asString(),args));
 			return this;
 		}
 		/**
@@ -455,7 +386,7 @@ public class Strings {
 		@GwtIncompatible("format(String,Object) method of String type is NOT supported by GWT")
 		public StringExtended format(final Object args) {
 			if (_buffer == null) return this;
-			_buffer = new StringBuilder(String.format(this.asString(),args));
+			_buffer = new StringBuilder(String.format(this.convert().asString(),args));
 			return this;
 		}
 		/**
@@ -527,8 +458,7 @@ public class Strings {
 			return this;
 		}
 		/**
-		 * Elimina algunos caracteres "especiales" del juego de caracteres utilizados en windows
-		 * que es un super-conjunto del ISO8859
+		 * Removes windows "special" characters (windows default latin charset is a super-set of ISO8859)
 		 */
 		public StringExtended windows1252ToIso8859() {
 			if (_buffer == null) return this;
@@ -536,9 +466,9 @@ public class Strings {
 			return this;
 		}
 		/**
-		 * Filtra caracteres y los sustituye por otros
-		 * @param charsToFilter caracteres a filtrar
-		 * @param charsFiltered caracteres a sustituir por los filtrados
+		 * Filters chars and replaces them with others
+		 * @param charsToFilter characters to filter
+		 * @param charsFiltered characters to replace
 		 */
 		public StringExtended filterAndReplaceChars(final char[] charsToFilter,final String[] charsFiltered) {
 			if (_buffer == null) return this;
@@ -552,52 +482,8 @@ public class Strings {
 		 * @return
 		 */
 		public StringExtended escapeJSON() {
-			if (_buffer == null) return this;
-	        char c = 0;
-	        int i;
-	        int len = _buffer.length();
-	        StringBuilder sb = new StringBuilder(len + 4);
-	        String t;
-		    sb.append('"');
-	        for (i = 0; i < len; i += 1) {
-	        	c = _buffer.charAt(i);
-	            switch (c) {
-	            case '\\':
-	            case '"':
-	                sb.append('\\');
-	                sb.append(c);
-	                break;
-	            case '/':
-	            	sb.append('\\');
-	                sb.append(c);
-	                break;
-	            case '\b':
-	                sb.append("\\b");
-	                break;
-	            case '\t':
-	                sb.append("\\t");
-	                break;
-	            case '\n':
-	                sb.append("\\n");
-	                break;
-	            case '\f':
-	                sb.append("\\f");
-	                break;
-	            case '\r':
-	               sb.append("\\r");
-	               break;
-	            default:
-	                if (c < ' ') {
-	                    t = "000" + Integer.toHexString(c);
-	                    sb.append("\\u" + t.substring(t.length() - 4));
-	                } else {
-	                    sb.append(c);
-	                }
-	            }
-	        }
-	        sb.append('"');
-	        _buffer = sb;
-	         
+			if (_buffer == null) return this;	       
+	        _buffer = new StringBuilder(StringEscapeUtils.escapeJSON(_buffer));
 			return this;
 		}
 		/**
@@ -609,7 +495,7 @@ public class Strings {
 		@GwtIncompatible("apache commons StringEscaptUtils is NOT supported by GWT")
 		public StringExtended escapeHTML() {
 			if (_buffer == null) return this;
-			_buffer = new StringBuilder(StringEscapeUtils.escapeHtml4(_buffer.toString()));
+			_buffer = new StringBuilder(StringEscapeUtils.escapeHTML(_buffer));
 			return this;
 		}
 		/**
@@ -622,19 +508,17 @@ public class Strings {
 		@GwtIncompatible("apache commons StringEscaptUtils is NOT supported by GWT")
 		public StringExtended escapeXML() {
 			if (_buffer == null) return this;
-			_buffer = new StringBuilder(StringEscapeUtils.escapeXml10(_buffer.toString()));
+			_buffer = new StringBuilder(StringEscapeUtils.escapeXML(_buffer));
 			return this;
 		}
 		/**
-		 * Elimina todo lo que no es una palabra (espacios, _, /, etc) y lo
-		 * sustituye por un _
+		 * Removes everything that's not a word (spaces, _, /, etc) 
 		 * @param str la cadena de origen
 		 * @return la cadena modificada
 		 */
 		@GwtIncompatible("regex is NOT supported by GWT")
 		public StringExtended removeWhitespace() {
 			if (_buffer == null) return this;
-			// Sustituir todo lo que no es una palabra (espacios, _, /, etc) por un _
 			StringBuffer sb = new StringBuffer();
 			Pattern regex = Pattern.compile("[^\\w]");
 			Matcher regexMatcher = regex.matcher(_buffer);
@@ -1485,7 +1369,7 @@ public class Strings {
 		 */
 		@GwtIncompatible("apache.commons.lang not supported by GWT")
 		public XMLString escape() {
-			String escapedXml = StringEscapeUtils.escapeXml10(_buffer.toString());
+			String escapedXml = StringEscapeUtils.escapeXML(_buffer).toString();
 			_buffer = new StringBuilder(escapedXml);
 			return this;
 		}
@@ -1612,35 +1496,6 @@ public class Strings {
 // 	STATIC UTIL METHODS
 ///////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Returns as an {@link Integer}
-	 * @param str
-	 */
-	public static int asInteger(final CharSequence str) {
-		return Integer.valueOf(str.toString());
-	}
-	/** 
-	 * Returns as a {@link Long}
-	 * @param str
-	 */
-	public static long asLong(final CharSequence str) {
-		return Long.valueOf(str.toString());
-	}
-	/**
-	 * Returns as a {@link Double}
-	 * @param str
-	 */
-	public static double asDouble(final CharSequence str) {
-		return Double.valueOf(str.toString());
-	}
-	/**
-	 * Returns as a {@link Float}
-	 * @param str
-	 */
-	public static Float asFloat(final CharSequence str) {
-		if (str == null) return null;
-		return Float.valueOf(str.toString());
-	}
-	/**
 	 * Returns as a byte array encoded on the system's default charset
 	 * @param str
 	 */
@@ -1661,59 +1516,12 @@ public class Strings {
 		return str.toString().getBytes(charset);
 	}
 	/**
-	 * Returns as a {@link StringBuilder}
+	 * Returns a converter util
 	 * @param str
+	 * @return
 	 */
-	public static StringBuilder asStringBuilder(final CharSequence str) {
-		if (str == null) return null;
-		return new StringBuilder(str);
-	}
-	/**
-	 * Returns as a {@link StringBuffer}
-	 * @param str
-	 */
-	public static StringBuffer asStringBuffer(final CharSequence str) {
-		if (str == null) return null;
-		return new StringBuffer(str);
-	}
-	/**
-	 * Returns as a char array
-	 * @param str
-	 */
-	public static char[] asCharArray(final CharSequence str) {
-		if (str == null) return null;
-		return str.toString().toCharArray();
-	}
-	/**
-	 * Returns an {@link InputStream} to the buffer, that's the {@link String} as an {@link InputStream}
-	 * (the stream's byte charset is the System's default charset)
-	 * @param str
-	 */
-	@GwtIncompatible("IO is NOT supported by GWT")
-	public static InputStream asInputStream(final CharSequence str) {
-		return Strings.asInputStream(str,
-									 Charset.defaultCharset());
-	}
-	/**
-	 * Returns an {@link InputStream} to the buffer, that's the {@link String} as an {@link InputStream}
-	 * the stream's byte charset is provided 
-	 * @param str
-	 * @param charset 
-	 */
-	@GwtIncompatible("IO is NOT supported by GWT")
-	public static InputStream asInputStream(final CharSequence str,
-											final Charset charset) {
-		if (str == null) return null;
-		return new ByteArrayInputStream(str.toString().getBytes(charset));
-	}
-	/**
-	 * Returns a {@link Reader} to the buffer, that's the {@link String} as a {@link Reader}
-	 * @param str
-	 */
-	@GwtIncompatible("IO is NOT supported by GWT")
-	public static Reader asReader(final CharSequence str) {
-		if (str == null) return null;
-		return new StringReader(str.toString());
+	public static StringConverter converterOf(final CharSequence str) {
+		return new StringConverter(str);
 	}
 	/**
 	 * Returns an array of {@link String}s with each line of the original {@link String}

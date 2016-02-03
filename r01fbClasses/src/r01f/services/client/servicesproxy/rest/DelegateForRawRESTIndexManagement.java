@@ -12,7 +12,7 @@ import r01f.mime.MimeType;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.persistence.index.IndexManagementCommand;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
@@ -28,7 +28,7 @@ public class DelegateForRawRESTIndexManagement
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public EnqueuedJob doIndexManagementCommand(final SerializedURL restResourceUrl,
+	public EnqueuedJob doIndexManagementCommand(final Url restResourceUrl,
 							   	  				final UserContext userContext,
 							   	  				final IndexManagementCommand indexCmd) {
 		log.trace("\t\tINDEX resource: {}",restResourceUrl);
@@ -74,7 +74,7 @@ public class DelegateForRawRESTIndexManagement
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	public EnqueuedJob mapHttpResponseForEnqueuedJob(final UserContext userContext,
-													 final SerializedURL restResourceUrl,
+													 final Url restResourceUrl,
 													 final HttpResponse httpResponse) {
 		EnqueuedJob outJob = this.getResponseToResultMapper()
 										.mapHttpResponse(userContext,

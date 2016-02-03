@@ -43,7 +43,7 @@ import r01f.types.Range;
 import r01f.types.summary.LangDependentSummary;
 import r01f.types.summary.LangIndependentSummary;
 import r01f.types.summary.Summary;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
@@ -269,7 +269,8 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 				// Full-text field
 				_createReaderField(fieldsFactory,
 								   IndexDocumentFieldID.fieldIdOf(fieldId),
-								   Strings.asReader((String)fieldValue));
+								   Strings.converterOf((String)fieldValue)
+								   		  .asReader());
 			} else {
 				// Normal String field
 				_createStringField(fieldsFactory,
@@ -326,10 +327,10 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 			_createPathField(fieldsFactory,
 							 (IndexDocumentFieldValue<IsPath>)indexableFieldValue);
 		}
-		else if (fieldValue instanceof SerializedURL) {
+		else if (fieldValue instanceof Url) {
 			log.debug("\t-serializedURL: {}",fieldId);
 			_createSerializedUrlField(fieldsFactory,
-									  (IndexDocumentFieldValue<SerializedURL>)indexableFieldValue);
+									  (IndexDocumentFieldValue<Url>)indexableFieldValue);
 		}
 		else if (fieldValue instanceof Collection) {
 			log.debug("\t-Multi valued field: {}",fieldId);
@@ -404,9 +405,9 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 		} else if (value instanceof IsPath) {
 			_createPathField(fieldsFactory,luceneFieldId,
 							 (IsPath)value);
-		} else if (value instanceof SerializedURL) {
+		} else if (value instanceof Url) {
 			_createSerializedUrlField(fieldsFactory,luceneFieldId,
-									  (SerializedURL)value);
+									  (Url)value);
 		} else if (value instanceof CanBeRepresentedAsString) {		// DO NOT MOVE!!!
 			_createCanBeRepresentedAsStringField(fieldsFactory,luceneFieldId,
 												 (CanBeRepresentedAsString)value);
@@ -789,12 +790,12 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 //  Path
 /////////////////////////////////////////////////////////////////////////////////////////
 	private static void _createSerializedUrlField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
-								  		 		  final IndexDocumentFieldValue<SerializedURL> indexableField) {
+								  		 		  final IndexDocumentFieldValue<Url> indexableField) {
 		_process(indexableField,
-				 new FieldFactory<SerializedURL>() {
+				 new FieldFactory<Url>() {
 							@Override
 							public void create(final IndexDocumentFieldID luceneFieldId,
-											   final SerializedURL value) {
+											   final Url value) {
 								_createSerializedUrlField(fieldsFactory,
 												 		  luceneFieldId,
 												 		  indexableField.getValue());
@@ -803,7 +804,7 @@ public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends
 	}
 	private static void _createSerializedUrlField(final LuceneDocumentFactoryForIndexableModelObject fieldsFactory,
 										 		  final IndexDocumentFieldID luceneFieldId,
-										 		  final SerializedURL url) {
+										 		  final Url url) {
 		fieldsFactory.createField(luceneFieldId)
 					 .setStringValue(url.asString());
 	}

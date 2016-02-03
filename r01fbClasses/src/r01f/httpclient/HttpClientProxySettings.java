@@ -2,6 +2,8 @@ package r01f.httpclient;
 
 import java.io.Serializable;
 
+import com.google.common.annotations.GwtIncompatible;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -9,12 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import r01f.debug.Debuggable;
 import r01f.guids.CommonOIDs.Password;
 import r01f.guids.CommonOIDs.UserCode;
-import r01f.types.weburl.SerializedURL;
-import r01f.types.weburl.WebUrl;
+import r01f.types.url.Url;
 import r01f.util.types.Strings;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.common.annotations.GwtIncompatible;
 
 /**
  * Proxy info
@@ -34,7 +33,7 @@ public class HttpClientProxySettings
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////	
 	@Getter @Setter private boolean _enabled = true;
-	@Getter @Setter private WebUrl _proxyUrl;
+	@Getter @Setter private Url _proxyUrl;
 	@Getter @Setter private UserCode _userCode;
 	@Getter @Setter private Password _password;
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +45,7 @@ public class HttpClientProxySettings
 	public HttpClientProxySettings(final boolean enabled) {
 		_enabled = enabled;
 	}
-	public HttpClientProxySettings(final WebUrl proxyUrl,
+	public HttpClientProxySettings(final Url proxyUrl,
 								   final UserCode userCode,final Password password) {
 		_enabled = true;
 		_proxyUrl = proxyUrl;
@@ -60,8 +59,7 @@ public class HttpClientProxySettings
 	public CharSequence debugInfo() {
 		String outDbg = null;
 		if (_enabled) {
-			outDbg = Strings.of("ENABLED [{} {}/{}]",_proxyUrl.asSerializedUrl()
-															  .asStringNotUrlEncodingQueryStringParamsValues())
+			outDbg = Strings.of("ENABLED [{} {}/{}]",_proxyUrl.asStringNotUrlEncodingQueryStringParamsValues())
 					.customizeWith(_userCode,_password)
 					.asString();
 		} else {
@@ -77,8 +75,8 @@ public class HttpClientProxySettings
 															 final String baseXPath) {
 		boolean enabled = props.propertyAt(baseXPath + "/@enabled")
 							   .asBoolean(false);
-		SerializedURL proxyUrl = props.propertyAt(baseXPath + "/host")
-							   		  .asURL();
+		Url proxyUrl = props.propertyAt(baseXPath + "/host")
+							   		  .asUrl();
 		UserCode userCode = props.propertyAt(baseXPath + "/user")
 								 .asUserCode();
 		Password password = props.propertyAt(baseXPath + "/password")
@@ -97,7 +95,7 @@ public class HttpClientProxySettings
 			if (proxyUrl == null) throw new IllegalStateException("Proxy url cannot be null");
 			outProxySettings = new HttpClientProxySettings();
 			outProxySettings.setEnabled(enabled);
-			outProxySettings.setProxyUrl(WebUrl.from(proxyUrl));
+			outProxySettings.setProxyUrl(proxyUrl);
 			outProxySettings.setUserCode(userCode);
 			outProxySettings.setPassword(password);
 		}

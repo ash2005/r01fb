@@ -19,7 +19,7 @@ import r01f.mail.GoogleAPI.GoogleAPIServiceAccountClientData;
 import r01f.resources.ResourcesLoaderDef.ResourcesLoaderType;
 import r01f.types.Path;
 import r01f.types.contact.EMail;
-import r01f.types.weburl.Host;
+import r01f.types.url.Host;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
 import com.google.inject.Provider;

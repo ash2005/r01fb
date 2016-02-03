@@ -70,7 +70,8 @@ public abstract class SummaryBases {
 		}
 		@Override @GwtIncompatible("GWT does not supports IO")
 		public Reader asReader(final Language lang) {
-			return Strings.asReader(this.asString(lang));
+			return Strings.converterOf(this.asString(lang))
+						  .asReader();
 		}
 		@Override
 		public boolean isEmpty(final Language lang) {
@@ -125,7 +126,8 @@ public abstract class SummaryBases {
 		}
 		@Override @GwtIncompatible("GWT does not supports IO")
 		public Reader asReader() {
-			return Strings.asReader(this.asString());
+			return Strings.converterOf(this.asString())
+						  .asReader();
 		}
 		@Override
 		public boolean isEmpty() {

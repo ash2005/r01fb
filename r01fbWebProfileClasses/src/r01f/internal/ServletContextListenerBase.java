@@ -53,17 +53,20 @@ public abstract class ServletContextListenerBase
 		_hasServiceHandlerTypes = null;
 	}
 	protected ServletContextListenerBase(final Key<? extends ServiceHandler>... hasServiceHandlerTypes) {
-		_hasServiceHandlerTypes = CollectionUtils.hasData(hasServiceHandlerTypes) ? Arrays.asList(hasServiceHandlerTypes) : null;
+		_hasServiceHandlerTypes = CollectionUtils.hasData(hasServiceHandlerTypes) ? Arrays.asList(hasServiceHandlerTypes) 
+																				  : null;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Overridden methods of GuiceServletContextListener
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void contextInitialized(final ServletContextEvent servletContextEvent) {
-		log.warn("\n\n\n=============================================\n" + 
-				       "Loading {} with class {} Servlet Context...\n" + 
-				       "=============================================\n",
+		log.warn("\n\n\n");
+		log.warn("============================================="); 
+		log.warn("Loading {} Servlet Context with {}...",
 				 servletContextEvent.getServletContext().getContextPath(),this.getClass().getSimpleName());
+		log.warn("=============================================");
+				 
 		super.contextInitialized(servletContextEvent);
 		
 		// Init JPA's Persistence Service, Lucene indexes and everything that has to be started
@@ -79,7 +82,11 @@ public abstract class ServletContextListenerBase
 	}
 	@Override
 	public void contextDestroyed(final ServletContextEvent servletContextEvent) {
-		log.warn("DESTROYING Servlet Context... closing search engine indexes if they are in use, release background jobs threads and so on...");
+		log.warn("\n\n\n");
+		log.warn("=============================================");
+		log.warn("DESTROYING {} Servlet Context with {} > closing search engine indexes if they are in use, release background jobs threads and so on...",
+				 servletContextEvent.getServletContext().getContextPath(),this.getClass().getSimpleName());
+		log.warn("=============================================");
 		
 		// Close JPA's Persistence Service, Lucene indexes and everything that has to be closed
 		// (see https://github.com/google/guice/wiki/ModulesShouldBeFastAndSideEffectFree)
@@ -106,23 +113,22 @@ public abstract class ServletContextListenerBase
 		// finalize
 		super.contextDestroyed(servletContextEvent); 
 		
-		log.warn("\n=============================================\n" + 
-				   "Servlet Context DESTROYED!!...\n" + 
-				   "=============================================\n\n\n\n");
+		log.warn("\n");
+		log.warn("============================================="); 
+		log.warn("{} Servlet Context DESTROYED!!...",
+				 servletContextEvent.getServletContext().getContextPath());
+		log.warn("=============================================");
+		log.warn("\n\n\n\n");
 	}
 	/**
 	 * Simply logs the injector creation
 	 * @param appCode
 	 */
 	protected void _logIfInjectorDidntExist(final AppCode apiAppCode,
-											final AppCode coreAppCode,
-											final String appName) {
+											final AppCode coreAppCode) {
 		if (!_injectorCreated) {
-			log.warn("\n\n\n\n==============================================================\n"
-						   + "========== [{}: {} BootStrapping]\n"
-						   + "==============================================================\n",
-						   coreAppCode,appName);
-			log.warn("CREATING {} CLIENT GUICE Injector.............",apiAppCode);
+			log.warn("Init Guice Injector for [API={}, CORE={} from {}",
+					 apiAppCode,coreAppCode,this.getClass());
 			_injectorCreated = true;
 		}
 	}

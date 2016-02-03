@@ -8,7 +8,9 @@ import r01f.model.PersistableModelObject;
 import r01f.persistence.FindOIDsResult;
 import r01f.persistence.FindResult;
 import r01f.persistence.FindSummariesResult;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
+import r01f.types.url.UrlQueryStringParam;
+import r01f.types.url.Urls;
 import r01f.usercontext.UserContext;
 
 @Slf4j
@@ -50,7 +52,7 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 //  FIND OIDs
 /////////////////////////////////////////////////////////////////////////////////////////
 	public FindOIDsResult<O> doFindOids(final UserContext userContext,
-										final SerializedURL restResourceUrl) {
+										final Url restResourceUrl) {
 		// do the http call
 		String userContextXml = _marshaller.xmlFromBean(userContext);
 		HttpResponse httpResponse = DelegateForRawREST.GET(restResourceUrl,
@@ -67,7 +69,7 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 //  FIND Entities
 /////////////////////////////////////////////////////////////////////////////////////////
 	public FindResult<M> doFindEntities(final UserContext userContext,
-										final SerializedURL restResourceUrl) {
+										final Url restResourceUrl) {
 		// do the http call
 		String userContextXml = _marshaller.xmlFromBean(userContext);
 		HttpResponse httpResponse = DelegateForRawREST.GET(restResourceUrl,
@@ -84,11 +86,11 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 //  FIND Summaries
 /////////////////////////////////////////////////////////////////////////////////////////
 	public FindSummariesResult<M> doFindSummaries(final UserContext userContext,
-												  final SerializedURL restResourceUrl) {
-		SerializedURL theRESResourceURL;
+												  final Url restResourceUrl) {
+		Url theRESResourceURL;
 		if (!restResourceUrl.containsQueryStringParam("summarized")) {
-			theRESResourceURL = SerializedURL.of(restResourceUrl.asString())				// clone
-											 .addQueryStringParam("summarized","true");	// add param
+			theRESResourceURL = Urls.join(restResourceUrl,
+										  new UrlQueryStringParam("summarized","true"));	// add param
 		} else {
 			theRESResourceURL = restResourceUrl;
 		}
@@ -107,7 +109,7 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 /////////////////////////////////////////////////////////////////////////////////////////
 //  LOG
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected void _logOidsResponse(final SerializedURL restResourceUrl,
+	protected void _logOidsResponse(final Url restResourceUrl,
 						   	    	final FindOIDsResult<O> opResult) {
 		if (opResult.hasSucceeded()) {
 			log.info("Successful REST find oids operation at resoure with path={} > ({} results)",restResourceUrl,opResult.getOrThrow().size());
@@ -123,7 +125,7 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 					  opResult.getRequestedOperationName(),restResourceUrl,opResult.getDetailedMessage());
 		}
 	}
-	protected void _logEntitiesResponse(final SerializedURL restResourceUrl,
+	protected void _logEntitiesResponse(final Url restResourceUrl,
 						   	    		final FindResult<M> opResult) {
 		if (opResult.hasSucceeded()) {
 			log.info("Successful REST find entities operation at resoure with path={} > ({} results)",restResourceUrl,opResult.getOrThrow().size());
@@ -139,7 +141,7 @@ public class DelegateForRawRESTFind<O extends OID,M extends PersistableModelObje
 					  opResult.getRequestedOperationName(),restResourceUrl,opResult.getDetailedMessage());
 		}
 	}
-	protected void _logSummariesResponse(final SerializedURL restResourceUrl,
+	protected void _logSummariesResponse(final Url restResourceUrl,
 						   	    		 final FindSummariesResult<M> opResult) {
 		if (opResult.hasSucceeded()) {
 			log.info("Successful REST find summaries operation at resoure with path={} > ({} results)",restResourceUrl,opResult.getOrThrow().size());

@@ -20,7 +20,7 @@ import r01f.types.Range;
 import r01f.types.summary.LangDependentSummary;
 import r01f.types.summary.LangIndependentSummary;
 import r01f.types.summary.Summary;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -156,10 +156,10 @@ public class IndexDocumentFieldValue<T> {
 			return new IndexDocumentFieldValue<Class<?>>(_metaDataCfg,
 											  			 type);
 		}
-		public IndexDocumentFieldValue<SerializedURL> andValue(final SerializedURL url) {
+		public IndexDocumentFieldValue<Url> andValue(final Url url) {
 			Preconditions.checkArgument(url != null,"The url must not be null");
 			if (_checkType) _metaDataCfg.checkIfIsAcceptableValueOrThrow(url);			// check the data type
-			return new IndexDocumentFieldValue<SerializedURL>(_metaDataCfg,
+			return new IndexDocumentFieldValue<Url>(_metaDataCfg,
 											  			      url);
 		}
 		public IndexDocumentFieldValue<Date> andValue(final Date date) {
@@ -236,8 +236,8 @@ public class IndexDocumentFieldValue<T> {
 				return (IndexDocumentFieldValue<T>)this.andValue((LanguageTexts)value);
 		    } else if (value instanceof Summary) {
 				return (IndexDocumentFieldValue<T>)this.andValue((Summary)value);
-			} else if (value instanceof SerializedURL) {
-				return (IndexDocumentFieldValue<T>)this.andValue((SerializedURL)value);		
+			} else if (value instanceof Url) {
+				return (IndexDocumentFieldValue<T>)this.andValue((Url)value);		
 			} else if (value instanceof CanBeRepresentedAsString) {		// DO NOT MOVE
 				// last resort
 				return (IndexDocumentFieldValue<T>)this.andValue((CanBeRepresentedAsString)value);

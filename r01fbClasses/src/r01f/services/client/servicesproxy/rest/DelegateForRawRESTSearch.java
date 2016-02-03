@@ -12,7 +12,7 @@ import r01f.model.search.SearchFilterAsCriteriaString;
 import r01f.model.search.SearchResultItem;
 import r01f.model.search.SearchResults;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 
 @Slf4j
@@ -27,7 +27,7 @@ public class DelegateForRawRESTSearch<F extends SearchFilter,I extends SearchRes
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SEARCH
 /////////////////////////////////////////////////////////////////////////////////////////
-	public SearchResults<F,I> doSEARCH(final SerializedURL restResourceUrl,
+	public SearchResults<F,I> doSEARCH(final Url restResourceUrl,
 									   final UserContext userContext,
  								       final SearchFilter filter,
  								       final long firstRowNum,final int numberOfRows) {
@@ -63,7 +63,7 @@ public class DelegateForRawRESTSearch<F extends SearchFilter,I extends SearchRes
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	public SearchResults<F,I> mapHttpResponseForSearchResults(final UserContext userContext,
-															  final SerializedURL restResourceUrl,
+															  final Url restResourceUrl,
 														   	  final HttpResponse httpResponse) {
 		SearchResults<F,I> outSearchResults = this.getResponseToResultMapper()
 														.mapHttpResponse(userContext,

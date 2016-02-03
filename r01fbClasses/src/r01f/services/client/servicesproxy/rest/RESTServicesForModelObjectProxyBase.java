@@ -7,7 +7,7 @@ import r01f.marshalling.Marshaller;
 import r01f.model.ModelObject;
 import r01f.model.metadata.ModelObjectTypeMetaData;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
-import r01f.services.client.servicesproxy.rest.RESTServicesPathBuilders.ServicesRESTResourcePathBuilderForModelObject;
+import r01f.services.client.servicesproxy.rest.RESTServiceResourceUrlPathBuilders.RESTServiceResourceUrlPathBuilderForModelObjectPersistence;
 import r01f.usercontext.UserContext;
 
 @Accessors(prefix="_")
@@ -29,7 +29,7 @@ public abstract class RESTServicesForModelObjectProxyBase<O extends OID,M extend
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////	
-	public <P extends ServicesRESTResourcePathBuilderForModelObject<O>> 
+	public <P extends RESTServiceResourceUrlPathBuilderForModelObjectPersistence<O>> 
 		   RESTServicesForModelObjectProxyBase(final Marshaller marshaller,
 											   final Class<M> modelObjectType,
 											   final P servicesRESTResourceUrlPathBuilder) {

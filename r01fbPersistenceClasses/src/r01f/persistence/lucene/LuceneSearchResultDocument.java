@@ -49,7 +49,7 @@ import r01f.types.summary.LangIndependentSummary;
 import r01f.types.summary.Summary;
 import r01f.types.summary.SummaryLanguageTextsBacked;
 import r01f.types.summary.SummaryStringBacked;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
@@ -226,7 +226,7 @@ public class LuceneSearchResultDocument
 		else if (ReflectionUtils.isImplementing(type,LangIndependentSummary.class)) {
 			outValue = (T)_createLangIndependentSummaryFromLuceneIndexedField(luceneField);
 		} 
-		else if (ReflectionUtils.isImplementing(type,SerializedURL.class)) {
+		else if (ReflectionUtils.isImplementing(type,Url.class)) {
 			outValue = (T)_createURLFromLuceneIndexedField(luceneField);
 		}
 		else if (ReflectionUtils.isImplementing(type,Language.class)) {
@@ -410,9 +410,9 @@ public class LuceneSearchResultDocument
 		return langTexts;
 		
 	}
-	private static SerializedURL _createURLFromLuceneIndexedField(final IndexableField luceneField) {
+	private static Url _createURLFromLuceneIndexedField(final IndexableField luceneField) {
 		String urlValue = luceneField.stringValue();
-		return SerializedURL.create(urlValue);
+		return Url.from(urlValue);
 	}
 	private static IsPath _createPathFromLuceneIndexedField(final Class<? extends IsPath> pathType,
 															final IndexableField luceneField) {

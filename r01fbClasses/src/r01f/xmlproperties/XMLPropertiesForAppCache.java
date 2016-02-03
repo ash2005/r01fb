@@ -34,138 +34,109 @@ import r01f.xml.XMLStringSerializer;
 import r01f.xml.XMLUtils;
 
 /**
- * Caché de propiedades para un código de aplicación.<br/>
- * Hay DOS cachés:
- * 	<ul>
- * 	<li>Caché de valores de <b>las propiedades</b>:<p>Se va completando a medida que se accede a las propiedades,
- * 										     		  es decir, cuando se recupera una propiedad del XML se almacena
- * 										     		  su valor en esta caché y NO se vuelve a obtener del XML.
- * 										     		  Esta caché está gestionada en la clase {@link XMLPropertiesCache}.
- * 										     		  Esta caché se utiliza en la clase {@link XMLPropertiesManager}.</li>
+ * Properties cache for a given app code<br/>
+ * There are TWO cache types:
+ * <ul>
+ * 	<li><b>Properties cache</b>: It's being filled as properties are being accessed: when a property is used, it's cached so the 
+ * 								 xml file does not have to be queried (xpath) again and again
+ * 								 This cache is managed at {@link XMLPropertiesCache} and used at {@link XMLPropertiesManager}.</li>
  *
- * 	<li>Caché de XMLs de <b>los componentes</b>:<p>Cuando se accede por primera vez a una propiedad cualquiera de un appCode/contentType
- * 										   		   se carga el XML de propiedades desde su almacenamiento, en este momento el Document XML
- * 										   		   se cachea en la clase {@link XMLPropertiesForComponentContainer}, de forma que NO es necesario
- * 										   		   volver a leer el XML.
- * 										   		   A medida que se van leyendo propiedades del XML, sus valores se almacenan en la
- * 										   		   clase {@link XMLPropertiesCache}.
- * 										   		   Esta caché está en la clase {@link XMLPropertiesForComponentContainer} y se
- * 										   		   instancia en ESTA clase utilizando la factoría.</li>
+ * 	<li><b>Component xml</b>: When a property of an {appCode}.component is accessed for the first time, it's xml is loaded from where it's stored
+ * 							  (filesystem, db, ect) and the xml is cached to avoid loading it again and again
+ * 							  This cache is managed at {@link XMLPropertiesForComponentContainer}</li>
  * </ul>
  */
 @Slf4j
      class XMLPropertiesForAppCache 
 implements XMLPropertiesComponentLoadedListener {
 /////////////////////////////////////////////////////////////////////////////////////////
-//  INTERFAZ DE LA FACTORIA DE XMLPropertiesForAppCache UTILIZADA 
-// 	EN GUICE POR AssistedInject (ver móudlo guice)
+// 
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Factoría de las clases responsables de cargar los xmls de propiedades.
-	 * (utilizada por GUICE AssistedInject)
+	 * Factory of {@link XMLPropertiesForAppCache} instances 
+	 * This factory is binded at {@link XMLPropertiesGuiceModule} as an assisted inject factory
+	 * needed to create {@link XMLPropertiesForAppCache} objects cannot be created by guice since
+	 * the appCode and prop number estimation are needed at creation time and both are only known
+	 * at RUNTIME
 	 */
 	static interface XMLPropertiesForAppCacheFactory {
 		/**
-		 * Crea la caché de propiedades.
-		 * @param appCode Código de aplicación.
-		 * @param componentsNumberEstimation Estimación de componentes.
-		 * @param useCache <code>true</code> si se utiliza la caché, <code>false</code> en caso contrario.
-		 * @return La caché de propiedades.
+		 * Creates a {@link XMLPropertiesForAppCache} instance from the appCode and prop number estimation
+		 * @param appCode 
+		 * @param componentsNumberEstimation 
+		 * @param useCache true if cache is used, false otherwise
+		 * @return
 		 */
 		public XMLPropertiesForAppCache createFor(AppCode appCode,int componentsNumberEstimation,
 							  					  boolean useCache);
 		/**
-		 * Crea la caché de propiedades.
-		 * @param appCode Código de aplicación.
-		 * @param environment entorno
-		 * @param componentsNumberEstimation Estimación de componentes.
-		 * @param useCache <code>true</code> si se utiliza la caché, <code>false</code> en caso contrario.
-		 * @return La caché de propiedades.
+		 * Creates a {@link XMLPropertiesForAppCache} instance from the appCode and prop number estimation
+		 * @param appCode
+		 * @param environment 
+		 * @param componentsNumberEstimation 
+		 * @param useCache true if cache is used, false otherwise
+		 * @return
 		 */
 		public XMLPropertiesForAppCache createFor(final Environment env,final AppCode appCode,
 												  final int componentsNumberEstimation,final boolean useCache);
 	}
-	/**
-	 * Implementación por defecto de {@link XMLPropertiesForAppCacheFactory} para ser usada fuera de GUICE
-	 */
-	static class DefaultXMLPropertiesForAppCacheFactory
-	  implements XMLPropertiesForAppCacheFactory {
-		@Override
-		public XMLPropertiesForAppCache createFor(final AppCode appCode,
-												  final int componentsNumberEstimation,final boolean useCache) {
-			return new XMLPropertiesForAppCache(appCode,
-											    componentsNumberEstimation,useCache);
-		}
-		@Override
-		public XMLPropertiesForAppCache createFor(final Environment env,final AppCode appCode,
-												  final int componentsNumberEstimation,final boolean useCache) {
-			return new XMLPropertiesForAppCache(env,appCode,
-												componentsNumberEstimation,useCache);
-		}
-	}
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CONSTANTES
+//  CONSTANTS
 ///////////////////////////////////////////////////////////////////////////////////////////
 	static int DEFAULT_COMPONENTS_NUMBER = 30;
 	static int DEFAULT_PROPERTIES_PER_COMPONENT = 1000;
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CACHE DE XMLs POR COMPONENTE: Se consulta cuando una propiedad NO está en la cache
+//  CACHE OF COMPONENT XMLs: It's used when an app's component's property is not cached
 ///////////////////////////////////////////////////////////////////////////////////////////
-	// Caché de ficheros XML
 	private XMLPropertiesForAppComponentsContainer _componentXMLManager;
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CACHE DE PROPIEDADES
+//  PROPERTIES CACHE: relates a xpath expression with the xml's DOM node containing the prop
 ///////////////////////////////////////////////////////////////////////////////////////////
-    // Cache de propiedades: relaciona el XPath de la propiedad con el nodo del DOM
-    //						 donde se define la propiedad
 	private Map<CacheKey,CacheValue> _cache;
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  ESTADO
+//  FIELDS
 ///////////////////////////////////////////////////////////////////////////////////////////
-	// Código de aplicación al que se refiere esta caché
-	private AppCode _appCode;
+	private AppCode _appCode;	
 
-	// Indica si utiliza la cache o consulta de nuevo el XML del manager
 	private boolean _useCache = true;
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CONSTRUCTORES
+//  CONSTRUCTOR
 ///////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Constructor en base al tamaño del cache y el modo de depuración.<br>
-	 * <b>NOTA:</b>	Se utiliza {@link com.google.inject.assistedinject.AssistedInject} ya que los parametros appCode, componentsNumberEstimation y
-	 * 		useCache NO se conocen hasta el momento de la ejecución por lo que NO se puede crear un binding estatico para XMLPropertiesCache
-	 * 		Para utilizar {@link com.google.inject.assistedinject.AssistedInject}:
+	 * Cache size and debug mode based constructor<br>
+	 * {@link com.google.inject.assistedinject.AssistedInject} is used to create {@link XMLPropertiesForAppCache} instances since appCode and prop number estimation
+	 * are NOT known at compile time
+	 * 		{@link com.google.inject.assistedinject.AssistedInject} usage:
 	 * 		<ul>
-	 * 		<ol>Crear un interfaz para la factoría de {@link XMLPropertiesForAppCache}, por ejemplo {@link XMLPropertiesForAppCacheFactory}
+	 * 		<ol>Create an interface for the object to be created (ie {@link XMLPropertiesForAppCache}) factory: {@link XMLPropertiesForAppCacheFactory}
+	 * 			This factory must have a create method with the object's constructor params that are only known at runtime:
 	 * 				<pre class="brush:java">
 	 * 					public XMLPropertiesForAppCache createFor(String appCode,int componentsNumberEstimation,
 	 *				  									    	  boolean useCache);
 	 *				</pre>
-	 *			(esta interfaz NO se implementa... lo hace Guice automáticamente).
+	 *			(BEWARE that this interface DOES NOT have to be implemented, guice will implement it automatically).
 	 *		</ol>
-	 *		<ol>En el CONSTRUCTOR de la clase que implementa XMLPropertiesForAppCache (esta clase), anotar los parámetros que
-	 *			NO se pueden inyectar con &#64;Assisted:
-	 *				<pre class="brush:java">
-	 *				&#64;Inject
-	 *				public XMLPropertiesForAppCacheImpl(&#64;Assisted final String appCode,&#64;Assisted final int componentsNumberEstimation,
-	 *					      					  		&#64;Assisted final boolean useCache)
-	 *				</pre>
+	 *		<ol>The constructor of the type being created (ie {@link XMLPropertiesForAppCache}) MUST have a constructor with the SAME params in th SAME order
+	 *			as the ones at the factory createXX method; they MUST be annotated with @Assisted
+	 *			<pre class="brush:java">
+	 *				@Inject
+	 *				public XMLPropertiesForAppCacheImpl(@Assisted final String appCode,@Assisted final int componentsNumberEstimation,
+	 *					      					  		@Assisted final boolean useCache)
+	 *			</pre>
 	 *		</ol>
-	 *		<ol>En el módulo de Guice, indicar que para construir una instancia de XMLPropertiesForAppCache, se utilice una
-	 *			una factoría que implementa {@link XMLPropertiesForAppCacheFactory} y que Guice construye automáticamente por detrás:
-	 *				<pre class="brush:java">
+	 *		<ol>At the guice module everything is tied together:
+	 *			<pre class="brush:java">
 	 *				Module assistedModuleForPropertiesCacheFactory = new FactoryModuleBuilder().implement(XMLPropertiesForAppCache.class,
 	 *																									  XMLPropertiesForAppCache.class)
 	 *																						   .build(XMLPropertiesForAppCacheFactory.class);
 	 *				binder.install(assistedModuleForPropertiesCacheFactory);
-	 *				</pre>
+	 *			</pre>
 	 *		</ol>
 	 *		</ul>
-	 * @param appCode Código de aplicación.
-	 * @param componentsNumberEstimation Tamaño de la cache de apps/components.
-	 * @param useCache <code>true</code> indica si se utiliza la cache de objetos recuperados del properties.
+	 * @param appCode appCode
+	 * @param componentsNumberEstimation an approximation of the number of properties
+	 * @param useCache <code>true</code> if a cache of properties is going to be used
 	 */
     @Inject
 	public XMLPropertiesForAppCache(@XMLPropertiesEnvironment final Environment env,
@@ -173,9 +144,9 @@ implements XMLPropertiesComponentLoadedListener {
 							      	@Assisted final boolean useCache) {
 		_appCode = appCode;
 		_useCache = useCache;
-		_componentXMLManager = new XMLPropertiesForAppComponentsContainer(this,							// listener de carga de componentes
-																	      env,							// entorno (si está definido en una variable de sistema -ver modulo guice-
-																	      _appCode,componentsNumberEstimation);	// codigo de aplicación / estimación de componentes para la aplicación
+		_componentXMLManager = new XMLPropertiesForAppComponentsContainer(this,							// component loading listener
+																	      env,							// environment
+																	      _appCode,componentsNumberEstimation);	// appCode / props estimation
 	}
 	public XMLPropertiesForAppCache(final AppCode appCode,final int componentsNumberEstimation,
 							      	final boolean useCache) {
@@ -194,67 +165,61 @@ implements XMLPropertiesComponentLoadedListener {
     		 appCode,componentsNumberEstimation,
     		 true);
 	}
-/////////////////////////////////////////////////////////////////////////////////////////
-// 	BUILDERS
-/////////////////////////////////////////////////////////////////////////////////////////
-
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  INTERFAZ XMLPropertiesComponentLoadedListener
+//  INTERFACE XMLPropertiesComponentLoadedListener
 ///////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void newComponentLoaded(final XMLPropertiesComponentDef def) {
-		// Asegurarse de que hay espacio en la caché para las propiedades estimadas del componente
+		// Ensure there's enough space at the props cache
 		_ensureCapacity(def.getNumberOfPropertiesEstimation());
 	}
 	/**
-	 * Se asegura cierta capacidad del caché.<br>
-	 * A esta función se llama desde la clase {@link XMLPropertiesForComponentContainer} cuando se carga
-	 * un nuevo XML de propiedades para un componente:
-	 * 		<ul>
-	 *      <li>En el XML de definición del componente, se indica una estimación del número de propiedades.</li>
-	 * 		<li>Cuando se carga el XML de definición del componente se llama a este método para forzar el redimensionamiento de la caché.</li>
-	 * 		</ul>
-	 * de esta forma, la caché estará normalmente bien dimensionada.
-	 * @param propertiesPerComponentEstimation Estimación de número de propiedades para el componente.
+	 * Ensures a certain cache capacity<br>
+	 * This function is called from {@link XMLPropertiesForAppComponentsContainer} when a new XML properties file is loaded
+	 * <ul>
+	 *      <li>The component definition sets the estimated props number</li>
+	 * 		<li>When the component definition is loaded, this method is called to make space for the properties at the cache.</li>
+	 * </ul>
+	 * @param propertiesPerComponentEstimation estimated number of properties
 	 */
 	private void _ensureCapacity(final int propertiesPerComponentEstimation) {
-		final float cacheMapLoadFactor = 0.5F;	// El loadFactor de un mapa es una medida de cómo de llena puede estar una tabla ANTES de que
-												// se incremente su capacidad: cuando numEntradas > loadFactor*capacidadActual la tabla interna es
-												// re-construida y se dobla el número de buckets (capacidad)
-												// NOTA:
-												//		- Un HashMap almacena entradas por hash de la clave en una serie de posiciones (buckets)
-												//		  El posible que en una misma posición (bucket) se almacenen MAS DE UNA ENTRADA por dos razones:
-												//			1.- Cuando se inserta una nueva entrada tiene el mismo hashCode que una existente en el bucket,
-												//					En este caso se llama a equals() para saber si en realidad es la misma entrada (se sustituye)
-												//					o son diferentes (en el bucket hay dos entradas)
-												// 			2.- Se ha excedido la capacidad de la tabla y obviamente en cada posición (bucket) hay que almacenar
-												//				mas de una entrada; en este caso cuando se introduce una nueva entrada hay que comparar el hashCode
-												//				con el de las entradas ya existentes en bucket:
-												//					- si el hash coincide hay que llamar a equals()
-												//					- si el hash no coincide simplemente se añade una nueva entrada en el bucket
-												// El segundo tipo de colisión esta afectado por la capacidad (número de buckets) del mapa, que en realidad
-												// está afectado por el loadFactor (entre 0 y 1)
-												//		Cuanto MENOR es el loadFactor, MENOS probable es una colisión (el número de buckets de la tabla
-												//		se va a doblar más rápidamente con lo que es menos probable que se agote el espacio de la tabla
-												//		y mas de una entrada acabe en el mismo bucket)
+		final float cacheMapLoadFactor = 0.5F;	// A Map's loadFactor is an indication of how full the underlying table can be BEFORE it's capacity is increased
+												//		when numEntries > loadFactor * actualCapacity the underlying table is rebuilt and the bucket number (capacity) is doubled
+												// NOTE that:
+												//		- A HashMap stores it's entries indexed by a hash of their keys in the underlying table's positions (buckets)
+												//		  It's possible that at a certain position (bucket) there's MORE THAN A SINGLE entry by two means:
+												//			1.- When an new entry is inserted, it has the SAME hashCode than an existent one
+												//					In this case, the entry's key's equals() method is calle to know if it's the SAME entry -in which case the 
+												//					existing entry is REPLACED by the new one-, or it's a DIFFERENT entry -in which case, the bucket will store two
+												//					entries-.
+												// 			2.- The table's capacity has been exceed and obviously at every table's position (bucket) more than a single entry
+												//				MUST be stored; in this situation, when a new entry is inserted, it's hashCode MUST be checked against the bucket 
+												//			    existing ones:
+												//					- if new entry's key's hashCode == any bucket entry's key's hash code the equals() method must be called
+												//					  and replace the entry if both key's hashcodes are equal
+												//					- if new entry's key's hashCode != any bucket entry's key's hash code a new entry is added to the bucket
+												// The SECOND collision type is affected by the table's capacity (bucket number) that ultimatelly is affected by the loadFactor
+												// (a value between 0 and 1)
+												//		The lower the loadFactor is, the LESS collision probability (the number of buckets in the table will sooner be doubled and 
+												//	 	the probability of table's space starvation is LESS probable)
 		if (_cache == null) {
-			// se crea una nueva cache
+			// a new cache is created
 			int cacheSize = propertiesPerComponentEstimation + 100;
 			log.trace("Creating a {} positions cache for every component of {}",Integer.toString(cacheSize),_appCode);
-			_cache = new HashMap<CacheKey,CacheValue>(cacheSize,cacheMapLoadFactor);	// El segundo parametro es el factor de carga del mapa
-																						// cuanto menor sea...
+			_cache = new HashMap<CacheKey,CacheValue>(cacheSize,cacheMapLoadFactor);	// the second parameter is the load factor
+																						// ... the lower it's... the less collision probability
 		} else {
-			// se redimensiona la cache
+			// the cache is re-built
 			int cacheSize = _cache.size() + propertiesPerComponentEstimation + 100;
 			log.trace("Resizing cache to add {} positions; final size: {}",Integer.toString(propertiesPerComponentEstimation),Integer.toString(cacheSize));
-			Map<CacheKey,CacheValue> tempCache = new HashMap<CacheKey,CacheValue>(cacheSize,cacheMapLoadFactor);		// El segundo parametro es el factor de carga del mapa
-																														// cuanto menor sea...
+			Map<CacheKey,CacheValue> tempCache = new HashMap<CacheKey,CacheValue>(cacheSize,cacheMapLoadFactor);		// the second parameter is the load factor
+																														// ... the lower it's... the less collision probability
 			tempCache.putAll(_cache);
 			_cache = tempCache;
 		}
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS SOBRE EL CONTENIDO
+//  
 ///////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Inicializa la caché de todos los componentes de todas las aplicaciones.

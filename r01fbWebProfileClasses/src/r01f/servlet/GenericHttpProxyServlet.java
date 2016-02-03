@@ -55,6 +55,9 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.types.Path;
+import r01f.types.Paths;
+import r01f.types.UrlPath;
+import r01f.types.url.UrlQueryString;
 import r01f.util.types.Numbers;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
@@ -738,7 +741,7 @@ public class GenericHttpProxyServlet
     	
         // simply use whatever servlet path that was part of the request as opposed to 
         // getting a preset/configurable proxy path
-        Path targetURLPath = new Path();
+        UrlPath targetURLPath = new UrlPath();
         String servletPath = originalRequest.getServletPath();	// Returns the part of this request's URL that calls the servlet. 
             													// This path starts with a "/" character and includes either the servlet name 
             													// or a path to the servlet, but does not include any extra path information 
@@ -748,12 +751,13 @@ public class GenericHttpProxyServlet
         addTrailingSlash = servletPath.endsWith("/");
         if (Strings.isNullOrEmpty(_pathTrim)) {
         	// nothing to remove
-            targetURLPath.add(servletPath);
+            targetURLPath = Paths.forUrlPaths().join(targetURLPath,
+            						   				 servletPath);
         } 
         else if (servletPath.startsWith(Path.of(_pathTrim).asAbsoluteString())) {
         	// remove the pathTrim part
-        	targetURLPath.add(servletPath.substring(Path.of(_pathTrim)
-        												.asAbsoluteString().length()));
+        	targetURLPath = Paths.forUrlPaths().join(targetURLPath,
+        											 servletPath.substring(Path.of(_pathTrim).asAbsoluteString().length()));
         }
         // Handle the path given to the servlet
         String pathInfo = originalRequest.getPathInfo();		// Returns any extra path information associated with the URL the client sent
@@ -762,25 +766,20 @@ public class GenericHttpProxyServlet
         														// and will start with a "/" character. 
         														// This method returns null if there was no extra path information. 
         if (pathInfo != null) {        	
-        	targetURLPath.add(pathInfo);
+        	targetURLPath = Paths.forUrlPaths().join(targetURLPath,
+        											 pathInfo);
         	addTrailingSlash = pathInfo.endsWith("/");
         }
 
-        // Handle the query string
-        if (originalRequest.getQueryString() != null) {
-        	targetURLPath.add("?" + originalRequest.getQueryString());
-        }
         
         // Set the protocol to HTTP
-        String protocol = (originalRequest.isSecure()) ? "https://" : "http://";
-        String endPointURL = protocol + _getTargetServerHostAndPort() + targetURLPath.asAbsoluteString();
-        if (addTrailingSlash) {
-        	if (endPointURL.contains("?")) {
-        		endPointURL = endPointURL.replace("?","/?");
-         	} else {
-         		endPointURL = endPointURL + "/";
-         	}
-        }
+        String protocol = (originalRequest.isSecure()) ? "https" : "http";
+        UrlQueryString queryString = UrlQueryString.fromParamsString(originalRequest.getQueryString());
+        String endPointURL = Strings.customized("{}://{}/{}{}?{}",
+        										protocol, _getTargetServerHostAndPort(), 
+        										targetURLPath.asRelativeString(),
+        										(addTrailingSlash ? "/" : ""),
+        										(queryString != null ? queryString.asStringNotEncodingParamValues() : ""));
         return endPointURL;
     }
     private String _getTargetServerHostAndPort() {

@@ -16,7 +16,9 @@ import r01f.util.types.Dates;
  */
 public class RESTDateParam {
 	private final Date _theDate;
-		
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
 	public RESTDateParam(final String dateMillisStr) {
 		Long millis = Long.parseLong(dateMillisStr);
 		_theDate = Dates.fromMillis(millis);

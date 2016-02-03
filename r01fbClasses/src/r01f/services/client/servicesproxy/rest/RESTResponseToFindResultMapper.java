@@ -14,7 +14,7 @@ import r01f.persistence.FindOK;
 import r01f.persistence.FindResult;
 import r01f.persistence.FindResultBuilder;
 import r01f.services.ServiceProxyException;
-import r01f.types.weburl.SerializedURL;
+import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
@@ -37,7 +37,7 @@ public class RESTResponseToFindResultMapper<O extends OID,M extends PersistableM
 //  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
 	public FindResult<M> mapHttpResponseForEntities(final UserContext userContext,
-													final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+													final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindResult<M> outOperationResult = null;
 		if (httpResponse.isSuccess()) {
 			outOperationResult = _mapHttpResponseForSuccessFindingEntities(userContext,
@@ -50,7 +50,7 @@ public class RESTResponseToFindResultMapper<O extends OID,M extends PersistableM
 	}
 	@SuppressWarnings({ "unused" })
 	protected FindOK<M> _mapHttpResponseForSuccessFindingEntities(final UserContext userContext,
-												   	   			  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												   	   			  final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindOK<M> outOperationResult = null;
 		
 		// [0] - Load the response		
@@ -65,7 +65,7 @@ public class RESTResponseToFindResultMapper<O extends OID,M extends PersistableM
 		return outOperationResult;
 	}
 	protected FindError<M> _mapHttpResponseForErrorFindigEntities(final UserContext userContext,
-												    			  final SerializedURL restResourceUrl,final HttpResponse httpResponse) {
+												    			  final Url restResourceUrl,final HttpResponse httpResponse) {
 		FindError<M> outOpError = null;
 		
 		// [0] - Load the http response text

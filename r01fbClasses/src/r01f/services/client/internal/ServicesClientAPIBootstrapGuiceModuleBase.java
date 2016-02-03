@@ -18,6 +18,8 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.AppAndComponent;
 import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.CommonOIDs.AppComponent;
+import r01f.inject.HasMoreBindings;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
 import r01f.services.ServicesMainGuiceBootstrap;
 import r01f.services.client.ClientAPI;
@@ -25,6 +27,9 @@ import r01f.services.client.ServiceProxiesAggregator;
 import r01f.services.core.internal.ServicesCoreForAppModulePrivateGuiceModule;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.usercontext.UserContext;
+import r01f.xmlproperties.XMLProperties;
+import r01f.xmlproperties.XMLPropertiesComponent;
+import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
 /**
  * This GUICE module is where the client-api bindings takes place
@@ -67,7 +72,7 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 	/**
 	 * API app code
 	 */
-	private final AppCode _apiAppCode;
+	protected final AppCode _apiAppCode;
 	/**
 	 * Service interface type to bean impl or rest / ejb, etc proxy matchings (bindings) 
 	 * This type instance has a Map member for every core appCode / module which key is the service interface type and the value is the
@@ -96,7 +101,9 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 		ModelObjectTypeMetaDataBuilder.init(_apiAppCode);
 		
 		// Other module-specific bindings
-		_configure(theBinder);
+		if (this instanceof HasMoreBindings) {
+			((HasMoreBindings)this).configureMoreBindings(binder);
+		}
 		
 		// [1] - Bind the Services proxy aggregator types as singletons
 		//		 The services proxy aggregator instance contains fields for every fine-grained service proxy
@@ -107,19 +114,29 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 		//		 The ClientAPI is injected with a service proxy aggregator defined at [2]
 		Collection<Class<? extends ClientAPI>> clientAPITypes = _bindAPIAggregatorImpls(theBinder);
 	}
-	@Provides 
-	UserContext provideUserContext() {
-		return _provideUserContext();
-	}
-	/**
-	 * Module configurations: marshaller and other bindings
-	 * @param binder
-	 */
-	protected abstract void _configure(final Binder binder);
+/////////////////////////////////////////////////////////////////////////////////////////
+//  USER CONTEXT PROVIDERS
+/////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Provides an user context
 	 */
 	protected abstract <U extends UserContext> U _provideUserContext();
+	
+	@Provides 
+	UserContext provideUserContext() {
+		return _provideUserContext();
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  CLIENT PROPERTIES PROVIDER
+/////////////////////////////////////////////////////////////////////////////////////////
+	@Singleton
+	@Provides @XMLPropertiesComponent("client")
+	XMLPropertiesForAppComponent _provideClientProperties(final XMLProperties props) {
+		log.warn("{}.client.properties.xml properties are available for injection as a {} annotated with @XmlPropertiesComponent(\"client\")",
+				 _apiAppCode,
+				 XMLPropertiesForAppComponent.class.getSimpleName());
+		return props.forAppComponent(_apiAppCode,AppComponent.forId("client"));
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  API Aggregator
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -132,9 +149,6 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 	private Collection<Class<? extends ClientAPI>> _bindAPIAggregatorImpls(final Binder binder) {
 		ServicesClientAPIFinder clientAPIFinder = new ServicesClientAPIFinder(_apiAppCode);
 		Collection<Class<? extends ClientAPI>> clientAPITypes = clientAPIFinder.findClientAPIs();
-		log.warn("==================================================");
-		log.warn("[Bind ClientAPIs]: {} instances",clientAPITypes.size());
-		log.warn("==================================================");
 		for (Class<? extends ClientAPI> clientAPIType : clientAPITypes) {
 			log.warn("\tClientAPI > {} ",clientAPIType);
 			binder.bind(clientAPIType)

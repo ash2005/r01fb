@@ -1,8 +1,5 @@
 package r01f.configproperties;
 
-import java.io.Serializable;
-import java.text.MessageFormat;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,18 +11,11 @@ import java.util.ResourceBundle;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.BooleanUtils;
-
 import r01f.bundles.ResourceBundleControl;
 import r01f.bundles.ResourceBundleMissingKeyBehaviour;
 import r01f.bundles.ResourceBundleMissingKeyException;
-import r01f.types.CanBeRepresentedAsString;
-import r01f.types.Path;
-import r01f.util.types.Dates;
-import r01f.util.types.Numbers;
+import r01f.util.types.StringConverter;
 import r01f.util.types.Strings;
-import r01f.util.types.collections.CollectionUtils;
 
 /**
  * Provides access to configuration properties
@@ -155,9 +145,9 @@ public class ConfigProperties {
      * @param key the key
      * @return the wrapper
      */
-    public ConfigPropertyWrapper get(final String key) {
+    public StringConverter get(final String key) {
     	String keyValue = _retrieveProperty(key);
-    	return new ConfigPropertyWrapper(keyValue);
+    	return new StringConverter(keyValue);
     }
     /**
      * Returns every property whose keys starts with a given prefix
@@ -171,12 +161,12 @@ public class ConfigProperties {
      *	   these messages would be returned as a Map
      * 			my.one = One
      * 			my.two = Two
-     * @param keyPrefix el prefijo
+     * @param keyPrefix 
      * @return
      */
-    public final Map<String,ConfigPropertyWrapper> propertiesWithKeysStartingWith(final String keyPrefix) {
+    public final Map<String,StringConverter> propertiesWithKeysStartingWith(final String keyPrefix) {
         if (keyPrefix == null) throw new IllegalArgumentException("Cannot load bundle key: Missing key!");  
-        Map<String,ConfigPropertyWrapper> outMessages = new HashMap<String,ConfigPropertyWrapper>();
+        Map<String,StringConverter> outMessages = new HashMap<String,StringConverter>();
         try {
 	        // Load the resourceBundle and iterate all the keys to find the ones that starts with the given prefix
 	    	ResourceBundle bundle = _retrievePropertiesResource(_bundleSpec);
@@ -186,7 +176,7 @@ public class ConfigProperties {
     				String key = keys.nextElement();
     				String keyValue = key.startsWith(keyPrefix) ? bundle.getString(key)
     													   		: null;
-    				if (keyValue != null) outMessages.put(key,new ConfigPropertyWrapper(keyValue));
+    				if (keyValue != null) outMessages.put(key,new StringConverter(keyValue));
     			} while(keys.hasMoreElements());
     		}
         } catch (MissingResourceException mrEx) {
@@ -197,121 +187,6 @@ public class ConfigProperties {
     @Override
     public final String toString() {
         return _bundleSpec;
-    }
-/////////////////////////////////////////////////////////////////////////////////////////
-//  WRAPPER
-/////////////////////////////////////////////////////////////////////////////////////////
-    @RequiredArgsConstructor
-    public class ConfigPropertyWrapper
-      implements CanBeRepresentedAsString,
-      			 Serializable {
-		private static final long serialVersionUID = -1099917385505949571L;
-		
-		private final String _propertyValue;
-    	
-    	@Override
-    	public String toString() {
-    		return this.asString();
-    	}
-    	@Override
-    	public String asString() {
-    		return _propertyValue;
-    	}
-    	public String asString(final String defaultVal) {
-    		return _propertyValue != null ? _propertyValue 
-    									  : defaultVal;
-    	}
-    	public String asStringCustomized(final Object... params) {
-    		String outValue = null;
-    		if (CollectionUtils.hasData(params)) {
-    			outValue = MessageFormat.format(_propertyValue,params);
-    		} else {
-    			outValue = _propertyValue;
-    		}
-    		return outValue;
-	    }
-    	public boolean asBoolean() {
-    		return BooleanUtils.toBoolean(false);
-    	}
-    	public boolean asBoolean(final boolean defaultValue) {
-			String bolStr = _propertyValue;
-	    	Boolean outBool = null;
-	    	if (bolStr != null) {
-		    	outBool = BooleanUtils.toBooleanObject(bolStr);
-		    	if (outBool == null) {
-		    		log.debug("Property {} cannot be converted to a boolean!",bolStr);
-		    		outBool = defaultValue;
-		    	}
-	    	} else {
-	    		outBool = defaultValue;
-	    	}
-	    	return outBool;
-    	}
-    	public long asLong() {
-    		return Numbers.isLong(_propertyValue) ? Long.parseLong(_propertyValue)
-    											  : 0;
-    	}
-    	public long asLong(final long defaultValue) {
-    		return Numbers.isLong(_propertyValue) ? Long.parseLong(_propertyValue)
-    											  : defaultValue;
-    	}
-    	public int asInteger() {
-    		return Numbers.isNumber(_propertyValue) ? Integer.parseInt(_propertyValue)
-    												: 0;
-    	}
-    	public int asInteger(final int defaultValue) {
-    		return Numbers.isInteger(_propertyValue) ? Integer.parseInt(_propertyValue)
-    											  	 : defaultValue;
-    	}
-    	public double asDouble() {
-    		return Numbers.isDouble(_propertyValue) ? Double.parseDouble(_propertyValue)
-    												: 0;
-    	}
-    	public double asDouble(final double defaultValue) {
-    		return Numbers.isDouble(_propertyValue) ? Double.parseDouble(_propertyValue)
-    											  	: defaultValue;
-    	}
-    	public float asFloat() {
-    		return Numbers.isFloat(_propertyValue) ? Float.parseFloat(_propertyValue)
-    												: 0;
-    	}
-    	public float asFloat(final float defaultValue) {
-    		return Numbers.isFloat(_propertyValue) ? Float.parseFloat(_propertyValue)
-    											  	: defaultValue;
-    	}
-    	public Date asDate(final String format) {
-    		return _propertyValue != null ? Dates.fromFormatedString(_propertyValue,format)
-    									  : null;
-    	}
-    	public Date asDate(final String format,Date defaultValue) {
-    		Date outDate = this.asDate(format);
-    		return outDate != null ? outDate
-    							   : defaultValue;
-    	}
-    	public Path asPath() {
-    		return _propertyValue != null ? Path.of(_propertyValue)
-    									  : null;
-    	}
-    	public Path asPath(final Path defaultValue) {
-    		return _propertyValue != null ? Path.of(_propertyValue)
-    									  : defaultValue;
-    	}
-		public <E extends Enum<E>> E asEnumElement(final Class<E> enumType) {
-			return this.asEnumElement(enumType,null);
-		}
-		public <E extends Enum<E>> E asEnumElement(final Class<E> enumType,
-												   final E defaultValue) {
-			String enumAsStr = this.asString();
-			E outE = defaultValue;
-			if (!Strings.isNullOrEmpty(enumAsStr)) {
-				try {
-					outE = Enum.valueOf(enumType,enumAsStr);
-				} catch(IllegalArgumentException illArgEx) {
-					outE = defaultValue;	// No hay un valor para la propiedad
-				}
-			}
-			return outE;
-		}
     }
 /////////////////////////////////////////////////////////////////////////////////////////
 //	METODOS PRIVADOS
