@@ -1,13 +1,8 @@
 package r01f.services.client.internal;
 
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -15,7 +10,7 @@ import com.google.common.collect.Lists;
 
 import lombok.RequiredArgsConstructor;
 import r01f.exceptions.Throwables;
-import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.AppAndComponent;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.ServicesPackages;
 import r01f.services.client.ClientAPI;
@@ -27,7 +22,7 @@ public class ServicesClientAPIFinder {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
-	private final AppCode _apiAppCode;
+	private final AppAndComponent _apiAppAndModule;
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CLIENT API AGGREGATORS
@@ -40,15 +35,15 @@ public class ServicesClientAPIFinder {
 	 * @return
 	 */
 	public Collection<Class<? extends ClientAPI>> findClientAPIs() {
-		// Find all ClientAPI interface subtypes
-		List<URL> apiUrls = new ArrayList<URL>();
-		apiUrls.addAll(ClasspathHelper.forPackage(ServicesPackages.apiAggregatorPackage(_apiAppCode)));	// xxx.client.servicesproxy
-		apiUrls.addAll(ClasspathHelper.forPackage(ClientAPI.class.getPackage().getName()));		
-		Reflections ref = new Reflections(apiUrls);
-		Collection<Class<? extends ClientAPI>> clientAPITypes = ref.getSubTypesOf(ClientAPI.class);
-		
-		if (CollectionUtils.isNullOrEmpty(clientAPITypes)) throw new IllegalStateException(Throwables.message("NO types extending {} was found at {}",ClientAPI.class,ServicesPackages.apiAggregatorPackage(_apiAppCode)));
-		
+		// Find all client apis
+		List<String> pckgs = Lists.newArrayListWithExpectedSize(2);
+		pckgs.add(ServicesPackages.apiAggregatorPackage(_apiAppAndModule));	
+		pckgs.add(ClientAPI.class.getPackage().getName());
+		Set<Class<? extends ClientAPI>> clientAPITypes = ServicesPackages.findSubTypesAt(ClientAPI.class,
+																						 pckgs,
+																						 this.getClass().getClassLoader());
+		if (CollectionUtils.isNullOrEmpty(clientAPITypes)) throw new IllegalStateException(Throwables.message("NO types extending {} was found at {}",
+																											  ClientAPI.class,ServicesPackages.apiAggregatorPackage(_apiAppAndModule)));
 		return FluentIterable.from(clientAPITypes)
 							 .filter(new Predicate<Class<? extends ClientAPI>>() {
 											@Override
@@ -63,17 +58,15 @@ public class ServicesClientAPIFinder {
 /////////////////////////////////////////////////////////////////////////////////////////
 	public Collection<Class<? extends ServiceProxiesAggregator>> findClientAPIProxyAggregatorTypes() {
 		// Find all ServiceProxiesAggregatorImpl interface subtypes
-		List<String> proxyPckgs = Lists.newArrayListWithExpectedSize(2);
-		proxyPckgs.add(ServicesPackages.serviceProxyPackage(_apiAppCode));	// xxx.client.servicesproxy
-		proxyPckgs.add(ServiceProxiesAggregator.class.getPackage().getName());
+		List<String> pckgs = Lists.newArrayListWithExpectedSize(2);
+		pckgs.add(ServicesPackages.serviceProxyPackage(_apiAppAndModule));	
+		pckgs.add(ServiceProxiesAggregator.class.getPackage().getName());
 		Set<Class<? extends ServiceProxiesAggregator>> proxyImplTypes = ServicesPackages.findSubTypesAt(ServiceProxiesAggregator.class,
-																										proxyPckgs,
+																										pckgs,
 																										this.getClass().getClassLoader());
-		
 		if (CollectionUtils.isNullOrEmpty(proxyImplTypes)) throw new IllegalStateException(Throwables.message("NO type extending {} was found at package {}",
 																											  ServiceProxiesAggregator.class,
-																											  ServicesPackages.serviceProxyPackage(_apiAppCode)));
-				
+																											  ServicesPackages.serviceProxyPackage(_apiAppAndModule)));
 		return FluentIterable.from(proxyImplTypes)
 							 .filter(new Predicate<Class<? extends ServiceProxiesAggregator>>() {
 											@Override

@@ -36,7 +36,7 @@ public class StringPersistenceUtils {
 	public static String load(final ResourcesLoader loader,
 							  final String filePath) throws IOException {
     	return StringPersistenceUtils.load(loader,
-    									   Path.of(filePath));
+    									   Path.from(filePath));
     }
     /**
      * Loads a file content as a string
@@ -63,7 +63,7 @@ public class StringPersistenceUtils {
 	public static String load(final ResourcesLoader loader,
 							  final String filePath,final Charset encoding) throws IOException {
     	return StringPersistenceUtils.load(loader,
-    									   Path.of(filePath),
+    									   Path.from(filePath),
     									   encoding);
     }
     /**

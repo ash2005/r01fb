@@ -54,5 +54,4 @@ public class LatiniaRequestMessage
 
 	@XmlElement(name="TEXTO")
 	@Getter @Setter private String _messageContent; // text to be sending in message.
-
 }

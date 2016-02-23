@@ -11,14 +11,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
 
 import com.google.common.annotations.GwtIncompatible;
-import com.google.common.base.Preconditions;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.debug.Debuggable;
 import r01f.exceptions.Throwables;
@@ -26,7 +22,6 @@ import r01f.marshalling.annotations.XmlCDATA;
 import r01f.patterns.Memoized;
 import r01f.types.CanBeRepresentedAsString;
 import r01f.types.Paths;
-import r01f.types.UrlPath;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -38,7 +33,6 @@ import r01f.util.types.collections.CollectionUtils;
 @GwtIncompatible("Url NOT usable in GWT")
 @XmlRootElement(name="url")
 @Accessors(prefix="_")
-@NoArgsConstructor @AllArgsConstructor
 public class Url 
   implements CanBeRepresentedAsString,
   			 Serializable,
@@ -49,10 +43,105 @@ public class Url
 // 	FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////	
 	@XmlValue @XmlCDATA
-	@Getter @Setter(AccessLevel.PRIVATE) private String _url;	// cannot make final becauseof marshalling
+	@Getter private String _url;	
 /////////////////////////////////////////////////////////////////////////////////////////
-//  CONSTRUCTOR & BUILDER
+//  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
+	protected Url() {
+		// just needed for marshalling
+	}
+	public Url(final String url) {
+		_url = url;
+	}
+	public Url(final UrlComponents components) {
+		_url = _asString(components,
+						 false);		// do not encode
+	}
+	public Url(final UrlPath path) {		
+		_url = path.asAbsoluteString();
+	}
+	public Url(final Host host,final int port) {
+		this(UrlProtocol.HTTP,host,port);
+	}
+	public Url(final UrlProtocol protocol,final Host host,final int port) {
+		this(protocol,host,port,
+			 null,
+			 null,null);
+	}
+	public Url(final UrlProtocol protocol,final Host host,final int port,
+			   final UrlPath urlPath) {
+		this(protocol,host,port,
+			 urlPath,
+			 null,null);
+	}
+	public Url(final UrlProtocol protocol,final Host host,final int port,
+			   final UrlPath urlPath,final UrlQueryString queryString) {
+		this(protocol,host,port,
+			 urlPath,
+			 queryString,null);
+	}
+	public Url(final UrlProtocol protocol,final Host host,final int port,
+			   final UrlPath urlPath,final UrlQueryString queryString,final String anchor) {
+		UrlProtocol theProt = protocol == null ? UrlProtocol.HTTP : protocol;
+		String theHost = null;
+		String thePathStr = urlPath == null ? "" : "/" + urlPath.asRelativeString();
+		String theQryStr = queryString == null ? "" : "?" + queryString.asString();
+		String theAnchorStr = anchor == null ? "" : "#" + anchor;
+		if (host == null) {			
+			_url = Strings.customized("{}{}{}",
+									  thePathStr,
+									  theQryStr,theAnchorStr);
+		} else {	
+			String theHostAsString = host.asString();
+			
+			// Sometimes the host contains a the protocol, port or path (ie: http://www.host.com/andUrlPath)
+			// ... split the host and the path
+			if (theHostAsString.contains("://") || theHostAsString.contains("/") || theHostAsString.contains(":")) {
+				Url url = Url.from(theHostAsString);
+				if (url.getHost() == null) {
+					int pathStartIndex = theHostAsString.indexOf('/');
+					theHost = pathStartIndex > 0 ? theHostAsString.substring(0,pathStartIndex) : theHostAsString;
+					if (pathStartIndex > 0) url = Url.from(theHostAsString.substring(pathStartIndex+1));
+				} else {
+					theHost = url.getHost().asString();
+				}
+				if (url.getUrlPath() != null) thePathStr = Paths.forUrlPaths().join(url.getUrlPath(),thePathStr)
+																    	  	  .asAbsoluteString();
+				if (url.getQueryString() != null) theQryStr = "?" + url.getQueryString().joinWith(UrlQueryString.fromParamsString(theQryStr))
+																 						.asStringNotEncodingParamValues();
+				if (url.getAnchor() != null && anchor == null) theAnchorStr = url.getAnchor();
+			}
+			// the usual case
+			else {
+				theHost = theHostAsString;
+			}
+			_url = Strings.customized("{}://{}:{}{}{}{}",
+									  theProt.asString(),theHost,port,
+									  thePathStr,
+									  theQryStr,theAnchorStr);
+		}
+	}
+	public Url(final UrlPath path,final UrlQueryString queryString) {
+		this(null,null,0,
+			 path,
+			 queryString,null);
+	}
+	public Url(final UrlPath path,final String anchor) {
+		this(null,null,0,
+			 path,
+			 null,anchor);
+	}
+	public Url(final UrlPath path,final UrlQueryString queryString,final String anchor) {
+		this(null,null,0,
+			 path,
+			 queryString,anchor);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  BUILDERS
+/////////////////////////////////////////////////////////////////////////////////////////
+	public static Url valueOf(final String url) {
+		return Url.from(url);
+	}
 	public static Url from(final Url other,
 						   final UrlPath path) {
 		UrlComponents otherComps = other.getComponents();
@@ -62,51 +151,27 @@ public class Url
 					    otherComps.getAnchor());
 	}
 	public static Url from(final UrlComponents components) {
-		String urlAsStr = Url.asString(components,
-									  false);
+		String urlAsStr = _asString(components,
+									false);
 		return Url.from(urlAsStr);
 	}
 	public static Url from(final UrlProtocol protocol,final Host host,final int port) {
-		Preconditions.checkArgument(host != null);
-		if (protocol == null) return Url.from(host,port);
-		return port > 0 ? Url.from(Strings.customized("{}://{}:{}",
-					    		   protocol.asString(),host,port))
-						: Url.from(Strings.customized("{}://{}",
-					    		   protocol.asString(),host));
+		return new Url(protocol,host,port);
 	}
 	public static Url from(final UrlProtocol protocol,final Host host,final int port,
 						   final UrlPath urlPath) {
-		if (protocol == null) return Url.from(host,port,
-											  urlPath);
-		if (host == null) return Url.from(urlPath);
-		
-		return urlPath != null ? Url.from(Strings.customized("{}://{}:{}/{}",
-															 protocol.asString(),host,port,
-															 urlPath.asRelativeString()))
-							   : Url.from(Strings.customized("{}://{}:{}",
-															 protocol.asString(),host,port));
+		return new Url(protocol,host,port,
+					   urlPath);
 	}
 	public static Url from(final UrlProtocol protocol,final Host host,final int port,
 						   final UrlPath urlPath,final UrlQueryString queryString) {
-		if (protocol == null) return Url.from(host,port,
-											  urlPath,queryString);
-		if (host == null) return Url.from(urlPath,queryString);
-		
-		Url url2 = Url.from(urlPath,queryString);
-		return Url.from(Strings.customized("{}://{}:{}{}",
-						protocol.asString(),host,port,
-						url2.asString()));
+		return new Url(protocol,host,port,
+					   urlPath,queryString);
 	}
 	public static Url from(final UrlProtocol protocol,final Host host,final int port,
 						   final UrlPath urlPath,final UrlQueryString queryString,final String anchor) {
-		if (protocol == null) return Url.from(host,port,
-											  urlPath,queryString,anchor);
-		if (host == null) return Url.from(urlPath,queryString,anchor);
-		
-		Url url2 = Url.from(urlPath,queryString,anchor);
-		return Url.from(Strings.customized("{}://{}:{}{}",
-					    protocol.asString(),host,port,
-					    url2.asString()));
+		return new Url(protocol,host,port,
+					   urlPath,queryString,anchor);
 	}
 	public static Url from(final Host host,final int port) {
 		return Url.from(UrlProtocol.HTTP,host,port);
@@ -130,21 +195,18 @@ public class Url
 		return Url.from(path.asAbsoluteString());
 	}
 	public static Url from(final UrlPath path,final UrlQueryString queryString) {
-		if (queryString == null) return Url.from(path);
-		return Url.from(Strings.customized("{}?{}",
-						path.asAbsoluteString(),queryString.asString()));
+		return new Url(path,queryString);
 	}
 	public static Url from(final UrlPath path,final String anchor) {
-		if (anchor == null) return Url.from(path);
-		return Url.from(Strings.customized("{}#{}",
-						path.asAbsoluteString(),anchor));
+		return new Url(path,anchor);
 	}
 	public static Url from(final UrlPath path,final UrlQueryString queryString,final String anchor) {
-		if (queryString == null && anchor == null) return Url.from(path);
-		if (queryString == null) return Url.from(path,anchor);
-		if (anchor == null) return Url.from(path,queryString);
-		return Url.from(Strings.customized("{}?{}#{}",
-						path.asAbsoluteString(),queryString.asString(),anchor));
+		return new Url(path,queryString,anchor);
+	}
+	public static Url from(final Url other) {
+		if (other == null) return null;
+		Url outUrl = new Url(other.asString());
+		return outUrl;
 	}
 	public static Url from(final String url) {
 		if (url == null) return null;
@@ -154,8 +216,34 @@ public class Url
 	public static Url from(final String url,final Object... vars) {
 		return Url.from(Strings.customized(url,vars));
 	}
-	public static Url valueOf(final String url) {
-		return Url.from(url);
+/////////////////////////////////////////////////////////////////////////////////////////
+//  ADD
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Returns a NEW {@link Url} object joining this one with then given url path
+	 * @param urlPath
+	 * @return
+	 */
+	public Url joinWith(final UrlPath urlPath) {
+		return Urls.join(this,urlPath);
+	}
+	/**
+	 * Returns a NEW {@link Url} object joining this one with then given url query string
+	 * @param qryString
+	 * @return
+	 */
+	public Url joinWith(final UrlQueryString qryString) {
+		return Urls.join(this,qryString);
+	}
+	/**
+	 * Returns a NEW {@link Url} object joining this one with then given url query string
+	 * @param urlPath
+	 * @param qryString
+	 * @return
+	 */
+	public Url joinWith(final UrlPath urlPath,
+						final UrlQueryString qryString) {
+		return Urls.join(this,urlPath,qryString);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CLONE
@@ -211,7 +299,7 @@ public class Url
 				String pathStr = m.group(1);
 				
 				outComponents = new UrlComponents(UrlProtocol.FILE,null,0,
-												  UrlPath.of(pathStr),null,null);
+												  UrlPath.from(pathStr),null,null);
 			}
 		} 
 		else {
@@ -227,7 +315,7 @@ public class Url
 				UrlProtocol protocol = !Strings.isNullOrEmpty(protocolStr) ? UrlProtocol.fromCode(protocolStr) : null;
 				Host host = !Strings.isNullOrEmpty(siteStr) ? new Host(siteStr) : null;	
 				int port = !Strings.isNullOrEmpty(portStr) ? Integer.parseInt(portStr) : 80;
-				UrlPath urlPath = !Strings.isNullOrEmpty(pathStr) ? UrlPath.of(pathStr)  : null;
+				UrlPath urlPath = !Strings.isNullOrEmpty(pathStr) ? UrlPath.from(pathStr)  : null;
 				UrlQueryString qryString = !Strings.isNullOrEmpty(queryStr) ? UrlQueryString.fromParamsString(queryStr) : null;
 				String anchor = anchorStr;
 				
@@ -251,7 +339,7 @@ public class Url
 			String pathStr = m.group(1);
 			String queryStr = m.group(2);
 			String anchorStr = m.group(3);
-			UrlPath urlPath = !Strings.isNullOrEmpty(pathStr) ? UrlPath.of(pathStr) : null;
+			UrlPath urlPath = !Strings.isNullOrEmpty(pathStr) ? UrlPath.from(pathStr) : null;
 			UrlProtocol protocol = null;
 			Host host = null;
 			int port = 0;
@@ -259,9 +347,8 @@ public class Url
 				protocol = UrlProtocol.HTTP;
 				host = Host.localhost();
 				port = 80;
-				urlPath = urlPath.getPathElements().size() > 1 ? UrlPath.of(urlPath.getPathElementsFrom(1))	// skip first element
+				urlPath = urlPath.getPathElements().size() > 1 ? UrlPath.from(urlPath.getPathElementsFrom(1))	// skip first element
 															   : null;
-				
 			}
 			UrlQueryString qryString = !Strings.isNullOrEmpty(queryStr) ? UrlQueryString.fromParamsString(queryStr) : null;
 			String anchor = anchorStr;
@@ -317,17 +404,18 @@ public class Url
 	public UrlComponents getComponents() {
 		return _urlComponents.get();
 	}
-	/**
-	 * Returns the query string part
-	 * @return
-	 */
+	public Host getHost() {
+		return _urlComponents.get().getHost();
+	}
+	public int getPort() {
+		return _urlComponents.get().getPort();
+	}
+	public UrlPath getUrlPath() {
+		return _urlComponents.get().getUrlPath();
+	}
 	public UrlQueryString getQueryString() {
 		return _urlComponents.get().getQueryString();
 	}
-	/**
-	 * Returns all query string params
-	 * @return
-	 */
 	public Set<UrlQueryStringParam> getQueryStringParams() {
 		return this.getQueryString() != null ? this.getQueryString().getQueryStringParams()
 											 : null;
@@ -358,6 +446,9 @@ public class Url
 		}
 		return outValue;
 	}
+	public String getAnchor() {
+		return _urlComponents.get().getAnchor();
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -370,16 +461,30 @@ public class Url
 		return new URL(_url.toString());
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
-//  WebUrlAsString
+//  asString
 /////////////////////////////////////////////////////////////////////////////////////////
+	private final Memoized<String> _asStringEncodingQryStr = new Memoized<String>() {
+																	@Override
+																	protected String supply() {
+																		UrlComponents comps = Url.this.getComponents();
+																		return _asString(comps,true);
+																	}
+															 };
+	private final Memoized<String> _asStringNotEncodingQryStr = new Memoized<String>() {
+																	@Override
+																	protected String supply() {
+																		UrlComponents comps = Url.this.getComponents();
+																		return _asString(comps,false);
+																	}
+															 	};
 	/**
 	 * Returns the url obtained from it's components as {@link String} url-encoding the query string param values as
 	 * @param urlComps
 	 * @param encodeQueryStringParams
 	 * @return
 	 */
-	public static String asString(final UrlComponents urlComps,
-								  final boolean encodeQueryStringParams) {
+	private static String _asString(final UrlComponents urlComps,
+								    final boolean encodeQueryStringParams) {
 		StringBuilder sb = new StringBuilder(200);
 		
 		if (urlComps.getProtocol() == UrlProtocol.FILE) {
@@ -425,10 +530,8 @@ public class Url
 	 * @return
 	 */
 	public String asString(final boolean encodeQueryStringParams) {
-		UrlComponents urlComps = this.getComponents();
-	
-		return Url.asString(urlComps,
-							encodeQueryStringParams);
+		return encodeQueryStringParams ? _asStringEncodingQryStr.get()
+									   : _asStringNotEncodingQryStr.get();
 	}
 	@Override
 	public String asString() {

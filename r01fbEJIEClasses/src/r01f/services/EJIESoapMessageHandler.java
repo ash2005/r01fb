@@ -100,7 +100,7 @@ public class EJIESoapMessageHandler
             int pos = soapMessage.indexOf('>') + 1;
             theSoapMessage = soapMessage.substring(pos).trim();
         } else {
-        	theSoapMessage = new String(theSoapMessage);
+        	theSoapMessage = soapMessage;
         }
     	
         // Remove the < and > characters from the text within <Header>...</Header>

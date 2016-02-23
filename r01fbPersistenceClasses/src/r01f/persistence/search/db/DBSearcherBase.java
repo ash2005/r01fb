@@ -27,7 +27,6 @@ import r01f.model.metadata.ModelObjectTypeMetaData;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
 import r01f.model.search.SearchFilterForModelObject;
 import r01f.model.search.SearchResultItemForModelObject;
-import r01f.model.search.SearchResultItemForModelObjectBase;
 import r01f.model.search.SearchResults;
 import r01f.persistence.db.DBEntity;
 import r01f.persistence.db.entities.DBEntityForModelObject;
@@ -46,7 +45,7 @@ import r01f.util.types.collections.CollectionUtils;
 @Accessors(prefix="_")
 @RequiredArgsConstructor
 public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
-									 I extends SearchResultItemForModelObject<? extends OID,? extends IndexableModelObject<? extends OID>>> 
+									 I extends SearchResultItemForModelObject<? extends OID,? extends IndexableModelObject>> 
            implements Searcher<F,I> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
@@ -157,7 +156,7 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 	private I _createSearchResultItemFor(final UserContext userContext,
 										 final DBEntityForModelObject<?> dbEntity) {
 		// [0] - Get the model object from the dbEntity
-		ModelObject modelObj = dbEntity.toModelObject(userContext);
+		IndexableModelObject modelObj = dbEntity.toModelObject(userContext);
 		
 		// [1] - Use the search result item factory to create an item
 		I item = _searchResultItemsFactory.create();	
@@ -168,7 +167,7 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 							 	   modelObj);
 		
 		// [3] - Set the model object
-		((SearchResultItemForModelObjectBase<?,?>)item).unsafeSetModelObject((IndexableModelObject<?>)modelObj);
+		((SearchResultItemForModelObject<?,?>)item).unsafeSetModelObject(modelObj);
 		
 		// [4] - Return
 		return item;
@@ -176,12 +175,12 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 	}
 	@SuppressWarnings("unchecked")
 	protected void _setResultItemCommonFields(final I item,
-									    	  final ModelObject modelObj) {
+									    	  final IndexableModelObject modelObj) {
 		ModelObjectTypeMetaData modelObjectMetadata = ModelObjectTypeMetaDataBuilder.createFor(modelObj.getClass());
 		
 		// Model object type
-		((SearchResultItemForModelObjectBase<?,?>)item).unsafeSetModelObjectType((Class<? extends IndexableModelObject<?>>)modelObj.getClass());
-		((SearchResultItemForModelObjectBase<?,?>)item).setModelObjectTypeCode(modelObjectMetadata.getTypeCode());	
+		item.unsafeSetModelObjectType((Class<? extends IndexableModelObject>)modelObj.getClass());
+		item.setModelObjectTypeCode(modelObjectMetadata.getTypeCode());	
 		
 		// OID
 		if (modelObjectMetadata.hasFacet(HasOID.class)) {
@@ -191,13 +190,11 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 		}	
 		// numeric id
 		if (modelObjectMetadata.hasFacet(HasNumericID.class)) {
-			HasNumericID hasNumeridID = (HasNumericID)modelObj;
-			item.setNumericId(hasNumeridID.getNumericId());
+			item.setNumericId(modelObj.getNumericId());
 		}
 		// EntityVersion 
 		if (modelObjectMetadata.hasFacet(HasEntityVersion.class)) {
-			HasEntityVersion hasEntityVersion = (HasEntityVersion)modelObj;
-			item.setEntityVersion(hasEntityVersion.getEntityVersion());
+			item.setEntityVersion(modelObj.getEntityVersion());
 		}
 		// Summary
 		if (modelObjectMetadata.hasFacet(HasLangDependentNamedFacet.class)) {

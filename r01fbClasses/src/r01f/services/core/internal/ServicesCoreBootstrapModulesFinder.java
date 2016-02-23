@@ -42,7 +42,7 @@ public class ServicesCoreBootstrapModulesFinder {
 	/**
 	 * Api app code
 	 */
-	private final AppCode _apiAppCode;
+	private final AppAndComponent _apiAppAndModule;
 	/**
 	 * The core app and modules
 	 */
@@ -50,9 +50,9 @@ public class ServicesCoreBootstrapModulesFinder {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	public ServicesCoreBootstrapModulesFinder(final AppCode apiAppCode,
+	public ServicesCoreBootstrapModulesFinder(final AppAndComponent apiAppAndComponent,
 											  final Collection<AppAndComponent> coreAppAndModules) {
-		_apiAppCode = apiAppCode;
+		_apiAppAndModule = apiAppAndComponent;
 		_coreAppAndModules = coreAppAndModules;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -230,7 +230,7 @@ public class ServicesCoreBootstrapModulesFinder {
 					 "please review that the modules specified at /client/module section of {}.client.properties.xml are correct and that exists any guice module " + 
 					 "at packages {} implementing {}", 
 					 ServicesCoreBootstrapGuiceModule.class.getSimpleName(),coreAppCodes,ServicesCoreBootstrapGuiceModule.class,
-					 _apiAppCode,
+					 _apiAppAndModule,
 					 ServicesPackages.coreGuiceModulePackage(AppCode.forId(coreAppCodes.toString())),
 					 ServicesCoreBootstrapGuiceModule.class);
 			outCoreModules = Maps.newHashMap();

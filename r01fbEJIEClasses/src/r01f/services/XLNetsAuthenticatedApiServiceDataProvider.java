@@ -76,7 +76,7 @@ public abstract class XLNetsAuthenticatedApiServiceDataProvider<A extends XLNets
 														.GET()
 														.loadAsStream());
 			}
-			if (log.isDebugEnabled()) log.warn("[XLNetsAuthenticatedService] token={}",XMLUtils.asStringLinearized(outAuthToken));
+			log.warn("[XLNetsAuthenticatedService] token={}",XMLUtils.asStringLinearized(outAuthToken));
 		} catch (Throwable th) {
 			log.error("[XLNetsAuthenticatedService] > Error while creating the Signature Service auth token: {}",th.getMessage(),th);
 		}

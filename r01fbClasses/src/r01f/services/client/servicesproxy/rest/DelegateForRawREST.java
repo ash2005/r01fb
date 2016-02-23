@@ -8,7 +8,7 @@ import r01f.httpclient.HttpRequestHeader;
 import r01f.httpclient.HttpRequestPayload;
 import r01f.httpclient.HttpResponse;
 import r01f.marshalling.Marshaller;
-import r01f.mime.MimeType;
+import r01f.mime.MimeTypes;
 import r01f.services.ServiceProxyException;
 import r01f.types.url.Url;
 import r01f.util.types.Strings;
@@ -71,14 +71,14 @@ public abstract class DelegateForRawREST {
 											.withHeaders(headers)		// any additional header
 										    .POST()
 									      		.withPayload(HttpRequestPayload.wrap(entityXml)
-																			   .mimeType(MimeType.APPLICATION_XML))
+																			   .mimeType(MimeTypes.APPLICATION_XML))
 										    .getResponse();
 			} else {
 				outHttpResponse = HttpClient.forUrl(restResourceUrl)		
 								   	        .withHeader("userContext",userContextXml)
 											.withHeaders(headers)		// any additional header
 										    .POST()
-										 		.withoutPayload(MimeType.APPLICATION_XML)
+										 		.withoutPayload(MimeTypes.APPLICATION_XML)
 										    .getResponse();
 			}
 		} catch(IOException ioEx) {
@@ -101,14 +101,14 @@ public abstract class DelegateForRawREST {
 											.PUT()
 	
 											.withPayload(HttpRequestPayload.wrap(entityXml)
-																			   .mimeType(MimeType.APPLICATION_XML))
+																			   .mimeType(MimeTypes.APPLICATION_XML))
 											.getResponse();	
 			} else {
 				outHttpResponse = HttpClient.forUrl(restResourceUrl)		
 											.withHeader("userContext",userContextXml)
 											.withHeaders(headers)			// any additional header
 											.PUT()
-												.withoutPayload(MimeType.APPLICATION_XML)
+												.withoutPayload(MimeTypes.APPLICATION_XML)
 											.getResponse();	
 			}
 		} catch(IOException ioEx) {

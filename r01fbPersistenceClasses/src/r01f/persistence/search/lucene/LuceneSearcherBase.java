@@ -7,16 +7,18 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Sets;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.guids.OID;
 import r01f.locale.Language;
@@ -39,7 +41,6 @@ import r01f.model.metadata.HasFieldsMetaDataForHasSummaryModelObject;
 import r01f.model.metadata.ModelObjectTypeMetaData;
 import r01f.model.search.SearchFilterForModelObject;
 import r01f.model.search.SearchResultItemForModelObject;
-import r01f.model.search.SearchResultItemForModelObjectBase;
 import r01f.model.search.SearchResults;
 import r01f.persistence.index.document.IndexDocumentFieldConfigSet;
 import r01f.persistence.lucene.LuceneIndex;
@@ -55,9 +56,6 @@ import r01f.types.summary.LangIndependentSummary;
 import r01f.types.summary.Summary;
 import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.Sets;
 
 /**
  * A type that is in charge of the search operations against the Lucene index
@@ -76,7 +74,7 @@ public abstract class LuceneSearcherBase<F extends SearchFilterForModelObject,
 	/**
 	 * Fields config
 	 */
-	@Getter(AccessLevel.PROTECTED) private final IndexDocumentFieldConfigSet<? extends IndexableModelObject<? extends OID>> _fieldsConfigSet;
+	@Getter(AccessLevel.PROTECTED) private final IndexDocumentFieldConfigSet<? extends IndexableModelObject> _fieldsConfigSet;
 	/**
 	 * The Lucene index instance 
 	 */
@@ -88,7 +86,7 @@ public abstract class LuceneSearcherBase<F extends SearchFilterForModelObject,
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////	
-	public LuceneSearcherBase(final IndexDocumentFieldConfigSet<? extends IndexableModelObject<? extends OID>> fieldsConfigSet,
+	public LuceneSearcherBase(final IndexDocumentFieldConfigSet<? extends IndexableModelObject> fieldsConfigSet,
 							  final LuceneIndex luceneIndex,
 							  final Factory<I> searchResultItemsFactory) {
 		_fieldsConfigSet = fieldsConfigSet;
@@ -278,10 +276,9 @@ public abstract class LuceneSearcherBase<F extends SearchFilterForModelObject,
 		if (modelObject == null) throw new IllegalStateException(Throwables.message("Could NOT create a {} instance from the search index returned data",
 																				    modelObjectMetaData.getType()));
 		
-		@SuppressWarnings("unchecked")
-		IndexableModelObject<? extends OID> indexableModelObject = (IndexableModelObject<? extends OID> )modelObject;
+		IndexableModelObject indexableModelObject = (IndexableModelObject)modelObject;
 		
-		((SearchResultItemForModelObjectBase<?,?>)item).unsafeSetModelObject(indexableModelObject);
+		((SearchResultItemForModelObject<?,?>)item).unsafeSetModelObject(indexableModelObject);
 		
 		// [4] Copy item common fields to the model object
 		_setModelObjectCommonFields(item,
@@ -363,8 +360,8 @@ public abstract class LuceneSearcherBase<F extends SearchFilterForModelObject,
 		ModelObjectTypeMetaData modelObjectMetadata = doc.getModelObjectTypeMetaData();
 		
 		// Model object type
-		((SearchResultItemForModelObjectBase<?,?>)item).unsafeSetModelObjectType((Class<? extends IndexableModelObject<?>>)modelObjectMetadata.getType());
-		((SearchResultItemForModelObjectBase<?,?>)item).setModelObjectTypeCode(modelObjectMetadata.getTypeCode());
+		item.unsafeSetModelObjectType((Class<? extends IndexableModelObject>)modelObjectMetadata.getType());
+		item.setModelObjectTypeCode(modelObjectMetadata.getTypeCode());
 		
 		// OID
 		if (modelObjectMetadata.hasFacet(HasOID.class)) {
@@ -406,17 +403,17 @@ public abstract class LuceneSearcherBase<F extends SearchFilterForModelObject,
 //  SOME GENERICS TRICKERY (parameter type capture)
 /////////////////////////////////////////////////////////////////////////////////////////
 	@SuppressWarnings("unchecked")
-	private static <O extends OID,P extends IndexableModelObject<O>> P _loadModelObjectInstance(final Searcher<?,?> searcher,
-																								final UserContext userContext,
-																								final O oid) {
+	private static <O extends OID,P extends IndexableModelObject> P _loadModelObjectInstance(final Searcher<?,?> searcher,
+																							 final UserContext userContext,
+																							 final O oid) {
 		SearcherExternallyLoadsModelObject<O,P> loader = (SearcherExternallyLoadsModelObject<O,P>)searcher;
 		return loader.loadModelObject(userContext,
 						   oid);
 	}
 	@SuppressWarnings("unchecked")
-	private static <P extends IndexableModelObject<? extends OID>> P _createModelObject(final Searcher<?,?> searcher,
-																						final UserContext userContext,
-																						final LuceneSearchResultDocument doc) {
+	private static <P extends IndexableModelObject> P _createModelObject(final Searcher<?,?> searcher,
+																		 final UserContext userContext,
+																		 final LuceneSearchResultDocument doc) {
 		SearcherCreatesResultItemFromIndexData<LuceneSearchResultDocument,P> creator = (SearcherCreatesResultItemFromIndexData<LuceneSearchResultDocument,P>)searcher;
 		return creator.createModelObjectFrom(userContext,
 											 doc);

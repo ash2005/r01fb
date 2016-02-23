@@ -28,7 +28,7 @@ import com.google.common.base.Throwables;
  * Service layer delegated type for index operations
  */
 @Slf4j
-public abstract class IndexServicesForModelObjectDelegateBase<O extends OID,M extends IndexableModelObject<O>>
+public abstract class IndexServicesForModelObjectDelegateBase<O extends OID,M extends IndexableModelObject>
 		   implements IndexServicesForModelObject<O,M>,
 					  SuppliesJobOID {
 /////////////////////////////////////////////////////////////////////////////////////////

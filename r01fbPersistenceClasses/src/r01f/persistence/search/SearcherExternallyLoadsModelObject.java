@@ -12,7 +12,7 @@ import r01f.usercontext.UserContext;
  * @param <P>
  */
 public interface SearcherExternallyLoadsModelObject<O extends OID,
-										 		    P extends IndexableModelObject<O>> 
+										 		    P extends IndexableModelObject> 
 	     extends SearcherSearchResultItemFromIndexDataTransformStrategy {
 	/**
 	 * Loads the model object from a search index external source (ie a BBDD)

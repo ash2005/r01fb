@@ -22,7 +22,7 @@ import r01f.usercontext.UserContext;
  * a delegated object
  */
 @Accessors(prefix="_")
-public abstract class CoreIndexServicesForModelObjectBase<O extends OID,M extends IndexableModelObject<O>>
+public abstract class CoreIndexServicesForModelObjectBase<O extends OID,M extends IndexableModelObject>
               extends CoreServiceBase					  
            implements IndexServicesForModelObject<O,M> {
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -43,9 +43,9 @@ public abstract class CoreIndexServicesForModelObjectBase<O extends OID,M extend
 		_crudServiceByModelObjectOidTypeProvider = crudServiceByModelObjectOidTypeProvider;
 		_findServiceByModelObjectTypeProvider = findServiceByModelObjectTypeProvider;
 	}
-	public <P extends PersistableModelObject<O> & IndexableModelObject<O>> CoreIndexServicesForModelObjectBase(final Indexer<M> indexer,
-											   																   final CRUDServicesForModelObject<O,P> crudService,
-											   																   final FindServicesForModelObject<O,P> findService) {
+	public <P extends PersistableModelObject<O> & IndexableModelObject> CoreIndexServicesForModelObjectBase(final Indexer<M> indexer,
+											   																final CRUDServicesForModelObject<O,P> crudService,
+											   																final FindServicesForModelObject<O,P> findService) {
 		super();
 		_indexer = indexer;
 		_crudServiceByModelObjectOidTypeProvider = new CRUDServiceByModelObjectOIDTypeProvider() {

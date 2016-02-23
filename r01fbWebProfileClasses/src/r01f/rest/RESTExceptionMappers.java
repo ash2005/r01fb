@@ -53,6 +53,8 @@ public class RESTExceptionMappers {
 	 * @return
 	 */
 	private static Response _handleThrowable(final Throwable th) {
+		// Print stack trace before any treatment (cause this could fail and mask the original Exception!!!!!) 
+		th.printStackTrace();
 		// serialize 
 		Response outResponse = null;
 		// Persistence exceptions
@@ -62,7 +64,7 @@ public class RESTExceptionMappers {
 			if (persistEx.getPersistenceErrorType()
 						 .isServerError()) {			// Server Error
 				// force exception stack trace print
-				th.printStackTrace();
+				//th.printStackTrace();
 				outResponse = Response.status(Status.INTERNAL_SERVER_ERROR)
 									  .header("x-r01-errorCode",PersistenceErrorType.SERVER_ERROR)
 									  .header("x-r01-extErrorCode",persistEx.getExtendedCode())
@@ -130,7 +132,7 @@ public class RESTExceptionMappers {
 		}
 		// any other exception type
 		else {
-			th.printStackTrace();
+			//th.printStackTrace();
 			outResponse = Response.status(Status.INTERNAL_SERVER_ERROR)
 								  .header("x-r01-errorCode",PersistenceErrorType.SERVER_ERROR)
 								  .header("x-r01-errorMessage",th.getMessage())

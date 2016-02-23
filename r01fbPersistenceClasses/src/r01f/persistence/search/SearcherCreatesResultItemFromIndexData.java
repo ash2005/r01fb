@@ -15,7 +15,7 @@ import r01f.usercontext.UserContext;
  * @param <P>
  */
 public interface SearcherCreatesResultItemFromIndexData<INDEX_DATA,
-														P extends IndexableModelObject<? extends OID>>
+														P extends IndexableModelObject>
 		 extends SearcherSearchResultItemFromIndexDataTransformStrategy {
 	/**
 	 * Creates a model object from the search index stored data

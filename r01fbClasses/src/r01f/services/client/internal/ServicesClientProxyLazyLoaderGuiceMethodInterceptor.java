@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.guids.AppAndComponent;
-import r01f.guids.CommonOIDs.AppCode;
 import r01f.patterns.Memoized;
 import r01f.reflection.ReflectionUtils;
 import r01f.reflection.ReflectionUtils.FieldAnnotated;
@@ -47,7 +46,7 @@ public class ServicesClientProxyLazyLoaderGuiceMethodInterceptor
 	/**
 	 * API app code
 	 */
-	private final AppCode _apiAppCode;
+	private final AppAndComponent _apiAppAndModule;
 	/**
 	 * The core app and modules
 	 */
@@ -79,14 +78,14 @@ public class ServicesClientProxyLazyLoaderGuiceMethodInterceptor
 				new Memoized<Map<Class<ServiceInterface>,ServiceInterface>>() {
 						@Override
 						protected Map<Class<ServiceInterface>,ServiceInterface> supply() {
-							return _flatMapServiceInterfaceTypesToImplOrProxyMappings(_apiAppCode,
+							return _flatMapServiceInterfaceTypesToImplOrProxyMappings(_apiAppAndModule,
 																					  _coreAppAndModules,
 																					  _serviceInterfaceTypesToImplOrProxyMappings);
 						}
 
 			   };
 	@SuppressWarnings({ "unchecked","unused" })
-	private static Map<Class<ServiceInterface>,ServiceInterface> _flatMapServiceInterfaceTypesToImplOrProxyMappings(final AppCode apiAppCode,
+	private static Map<Class<ServiceInterface>,ServiceInterface> _flatMapServiceInterfaceTypesToImplOrProxyMappings(final AppAndComponent apiAppAndModule,
 																													final Collection<AppAndComponent> coreAppAndModules,
 																													final ServiceInterfaceTypesToImplOrProxyMappings serviceInterfaceTypesToImplOrProxyMappings) {
 		// Find all _serviceInterfaceTypesToImplOrProxyMappings's @Named annotated Map fields

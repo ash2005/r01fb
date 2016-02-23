@@ -7,7 +7,7 @@ import r01f.httpclient.HttpClient;
 import r01f.httpclient.HttpRequestPayload;
 import r01f.httpclient.HttpResponse;
 import r01f.marshalling.Marshaller;
-import r01f.mime.MimeType;
+import r01f.mime.MimeTypes;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.services.ServiceProxyException;
 import r01f.types.url.Url;
@@ -44,7 +44,7 @@ public class DelegateForRawRESTIndex
 							             .withHeader("userContext",userContextXml)
 							             .POST()
 							             	.withPayload(HttpRequestPayload.wrap(dataXml)
-							             								   .mimeType(MimeType.APPLICATION_XML))
+							             								   .mimeType(MimeTypes.APPLICATION_XML))
 										 .getResponse();
 			}
 			// index all records
@@ -52,7 +52,7 @@ public class DelegateForRawRESTIndex
 				httpResponse = HttpClient.forUrl(restResourceUrl)		
 							             .withHeader("userContext",userContextXml)
 							             .POST()
-							             	.withoutPayload(MimeType.APPLICATION_XML)
+							             	.withoutPayload(MimeTypes.APPLICATION_XML)
 										 .getResponse();
 			}
 		} catch(IOException ioEx) {
@@ -83,7 +83,7 @@ public class DelegateForRawRESTIndex
 							             .withHeader("userContext",userContextXml)
 							             .PUT()
 							             	.withPayload(HttpRequestPayload.wrap(dataXml)
-							             								   .mimeType(MimeType.APPLICATION_XML))
+							             								   .mimeType(MimeTypes.APPLICATION_XML))
 										 .getResponse();
 			}
 			// index all records
@@ -91,7 +91,7 @@ public class DelegateForRawRESTIndex
 				httpResponse = HttpClient.forUrl(restResourceUrl)		
 							             .withHeader("userContext",userContextXml)
 							             .PUT()
-							             	.withoutPayload(MimeType.APPLICATION_XML)
+							             	.withoutPayload(MimeTypes.APPLICATION_XML)
 										 .getResponse();
 			}
 		} catch(IOException ioEx) {
@@ -125,7 +125,7 @@ public class DelegateForRawRESTIndex
 							             .withHeader("userContext",userContextXml)
 							             .DELETE()
 							             		.withPayload(HttpRequestPayload.wrap(dataXml)
-							             									   .mimeType(MimeType.APPLICATION_XML))
+							             									   .mimeType(MimeTypes.APPLICATION_XML))
 										 .getResponse();
 			}
 			// index all records
@@ -133,7 +133,7 @@ public class DelegateForRawRESTIndex
 				httpResponse = HttpClient.forUrl(restResourceUrl)		
 							             .withHeader("userContext",userContextXml)
 							             .DELETE()
-							             		.withoutPayload(MimeType.APPLICATION_XML)
+							             		.withoutPayload(MimeTypes.APPLICATION_XML)
 										 .getResponse();
 			}
 		} catch(IOException ioEx) {

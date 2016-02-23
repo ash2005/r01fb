@@ -10,6 +10,9 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +53,7 @@ public class ServicesPackages {
 													  		 final ClassLoader otherClassLoader) {
 		Set<Class<? extends T>> outSubTypes = null;
 		
-		log.info("...finding subtypes of {} at packages {}",superType,pckgNames);
+		log.info("...finding subtypes of {} at packages {} (BEWARE that every type between the type to be found and the supertype MUST be accesible in the package names list)",superType,pckgNames);
 		List<URL> pckgUrls = _urlsForPackages(pckgNames,
 											  otherClassLoader);
 		
@@ -79,6 +82,26 @@ public class ServicesPackages {
 																.setScanners(new SubTypesScanner(true)));
 			outSubTypes = typeScanner.getSubTypesOf(superType);
 		}
+		// When deploying at a WLS, the classes are inside a jar file whose URL is zip:/dominio_wls/servers/server1/tmp/_WL_user/myEAR/n5ymxm/APP-INF/lib/{appCode}Classes.jar!/{appCode}/client/internal  
+		// (see org.reflections.vfs.Vfs.DefaultUrlTypes) 
+		// ... so the scanned URLs looses the package part {appCode}Classes.jar!/{appCode}/client/internal and ALL jar classes are scanned
+		if (CollectionUtils.hasData(outSubTypes)) {
+			outSubTypes = FluentIterable.from(outSubTypes)
+										.filter(new Predicate<Class<? extends T>>() {
+														@Override
+														public boolean apply(final Class<? extends T> subType) {
+															boolean inPackage = false;
+															for (String pckg : pckgNames) {
+																if (subType.getPackage().getName().startsWith(pckg)) {
+																	inPackage = true;
+																	break;
+																}
+															}
+															return inPackage;
+														}
+												})
+										.toSet();
+		}
 		return outSubTypes;
 	}
 	private static ClassLoader[] _scanClassLoaders(final ClassLoader otherClassLoader) {
@@ -98,44 +121,76 @@ public class ServicesPackages {
 		return outUrls;
 	}
 	private static Collection<URL> _urlsForPackage(final String pckg,
-												   final ClassLoader otherClassLoader) {
+                                                   final ClassLoader otherClassLoader) {
 		ClassLoader[] classLoaders = _scanClassLoaders(otherClassLoader);
-		
-		Collection<URL> outUrls = ClasspathHelper.forPackage(pckg,
-										  					 classLoaders);
-		return outUrls;
+         
+		// org.reflections.ClasspathHelper seems to return ONLY the jar or path containing the given package
+		// ... so the package MUST be added back to the url to minimize scan time and unneeded class loading
+        Collection<URL> outUrls = ClasspathHelper.forPackage(pckg,
+                                                             classLoaders);
+        if (CollectionUtils.hasData(outUrls)) {
+        	outUrls = FluentIterable.from(outUrls)
+                                    .transform(new Function<URL,URL>() {
+														@Override
+														public URL apply(final URL url) {
+															try {
+																URL fullUrl = new URL(url.toString() + _resourceName(pckg));
+																log.trace("URL to be scanned: {}",fullUrl);
+														        return fullUrl;
+														    } catch(Throwable th) {
+														    	th.printStackTrace(System.out);
+														    }
+														    return url;
+														}
+                                               })
+                                    .toList();
+         }
+         return outUrls;
 	}
+    private static String _resourceName(final String name) {
+        if (name == null) return null;
+        String resourceName = name.replace(".", "/")
+        						  .replace("\\", "/");
+        if (resourceName.startsWith("/")) resourceName = resourceName.substring(1);
+        return resourceName;
+    }
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static String clientGuiceModulePackage(final AppCode appCode) {
-		return Strings.of("{}.client.internal")
-				  	  .customizeWith(appCode.getId())
-				  	  .asString();
+	public static String clientGuiceModulePackage(final AppAndComponent apiAppAndComponent) {
+		return DEF_CLIENT_APP_COMPPONENT.equals(apiAppAndComponent.getAppComponent()) ? Strings.customized("{}.client.internal",
+																										   apiAppAndComponent.getAppCode())
+																					  : Strings.customized("{}.client.{}.internal",
+																							  			   apiAppAndComponent.getAppCode(),apiAppAndComponent.getAppComponent());
+																					  		
 	}
-	public static String coreGuiceModulePackage(final AppCode appCode) {
+	public static String serviceInterfacePackage(final AppAndComponent apiAppAndComponent) {
+		return DEF_CLIENT_APP_COMPPONENT.equals(apiAppAndComponent.getAppComponent()) ? Strings.customized("{}.api.interfaces",
+																								   		   apiAppAndComponent.getAppCode())
+					  																  : Strings.customized("{}.api.{}.interfaces",
+					  																		  			   apiAppAndComponent.getAppCode(),apiAppAndComponent.getAppComponent());
+	}
+	public static String serviceProxyPackage(final AppAndComponent apiAppAndComponent) {
+		return DEF_CLIENT_APP_COMPPONENT.equals(apiAppAndComponent.getAppComponent()) ? Strings.customized("{}.client.servicesproxy",
+					  																					   apiAppAndComponent.getAppCode())
+					  																  : Strings.customized("{}.client.{}.servicesproxy",
+					  																					   apiAppAndComponent.getAppCode(),apiAppAndComponent.getAppComponent());
+	}
+	public static String apiAggregatorPackage(final AppAndComponent apiAppAndComponent) {
+		return DEF_CLIENT_APP_COMPPONENT.equals(apiAppAndComponent.getAppComponent()) ? Strings.customized("{}.client.api",
+					  																					   apiAppAndComponent.getAppCode())
+																					  : Strings.customized("{}.client.{}.api",
+					  																					   apiAppAndComponent.getAppCode(),apiAppAndComponent.getAppComponent());
+	}
+	public static AppComponent DEF_CLIENT_APP_COMPPONENT = AppComponent.forId("client");
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	public static String coreGuiceModulePackage(final AppCode coreAppCode) {
 		return Strings.of("{}.internal")
-					  .customizeWith(appCode.getId())
+					  .customizeWith(coreAppCode.getId())
 					  .asString();
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	public static String serviceInterfacePackage(final AppCode apiAppCode) {
-		return Strings.of("{}.api.interfaces")
-					  .customizeWith(apiAppCode)
-					  .asString();
-	}
-	public static String serviceProxyPackage(final AppCode apiAppCode) {
-		return Strings.of("{}.client.servicesproxy")
-					  .customizeWith(apiAppCode)
-					  .asString();
-	}
-	public static String apiAggregatorPackage(final AppCode apiAppCode) {
-		return Strings.of("{}.client.api")
-					  .customizeWith(apiAppCode)
-					  .asString();
-	}
+	}	
 	public static String servicesCorePackage(final AppCode coreAppCode) {
 		return Strings.of("{}.services")
 					  .customizeWith(coreAppCode)
@@ -173,10 +228,21 @@ public class ServicesPackages {
 	 * @return
 	 */
 	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrNull(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
-		ServicesCore serviceCoreAnnot = ReflectionUtils.typeAnnotation(coreBootstrapType,
-																	   ServicesCore.class);
-		return serviceCoreAnnot != null && Strings.isNOTNullOrEmpty(serviceCoreAnnot.moduleId()) ? AppComponent.forId(serviceCoreAnnot.moduleId())
-																								 : null;
+		return _appComponentFromCoreBootstrapModuleType(coreBootstrapType,
+														null,
+														false);
+	}
+	/**
+	 * Returns the appComponent from the services core bootstrap type
+	 * @param coreBootstrapType
+	 * @param suffix
+	 * @return
+	 */
+	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrNull(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
+																			 final String suffix) {
+		return _appComponentFromCoreBootstrapModuleType(coreBootstrapType,
+														suffix,
+														false);
 	}
 	/**
 	 * Returns the appComponent from the services core bootstrap type
@@ -184,9 +250,40 @@ public class ServicesPackages {
 	 * @return
 	 */
 	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrThrow(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
-		AppComponent outComponent = ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrNull(coreBootstrapType);
-		if (outComponent == null) throw new IllegalStateException(Throwables.message("{} core bootstrap type is NOT annotated with @{} or the annotation's moduleId property is NOT set",
-																					 coreBootstrapType,ServicesCore.class.getName()));
-		return outComponent;
+		return _appComponentFromCoreBootstrapModuleType(coreBootstrapType,
+														null,
+														true);
+	}
+	/**
+	 * Returns the appComponent from the services core bootstrap type
+	 * @param coreBootstrapType
+	 * @param suffix
+	 * @return
+	 */
+	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrThrow(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
+																			  final String suffix) {
+		return _appComponentFromCoreBootstrapModuleType(coreBootstrapType,
+														suffix,
+														true);
+	}
+	/**
+	 * Returns the appComponent from the services core bootstrap type
+	 * @param coreBootstrapType
+	 * @return
+	 */
+	private static AppComponent _appComponentFromCoreBootstrapModuleType(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
+																		 final String suffix,
+																		 final boolean strict) {
+		ServicesCore serviceCoreAnnot = ReflectionUtils.typeAnnotation(coreBootstrapType,
+																	   ServicesCore.class);
+		String modId = serviceCoreAnnot != null ? serviceCoreAnnot.moduleId()
+												: null;
+		if (strict && Strings.isNullOrEmpty(modId)) throw new IllegalStateException(Throwables.message("{} core bootstrap type is NOT annotated with @{} or the annotation's moduleId property is NOT set",
+																					 		 		   coreBootstrapType,ServicesCore.class.getName()));
+		if (modId == null) return null;
+		
+		return suffix != null ? AppComponent.forId(modId + "." + suffix)
+							  : AppComponent.forId(modId);
+		
 	}
 }

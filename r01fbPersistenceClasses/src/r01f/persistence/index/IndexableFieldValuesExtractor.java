@@ -12,7 +12,7 @@ import r01f.usercontext.UserContext;
 /**
  * Interface for types extracting field values from {@link PersistableModelObject}s in order to be indexed
  */
-public interface IndexableFieldValuesExtractor<M extends IndexableModelObject<? extends OID>> {
+public interface IndexableFieldValuesExtractor<M extends IndexableModelObject> {
 	/**
 	 * Returns the type of the model object subject for the extraction 
 	 * @return

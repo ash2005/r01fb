@@ -8,7 +8,7 @@ import r01f.usercontext.UserContext;
  * Interface to be implemented by types in charge to index persistable records
  * @param <M>
  */
-public interface Indexer<M extends IndexableModelObject<? extends OID>> {
+public interface Indexer<M extends IndexableModelObject> {
 	/**
 	 * Index a model object
 	 * @param userContext

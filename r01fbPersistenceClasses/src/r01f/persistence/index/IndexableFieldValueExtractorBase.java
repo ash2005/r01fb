@@ -21,12 +21,12 @@ import r01f.model.facets.HasOID;
 import r01f.model.facets.Summarizable.HasSummaryFacet;
 import r01f.model.facets.Versionable;
 import r01f.model.metadata.FieldMetaData;
+import r01f.model.metadata.FieldMetaDataID;
 import r01f.model.metadata.HasFieldMetaDataForHasLanguageModelObject;
 import r01f.model.metadata.HasFieldsMetaDataForHasFullTextSummaryModelObject;
 import r01f.model.metadata.HasFieldsMetaDataForHasIDModelObject;
 import r01f.model.metadata.HasFieldsMetaDataForHasSummaryModelObject;
 import r01f.model.metadata.HasFieldsMetaDataForVersionableModelObject;
-import r01f.model.metadata.FieldMetaDataID;
 import r01f.model.metadata.ModelObjectTypeMetaDataBaseImpl;
 import r01f.persistence.PersistenceRequestedOperation;
 import r01f.persistence.index.document.IndexDocumentFieldValue;
@@ -42,7 +42,7 @@ import r01f.usercontext.UserContext;
  */
 @Slf4j
 @Accessors(prefix="_")
-public abstract class IndexableFieldValueExtractorBase<M extends IndexableModelObject<? extends OID>> 
+public abstract class IndexableFieldValueExtractorBase<M extends IndexableModelObject> 
            implements IndexableFieldValuesExtractor<M> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  

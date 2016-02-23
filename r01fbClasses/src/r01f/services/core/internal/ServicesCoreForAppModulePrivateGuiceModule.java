@@ -72,10 +72,9 @@ public class ServicesCoreForAppModulePrivateGuiceModule
 		// Bind service interface types to bean impl or proxy types and get a Map of the bindings
 		// 		- if the service bean implementation is available, the service interface is binded to the bean impl directly
 		//		- otherwise, the best suitable proxy to the service implementation is binded
-		ServicesClientInterfaceToImplOrProxyBinder ifaceToProxyOrImplBinder = new ServicesClientInterfaceToImplOrProxyBinder();
 		Map<Class<? extends ServiceInterface>,
-		    Class<? extends ServiceInterface>> serviceIfaceTypeToImplOrProxyType = ifaceToProxyOrImplBinder.bindServiceInterfacesToProxiesOrImpls(theBinder,
-																	   																			  _coreBootstrapDef.getServiceInterfacesToImplAndProxiesDefs());
+		    Class<? extends ServiceInterface>> serviceIfaceTypeToImplOrProxyType = ServicesClientInterfaceToImplOrProxyBinder.bindServiceInterfacesToProxiesOrImpls(theBinder,
+																	   																			  					_coreBootstrapDef.getServiceInterfacesToImplAndProxiesDefs());
 		
 		// Expose the service interface types to bean impl or proxy types as:
 		//		[1] - A MapBinder that binds the service interface type to the bean impl or proxy instance

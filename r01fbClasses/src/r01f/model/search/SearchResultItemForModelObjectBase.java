@@ -18,7 +18,7 @@ import r01f.types.summary.Summary;
 import r01f.util.types.Strings;
 
 @Accessors(prefix="_")
-public abstract class SearchResultItemForModelObjectBase<O extends OID,M extends IndexableModelObject<O>>
+public abstract class SearchResultItemForModelObjectBase<O extends OID,M extends IndexableModelObject>
            implements SearchResultItemForModelObject<O,M>,
            			  Debuggable {
 	
@@ -32,15 +32,16 @@ public abstract class SearchResultItemForModelObjectBase<O extends OID,M extends
 	@XmlElement(name="oid") @XmlTypeDiscriminatorAttribute(name="type")
     @Getter @Setter private O _oid;
 	/**
-	 * Entity Version used to achieve the optimistic locking behavior
-	 */
-	@XmlElement(name="entityVersion")
-	@Getter @Setter private long _entityVersion;
-	/**
 	 * Numeric Id
 	 */
 	@XmlElement(name="numericId") @XmlWriteIgnoredIfEquals(value="0")
 	@Getter @Setter private long _numericId;
+	/**
+	 * A summary / abstract of the search result
+	 * (it's NOT serialized)
+	 */
+	@XmlElement
+	@Getter @Setter private transient Summary _summary;
 	/**
 	 * The model object type
 	 */
@@ -57,12 +58,10 @@ public abstract class SearchResultItemForModelObjectBase<O extends OID,M extends
 	@XmlElement
 	@Getter @Setter private M _modelObject;
 	/**
-	 * A summary / abstract of the search result
-	 * (it's NOT serialized)
+	 * Entity Version used to achieve the optimistic locking behavior
 	 */
-	@XmlElement
-	@Getter @Setter private transient Summary _summary;
-	
+	@XmlElement(name="entityVersion")
+	@Getter @Setter private long _entityVersion;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SEARCH ENGINE FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -112,27 +111,14 @@ public abstract class SearchResultItemForModelObjectBase<O extends OID,M extends
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Sets the model object with no guarantee that a {@link ClassCastException} is thrown 
-	 * if the model object's type is not the expected
-	 * @param modelObject
-	 */
-	@SuppressWarnings("unchecked")
-	public <U extends IndexableModelObject<? extends OID>> void unsafeSetModelObject(final U modelObject) {
+	@Override @SuppressWarnings("unchecked")
+	public <U extends IndexableModelObject> void unsafeSetModelObject(final U modelObject) {
 		_modelObject = (M)modelObject;
 	}
-	/**
-	 * Sets the model object with no guarantee that a {@link ClassCastException} is thrown 
-	 * if the model object's type is not the expected
-	 * @param modelObject
-	 */
-	@SuppressWarnings("unchecked")
-	public <U extends IndexableModelObject<? extends OID>> void unsafeSetModelObjectType(final Class<U> modelObjectType) {
+	@Override @SuppressWarnings("unchecked")
+	public <U extends IndexableModelObject> void unsafeSetModelObjectType(final Class<U> modelObjectType) {
 		_modelObjectType = (Class<M>)modelObjectType;
 	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  HasOID
-/////////////////////////////////////////////////////////////////////////////////////////
 	@Override @SuppressWarnings("unchecked")
 	public void unsafeSetOid(final OID oid) {
 		_oid = (O)oid;

@@ -27,7 +27,10 @@ public class LatiniaTest {
 
 
 		LatiniaService latiniaService = injector.getInstance(LatiniaService.class);
-		latiniaService.sendNotification(_createMockMessage());
+		
+		LatiniaRequestMessage msg = _createMockMessage();
+		System.out.println("=====> " + latiniaService.getLatiniaRequestMessageAsXml(msg));
+		latiniaService.sendNotification(msg);
 	}
 	private static LatiniaRequestMessage _createMockMessage() {
 		LatiniaRequestMessage latiniaMsg = new LatiniaRequestMessage();

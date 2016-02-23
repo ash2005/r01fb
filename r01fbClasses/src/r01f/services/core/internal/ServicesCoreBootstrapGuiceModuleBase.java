@@ -45,7 +45,7 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 	/**
 	 * Properties for core
 	 */
-	protected final XMLPropertiesForAppComponent _coreProps;
+	protected final XMLPropertiesForAppComponent _servicesCoreProps;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  MODULES
 //		 a collection of the installed module types (ie dbmodule, search module, notification module, etc)
@@ -63,9 +63,9 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 		// get tye appCode from the bootstrap module type's package and @ServicesCore annotation
 		_coreAppCode = ServicesPackages.appCodeFromCoreBootstrapModuleType(this.getClass());						// the appCode is extracted from the package
 		_coreAppComponent = ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrThrow(this.getClass());		// the component is extracted from the @ServiceCore annotation
-		_coreProps = XMLProperties.createForApp(_coreAppCode)
-			  						  .notUsingCache()
-			  						  .forComponent(_coreAppComponent.asString() + ".services");
+		_servicesCoreProps = XMLProperties.createForApp(_coreAppCode)
+					  						  .notUsingCache()
+					  						  .forComponent(_coreAppComponent.asString() + ".services");
 		
 		// Crete the list of installed modules
 		_installedModules = Lists.newArrayList();

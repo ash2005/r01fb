@@ -2,7 +2,6 @@ package r01f.types.url;
 
 import r01f.types.Paths;
 import r01f.types.Provider;
-import r01f.types.UrlPath;
 import r01f.types.url.Url.UrlComponents;
 import r01f.util.types.ParametersWrapperBase;
 

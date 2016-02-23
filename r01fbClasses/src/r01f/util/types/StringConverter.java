@@ -356,7 +356,7 @@ public class StringConverter {
 	 */
 	public static Path asPath(final CharSequence value,final Path defValue) {
 		if (value == null) return defValue;
-		return Path.of(value.toString());
+		return Path.from(value.toString());
 	}
 	/**
 	 * Returns the wrapped {@link CharSequence} as a {@link Path}
@@ -459,8 +459,8 @@ public class StringConverter {
 	 */
 	public static <T> T asType(final CharSequence value,final Class<T> type,final T defValue) {
 		if (value == null) return defValue;
-		T outValue = ReflectionUtils.createInstanceFromString(type,
-															  value.toString());
+		T outValue = ReflectionUtils.<T>createInstanceFromString(type,
+																 value.toString());
 		return outValue;
 	}
 	/**

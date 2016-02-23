@@ -56,7 +56,7 @@ import r01f.util.types.collections.CollectionUtils;
  */
 @Slf4j
 @Accessors(prefix="_")
-public abstract class LuceneIndexerBase<P extends IndexableModelObject<? extends OID>> 
+public abstract class LuceneIndexerBase<P extends IndexableModelObject> 
 		      extends IndexerBase<P> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FINAL STATUS

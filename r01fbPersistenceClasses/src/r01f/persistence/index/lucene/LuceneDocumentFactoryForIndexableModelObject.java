@@ -88,11 +88,11 @@ extends LuceneDocumentFactoryBase {
 	/**
 	 * index document field's config
 	 */
-	private final IndexDocumentFieldConfigSet<? extends IndexableModelObject<? extends OID>> _fieldsConfigSet;
+	private final IndexDocumentFieldConfigSet<? extends IndexableModelObject> _fieldsConfigSet;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  BUILDER
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static LuceneDocumentFactoryForIndexableModelObject of(final IndexDocumentFieldConfigSet<? extends IndexableModelObject<? extends OID>> cfgSet) {
+	public static LuceneDocumentFactoryForIndexableModelObject of(final IndexDocumentFieldConfigSet<? extends IndexableModelObject> cfgSet) {
 		return new LuceneDocumentFactoryForIndexableModelObject(cfgSet);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

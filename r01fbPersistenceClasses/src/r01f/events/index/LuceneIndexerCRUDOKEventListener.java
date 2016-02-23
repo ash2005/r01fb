@@ -9,7 +9,7 @@ import r01f.services.interfaces.IndexServicesForModelObject;
  * A {@link PersistenceOperationOKEventListener} that indexes at lucene (extends {@link IndexerCRUDOKEventListener}) 
  * @param <M>
  */
-public abstract class LuceneIndexerCRUDOKEventListener<O extends OID,M extends IndexableModelObject<O>> 
+public abstract class LuceneIndexerCRUDOKEventListener<O extends OID,M extends IndexableModelObject> 
 	          extends IndexerCRUDOKEventListener<O,M> {	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR

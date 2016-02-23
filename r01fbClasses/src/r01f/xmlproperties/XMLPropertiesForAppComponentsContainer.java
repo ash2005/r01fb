@@ -223,7 +223,7 @@ class XMLPropertiesForAppComponentsContainer {
     	String xPathStr = xPath.asString();
     	String effXPath = !xPathStr.endsWith("/child::*") ? xPathStr.concat("/child::*")
     													  : xPathStr;
-    	return (NodeList)this.getPropertyNode(component,Path.of(effXPath),XPathConstants.NODESET);
+    	return (NodeList)this.getPropertyNode(component,Path.from(effXPath),XPathConstants.NODESET);
     }
     /**
      * Returns the XML's DOM's {@link Node} obtained applying the given xpath expression to the app/component properties XML.

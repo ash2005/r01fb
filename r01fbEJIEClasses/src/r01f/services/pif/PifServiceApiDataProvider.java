@@ -1,19 +1,17 @@
 package r01f.services.pif;
 
+import org.w3c.dom.Document;
+
+import com.google.inject.Provider;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-
-import org.w3c.dom.Document;
-
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.services.XLNetsAuthenticatedApiServiceDataProvider;
 import r01f.services.XLNetsAuthenticatedServiceApiData;
 import r01f.services.pif.PifServiceApiDataProvider.PifServiceAPIData;
-import r01f.xml.XMLUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.inject.Provider;
 
 /**
  * Provides a {@link PifService} using a properties file info

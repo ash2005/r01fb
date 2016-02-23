@@ -125,19 +125,19 @@ public abstract class BeanImplementedPersistenceServicesCoreBootstrapGuiceModule
 		if (this instanceof ServicesBootstrapGuiceModuleBindsCRUDEventListeners) {
 			
 			// Get from the properties the way CRUD events are to be consumed: synchronously or asynchronously
-			ExecutionMode execMode = _coreProps.propertyAt("services/crudEventsHandling/@mode")
-										  	   .asEnumElement(ExecutionMode.class);
+			ExecutionMode execMode = _servicesCoreProps.propertyAt("services/crudEventsHandling/@mode")
+										  	   		   .asEnumElement(ExecutionMode.class);
 			if (execMode == null) {
 				log.warn("CRUD Events Handling config could NOT be found at {}.{}.properties.xml, please ensure that the {}.{}.properties.xml" +
 						 "contains a 'crudEventsHandling' section; meanwhile SYNC event handling is assumed",
-						 _coreProps.getAppCode(),_coreProps.getAppComponent(),_coreProps.getAppCode(),_coreProps.getAppComponent());
+						 _servicesCoreProps.getAppCode(),_servicesCoreProps.getAppComponent(),_servicesCoreProps.getAppCode(),_servicesCoreProps.getAppComponent());
 				execMode = ExecutionMode.SYNC;
 			}
 			// The EventBus needs an ExecutorService (a thread pool) to manage events in the background
 			ExecutorServiceManager execServiceManager = null;
 			if (execMode == ExecutionMode.ASYNC) {
-				int numberOfBackgroundThreads = _coreProps.propertyAt("services/crudEventsHandling/numberOfThreadsInPool")
-													 	  .asInteger(1); 	// single threaded by default
+				int numberOfBackgroundThreads = _servicesCoreProps.propertyAt("services/crudEventsHandling/numberOfThreadsInPool")
+													 	  		  .asInteger(1); 	// single threaded by default
 				execServiceManager = new ExecutorServiceManagerProvider(numberOfBackgroundThreads).get();
 			} 
 			

@@ -6,6 +6,7 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 
+import lombok.extern.slf4j.Slf4j;
 import r01f.guids.AppAndComponent;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.guids.CommonOIDs.AppComponent;
@@ -28,6 +29,7 @@ import r01f.xmlproperties.XMLPropertiesForAppComponent;
  * 		binder.install(new XMLPropertiesGuiceModule());
  * </pre>
  */
+@Slf4j
 public class SignatureServiceGuiceModule 
   implements Module {
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -43,37 +45,20 @@ public class SignatureServiceGuiceModule
 	private final AppCode _appCode;
 	private final AppComponent _appComponent;
 	private final String _propsXPath;
-	private final boolean _mock;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
 	public SignatureServiceGuiceModule(final AppCode appCode,final AppComponent appComponent,
 									   final String propsXPath) {
-		this(appCode,appComponent,
-			 propsXPath,
-			 false);	// not mock
-	}
-	public SignatureServiceGuiceModule(final AppCode appCode,final AppComponent appComponent,
-									   final String propsXPath,
-									   final boolean mock) {
 		_appCode = appCode;
 		_appComponent = appComponent;
 		_propsXPath = propsXPath;
-		_mock = mock;
 	}
 	public SignatureServiceGuiceModule(final AppAndComponent appAndComponent,
 									   final String propsXPath) {
-		this(appAndComponent,
-			 propsXPath,
-			 false);	// not mock
-	}
-	public SignatureServiceGuiceModule(final AppAndComponent appAndComponent,
-									   final String propsXPath,
-									   final boolean mock) {
 		_appCode = appAndComponent.getAppCode();
 		_appComponent = appAndComponent.getAppComponent();
 		_propsXPath = propsXPath;
-		_mock = mock;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -115,15 +100,19 @@ public class SignatureServiceGuiceModule
 	 */
 	@Provides @Singleton	// beware the service is a singleton
 	SignatureService _provideSignatureService(@XMLPropertiesComponent("signature") final XMLPropertiesForAppComponent props) {
-		if (!_mock) {
+		boolean mock = props.propertyAt(_propsXPath + "/signatureService/@mock")
+							.asBoolean(false);
+		if (mock) log.warn("Using a MOCK signature service. Change the {} property to enable real SHF impl",
+						   _propsXPath + "/signatureService/@mock");
+		if (!mock) {
 			// Provide a new signature service api data and pif service api data using their providers
 			SignatureServiceApiDataProvider signatureApiDataServiceProvider = new SignatureServiceApiDataProvider(_appCode,
 																												  props,_propsXPath);
 			PifServiceApiDataProvider pifApiDataServiceProvider = new PifServiceApiDataProvider(_appCode,
-																							    props,_propsXPath);
+																								props,_propsXPath);
 			// Using the signature service api data create the SignatureService object
 			SignatureService outSignatureService = new SignatureServiceImpl(signatureApiDataServiceProvider.get(),
-																		pifApiDataServiceProvider.get());
+																			pifApiDataServiceProvider.get());
 			return outSignatureService;
 		}
 		// mock impl

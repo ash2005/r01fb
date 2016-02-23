@@ -18,7 +18,7 @@ import r01f.usercontext.UserContext;
  * @param <P>
  */
 @Accessors(prefix="_")
-public abstract class IndexerBase<P extends IndexableModelObject<? extends OID>> 
+public abstract class IndexerBase<P extends IndexableModelObject> 
            implements Indexer<P> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS

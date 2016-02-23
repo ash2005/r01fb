@@ -121,7 +121,8 @@ import x43f.ejie.com.X43FNSHF.VerifyAdESSignatureResponse;
  */
 @Singleton
 @Slf4j
-public class SignatureServiceImpl implements SignatureService {
+public class SignatureServiceImpl 
+  implements SignatureService {
 	
 /////////////////////////////////////////////////////////////////////////////////////////
 //	FIELDS
@@ -141,16 +142,19 @@ public class SignatureServiceImpl implements SignatureService {
 											  _apiData.getWebServiceUrl());
 									X43FNSHF nshfService = null;
 									try {
-										// [1] - Create the auth token
 										if (_apiData.getXLNetsAuthToken() != null) {
+											// [1] - Create the auth token
+											String xlnetsTokenLinearized = XMLUtils.asStringLinearized(_apiData.getXLNetsAuthToken());	// Linearize xml, strip white spaces and newlines
+											if (log.isTraceEnabled()) log.trace("XLNetsToken: {}",xlnetsTokenLinearized);
+											
 											Map<String,String> authTokenMap = new HashMap<String,String>();
-											authTokenMap.put("sessionToken",
-															 XMLUtils.asStringLinearized(_apiData.getXLNetsAuthToken())); // Linarize xml, strip whitespaces and newlines
+											authTokenMap.put("sessionToken",xlnetsTokenLinearized); 
 							
 											// [2] - Create the client
 											nshfService = new X43FNSHF_Impl(_apiData.getWebServiceUrl().asString());
 											Object port = nshfService.getPorts().next();
 											HandlerRegistry registry = nshfService.getHandlerRegistry();
+											
 										
 											List<HandlerInfo> handlerList = new ArrayList<HandlerInfo>();
 											handlerList.add(new HandlerInfo(EJIESoapMessageHandler.class, 
@@ -158,6 +162,8 @@ public class SignatureServiceImpl implements SignatureService {
 																			null));
 											registry.setHandlerChain((QName)port,
 																	 handlerList);
+										} else {
+											throw new IllegalStateException("The XLNets session token is NOT present; check that the xlnets config properties are present");
 										}
 									} catch (Throwable th) {
 										log.error("[SignatureService] > Error while creating the {} service: {}",X43FNSHF.class,th.getMessage(),th);
@@ -265,7 +271,7 @@ public class SignatureServiceImpl implements SignatureService {
 			
 			// [2] - Upload the data to PIF at a SHF(x43f) location
 			PifFileInfo fileInfo = _pifService.uploadFile(inputStremToBeSigned, 
-														   Path.of(Strings.customized("/r02g/{}/{}_{}_toBeSigned.sgn",					// ie: /x43f/xxx/xxx_1214212_toBeSigned"
+														   Path.from(Strings.customized("/r02g/{}/{}_{}_toBeSigned.sgn",					// ie: /x43f/xxx/xxx_1214212_toBeSigned"
 																   					  appCode,appCode,System.currentTimeMillis())),	
 														   false,					// preserve name
 														   1L,TimeUnit.HOURS);		// the file is removed from the pif location after 1h

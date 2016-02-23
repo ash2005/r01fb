@@ -17,7 +17,7 @@ import r01f.types.Paths;
 import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 
-public abstract class RESTServicesForIndexProxyBase<O extends OID,M extends IndexableModelObject<O>> 
+public abstract class RESTServicesForIndexProxyBase<O extends OID,M extends IndexableModelObject> 
               extends RESTServicesProxyBase
            implements IndexServicesForModelObject<O,M> {
 	

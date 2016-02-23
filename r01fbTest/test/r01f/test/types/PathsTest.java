@@ -84,10 +84,10 @@ public class PathsTest {
 	@Test
 	public void joinTest() {
 		Path path1 = Paths.forPaths().join("foo","bar");
-		Assert.assertTrue(path1.equals(Path.of("foo/bar")));
+		Assert.assertTrue(path1.equals(Path.from("foo/bar")));
 		
 		Path path2 = Paths.forPaths().join(null,"bar","baz");
-		Assert.assertTrue(path2.equals(Path.of("bar/baz")));
+		Assert.assertTrue(path2.equals(Path.from("bar/baz")));
 		
 		Path path3 = Paths.forPaths().join((Path)null,(Path)null);
 		Assert.assertTrue(path3 == null);

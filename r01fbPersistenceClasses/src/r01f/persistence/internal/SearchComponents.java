@@ -4,22 +4,21 @@ import java.lang.reflect.ParameterizedType;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.inject.TypeLiteral;
+import com.google.inject.util.Types;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import r01f.guids.OID;
 import r01f.model.IndexableModelObject;
 import r01f.model.search.SearchFilter;
 import r01f.model.search.SearchResultItem;
 import r01f.persistence.index.Indexer;
 import r01f.persistence.index.document.IndexDocumentFieldConfigSet;
 import r01f.persistence.search.Searcher;
-
-import com.google.inject.TypeLiteral;
-import com.google.inject.util.Types;
 
 /**
  * Encapsulates the type of all components of a model object-related search
@@ -35,7 +34,7 @@ public class SearchComponents {
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@NoArgsConstructor(access=AccessLevel.PRIVATE)
-	public class IndexerComponent<M extends IndexableModelObject<? extends OID>> {
+	public class IndexerComponent<M extends IndexableModelObject> {
 		@Getter @Setter(AccessLevel.PRIVATE) private Class<M> _modelObjType;
 		@Getter @Setter(AccessLevel.PRIVATE) private IndexDocumentFieldConfigSet<?> _indexDocumentFieldsConfig;
 		@Getter @Setter(AccessLevel.PRIVATE) private Class<? extends Indexer<M>> _indexerType;
@@ -70,7 +69,7 @@ public class SearchComponents {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Getter @Setter(AccessLevel.PRIVATE) private Set<IndexerComponent<? extends IndexableModelObject<? extends OID>>> _indexers;
+	@Getter @Setter(AccessLevel.PRIVATE) private Set<IndexerComponent<? extends IndexableModelObject>> _indexers;
 	@Getter @Setter(AccessLevel.PRIVATE) private Set<SearchComponent<? extends SearchFilter,? extends SearchResultItem>> _searchers;
 	
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -87,25 +86,25 @@ public class SearchComponents {
 	}
 	@NoArgsConstructor(access=AccessLevel.PRIVATE)
 	public class SearchComponentsIndexersStep {
-		private Set<IndexerComponent<? extends IndexableModelObject<? extends OID>>> _theIndexers = new HashSet<IndexerComponent<? extends IndexableModelObject<? extends OID>>>();
+		private Set<IndexerComponent<? extends IndexableModelObject>> _theIndexers = new HashSet<IndexerComponent<? extends IndexableModelObject>>();
 		
 		public SearchComponents build() {
 			SearchComponents.this.setIndexers(_theIndexers);
 			return SearchComponents.this;
 		}
 		
-		private <M extends IndexableModelObject<? extends OID>> void _addIndexerComponent(final IndexerComponent<M> indexerComponent) {
+		private <M extends IndexableModelObject> void _addIndexerComponent(final IndexerComponent<M> indexerComponent) {
 			_theIndexers.add(indexerComponent);
 		}
 		
-		public <M extends IndexableModelObject<? extends OID>> SearchComponentsIndexerDocumentStep<M> modelObject(final Class<M> modelObjType) {
+		public <M extends IndexableModelObject> SearchComponentsIndexerDocumentStep<M> modelObject(final Class<M> modelObjType) {
 			IndexerComponent<M> indexComponent = new IndexerComponent<M>();
 			indexComponent.setModelObjType(modelObjType);
 			return new SearchComponentsIndexerDocumentStep<M>(indexComponent);
 		}
 		
 		@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-		public class SearchComponentsIndexerDocumentStep<M extends IndexableModelObject<? extends OID>> {
+		public class SearchComponentsIndexerDocumentStep<M extends IndexableModelObject> {
 			private final IndexerComponent<M> _indexComponent;
 			
 			public SearchComponentsIndexersIndexerStep<M> withIndexDocumentFieldsConfig(final IndexDocumentFieldConfigSet<?> indexDocFieldsCfg) {
@@ -115,7 +114,7 @@ public class SearchComponents {
 			}
 		}
 		@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-		public class SearchComponentsIndexersIndexerStep<M extends IndexableModelObject<? extends OID>> {
+		public class SearchComponentsIndexersIndexerStep<M extends IndexableModelObject> {
 			private final IndexerComponent<M> _indexComponent;
 			
 			public SearchComponentsIndexersStep isIndexedBy(final Class<? extends Indexer<M>> indexerType) {

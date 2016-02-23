@@ -3,7 +3,6 @@ package r01f.persistence.search.db;
 import javax.inject.Provider;
 
 import lombok.experimental.Accessors;
-import r01f.guids.OID;
 import r01f.model.IndexableModelObject;
 import r01f.persistence.index.IndexableFieldValuesExtractor;
 import r01f.persistence.index.IndexerBase;
@@ -13,7 +12,7 @@ import r01f.persistence.index.IndexerBase;
  * @param <P>
  */
 @Accessors(prefix="_")
-public abstract class DBIndexerBase<P extends IndexableModelObject<? extends OID>>
+public abstract class DBIndexerBase<P extends IndexableModelObject>
               extends IndexerBase<P> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  

@@ -23,7 +23,7 @@ import com.google.inject.Provider;
  * </pre>
  * For this provider to work, a properties file with the following config MUST be provided:
  * <pre class='xml'>
- * 	<signatureService>
+ * 	<signatureService mock='false'>
  *		<wsURL>http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/X43FNSHF2?WSDL</wsURL>
  *		<certificateId>0035</certificateId>
  *	</signatureService>

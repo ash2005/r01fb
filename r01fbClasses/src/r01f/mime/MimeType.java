@@ -11,15 +11,10 @@ import org.apache.tika.Tika;
 import org.apache.tika.metadata.HttpHeaders;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaMetadataKeys;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypesFactory;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import r01f.patterns.Memoized;
-import r01f.resources.ResourcesLoader;
-import r01f.resources.ResourcesLoaderBuilder;
 import r01f.util.types.Strings;
 
 /**
@@ -55,50 +50,53 @@ public class MimeType {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
+	public boolean isTextPlain() {
+		return MimeTypes.TEXT_PLAIN_GRP.contains(_mimeType);
+	}
 	public boolean isBinary() {
-		return MimeTypes.BINARY.contains(_mimeType);
+		return MimeTypes.BINARY_GRP.contains(_mimeType);
 	}
 	public boolean isCompressed() {
-		return MimeTypes.COMPRESSED.contains(_mimeType);
+		return MimeTypes.COMPRESSED_GRP.contains(_mimeType);
 	}
 	public boolean isFont() {
-		return MimeTypes.FONT.contains(_mimeType);
+		return MimeTypes.FONT_GRP.contains(_mimeType);
 	}
 	public boolean isDocument() {
-		return MimeTypes.DOCUMENT.contains(_mimeType);
+		return MimeTypes.DOCUMENT_GRP.contains(_mimeType);
 	}
 	public boolean isWeb() {
-		return MimeTypes.DOCUMENT.contains(_mimeType);
+		return MimeTypes.WEB_GRP.contains(_mimeType);
 	}
 	public boolean isHtml() {
-		return _mimeType.equals(HTML_MIME) || _mimeType.equals(XHTML_MIME);
+		return _mimeType.equals(MimeTypes.HTML_MIME) || _mimeType.equals(MimeTypes.XHTML_MIME);
 	}
 	public boolean isStyleSheet() {
-		return _mimeType.equals(CSS_MIME) || _mimeType.equals(LESS_MIME);
+		return _mimeType.equals(MimeTypes.CSS_MIME) || _mimeType.equals(MimeTypes.LESS_MIME);
 	}
 	public boolean isJavaScript() {
-		return _mimeType.equals(JS_MIME);
+		return _mimeType.equals(MimeTypes.JS_MIME);
 	}
 	public boolean isMultiPart() {
-		return MimeTypes.MULTI_PART.contains(_mimeType);
+		return MimeTypes.MULTI_PART_GRP.contains(_mimeType);
 	}
 	public boolean isImage() {
-		return MimeTypes.IMAGE.contains(_mimeType);
+		return MimeTypes.IMAGE_GRP.contains(_mimeType);
 	}
 	public boolean isAudio() {
-		return MimeTypes.AUDIO.contains(_mimeType);
+		return MimeTypes.AUDIO_GRP.contains(_mimeType);
 	}
 	public boolean isVideo() {
-		return MimeTypes.VIDEO.contains(_mimeType);
+		return MimeTypes.VIDEO_GRP.contains(_mimeType);
 	}
 	public boolean is3DModel() {
-		return MimeTypes.MODEL3D.contains(_mimeType);
+		return MimeTypes.MODEL3D_GRP.contains(_mimeType);
 	}
 	public boolean isMap() {
-		return MimeTypes.MAP.contains(_mimeType);
+		return MimeTypes.MAP_GRP.contains(_mimeType);
 	}
 	public boolean isData() {
-		return MimeTypes.DATA.contains(_mimeType);
+		return MimeTypes.DATA_GRP.contains(_mimeType);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -152,7 +150,7 @@ public class MimeType {
 	 * @return the possible file extensions for the {@link MimeType}
 	 */
 	public Collection<String> getFileExtensions() {
-		org.apache.tika.mime.MimeType mimeType = _mimeTypeFor(_mimeType.getName());
+		org.apache.tika.mime.MimeType mimeType = MimeTypes.mimeTypeFor(_mimeType.getName());
 		return mimeType != null ? mimeType.getExtensions()
 								: null;
 	}
@@ -160,17 +158,18 @@ public class MimeType {
 		String theExt = fileExtension.startsWith(".") ? fileExtension : ("." + fileExtension);	// ensure the file extension starts with a dot
 		
 		org.apache.tika.mime.MimeType mimeType = null;
-							  mimeType = MimeTypes.BINARY.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.COMPRESSED.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.FONT.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.DOCUMENT.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.WEB.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.IMAGE.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.AUDIO.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.VIDEO.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.MODEL3D.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.DATA.mimeTypeForFileExtension(theExt);
-		if (mimeType == null) mimeType = MimeTypes.MAP.mimeTypeForFileExtension(theExt);
+							  mimeType = MimeTypes.TEXT_PLAIN_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.BINARY_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.COMPRESSED_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.FONT_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.DOCUMENT_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.WEB_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.IMAGE_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.AUDIO_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.VIDEO_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.MODEL3D_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.DATA_GRP.mimeTypeForFileExtension(theExt);
+		if (mimeType == null) mimeType = MimeTypes.MAP_GRP.mimeTypeForFileExtension(theExt);
 		
 		return mimeType != null ? new MimeType(mimeType) 
 								: null;
@@ -181,17 +180,8 @@ public class MimeType {
 	 * @return
 	 */
 	public static MimeType forName(final String mediaTypeName) {
-		org.apache.tika.mime.MimeType mimeType = _mimeTypeFor(mediaTypeName);
+		org.apache.tika.mime.MimeType mimeType = MimeTypes.mimeTypeFor(mediaTypeName);
 		return new MimeType(mimeType);
-	}
-	private static org.apache.tika.mime.MimeType _mimeTypeFor(final String mediaTypeName) {
-		org.apache.tika.mime.MimeType outMimeType = null;
-		try {
-			outMimeType = MIME_TYPES.get().forName(mediaTypeName);
-		} catch (MimeTypeException mimeEx) {
-			mimeEx.printStackTrace(System.out);
-		} 
-		return outMimeType;
 	}
 	public org.apache.tika.mime.MimeType getType() {
 		return _mimeType;
@@ -199,62 +189,4 @@ public class MimeType {
 	public String getTypeName() {
 		return _mimeType.getName();
 	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	static Memoized<org.apache.tika.mime.MimeTypes> MIME_TYPES = new Memoized<org.apache.tika.mime.MimeTypes>() {
-																					@Override
-																					protected org.apache.tika.mime.MimeTypes supply() {
-																							ResourcesLoader resLoader = ResourcesLoaderBuilder.createDefaultResourcesLoader();
-																							try {
-																								return MimeTypesFactory.create(resLoader.getInputStream("org/apache/tika/mime/tika-mimetypes.xml"),		// tika's core (located at tika-core.jar)
-																															   resLoader.getInputStream("org/apache/tika/mime/custom-mimetypes.xml"));	// tika's extension (located at R01F)
-																							} catch (Throwable th) {
-																								th.printStackTrace();
-																								throw new InternalError(th.getMessage());
-																							} 
-																					}
-																			};
-	public static MimeType APPLICATION_XML = MimeType.forName("application/xml");
-	public static MimeType APPLICATION_JSON = MimeType.forName("application/json");
-	public static MimeType OCTECT_STREAM = MimeType.forName("application/octet-stream");
-	public static MimeType XHTML = MimeType.forName("application/xhtml+xml");
-	public static MimeType HTML = MimeType.forName("text/html");
-	public static MimeType JAVASCRIPT = MimeType.forName("application/javascript");
-	public static MimeType STYLESHEET = MimeType.forName("text/css");
-	
-	private static org.apache.tika.mime.MimeType CSS_MIME = _mimeTypeFor("text/css");
-	private static org.apache.tika.mime.MimeType LESS_MIME = _mimeTypeFor("text/x-less");
-	private static org.apache.tika.mime.MimeType JS_MIME = _mimeTypeFor("application/javascript");
-	private static org.apache.tika.mime.MimeType HTML_MIME = _mimeTypeFor("text/html");
-	private static org.apache.tika.mime.MimeType XHTML_MIME = _mimeTypeFor("application/xhtml+xml");
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-//	static class MimeTypeMarshaller 
-//	  implements XmlReadCustomTransformer<MimeType>,
-//	  			 XmlWriteCustomTransformer {
-//		@Override
-//		public MimeType beanFromXml(final CharSequence xml) {
-//			if (Strings.isNullOrEmpty(xml)) {
-//				return MimeType.forName(xml.toString());
-//			}
-//			return null;
-//		}
-//		@Override
-//		public String xmlFromBean(final Object bean) {
-//			if (bean == null) return null;
-//			if (bean instanceof MimeType) {
-//				return ((MimeType)bean).getTypeName();
-//			}
-//			throw new IllegalArgumentException(Throwables.message("{} is not a {}",bean.getClass(),MimeType.class));
-//		}
-//		
-//	}
-//	public static void main(String[] args) {
-//		Marshaller m = SimpleMarshaller.createForPackages("r01f")
-//									   .getForSingleUse();
-//		String xml = m.xmlFromBean(MimeType.forName("text/css"));
-//		System.out.println(xml);
-//	}
 }

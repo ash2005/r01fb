@@ -28,10 +28,10 @@ import r01f.resources.ResourcesLoader;
 import r01f.resources.ResourcesLoaderDef;
 import r01f.types.Path;
 import r01f.types.TimeLapse;
-import r01f.types.UrlPath;
 import r01f.types.contact.EMail;
 import r01f.types.url.Host;
 import r01f.types.url.Url;
+import r01f.types.url.UrlPath;
 import r01f.util.types.Strings;
 import r01f.util.types.Strings.StringExtended;
 import r01f.xmlproperties.XMLProperties.OSType;
@@ -248,7 +248,7 @@ public final class XMLPropertyWrapper {
 	 * @return the property value or the default value if the property is NOT found
 	 */
 	public UrlPath asUrlPath(final String defaultVal) {
-		UrlPath defPath = UrlPath.of(_replacePathVars(defaultVal));
+		UrlPath defPath = UrlPath.from(_replacePathVars(defaultVal));
 		return this.asUrlPath(defPath);
 	}
 	/**
@@ -276,7 +276,7 @@ public final class XMLPropertyWrapper {
 	 * @return the property value or the default value if the property is NOT found
 	 */
 	public Path asPath(final String defaultVal) {
-		Path defPath = Path.of(_replacePathVars(defaultVal));
+		Path defPath = Path.from(_replacePathVars(defaultVal));
 		return this.asPath(defPath);
 	}
 	/**

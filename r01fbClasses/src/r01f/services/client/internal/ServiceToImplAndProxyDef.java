@@ -70,11 +70,11 @@ public class ServiceToImplAndProxyDef<S extends ServiceInterface>
 //  FACTORY
 /////////////////////////////////////////////////////////////////////////////////////////
 	public static <S extends ServiceInterface> ServiceToImplAndProxyDef<S> createFor(final AppAndComponent appAndModule,
-																			 final Class<S> serviceInterface,
-																			 final ServicesImpl configuredDefaultProxyImpl) {
+																			 		 final Class<S> serviceInterface,
+																			 		 final ServicesImpl configuredDefaultProxyImpl) {
 		ServiceToImplAndProxyDef<S> outImplDef = new ServiceToImplAndProxyDef<S>(appAndModule.getAppCode(),appAndModule.getAppComponent(),
-									   						  	 serviceInterface,
-									   						  	 configuredDefaultProxyImpl);
+									   						  	 				 serviceInterface,
+									   						  	 				 configuredDefaultProxyImpl);
 		// By default, the proxy type to be used is the configured one... only if the bean impl is available
 		// this proxy type to be used is changed (see setServiceBeanImpl() method)
 		outImplDef._proxyImplToUse = configuredDefaultProxyImpl;
@@ -108,19 +108,20 @@ public class ServiceToImplAndProxyDef<S extends ServiceInterface>
 		return AppAndComponent.composedBy(_coreAppCode,_module);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
-//  DEBUG
+//  DEBUG (called from ServicesClientInterfaceToImplOrProxyBinder)
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public CharSequence debugInfo() {
 		StringBuilder dbg = new StringBuilder();
+		dbg.append(_interfaceType);
 		if (_beanServiceImplType != null) {
-			dbg.append(_interfaceType).append(" BEAN implementation is available in the classpath: ").append(_beanServiceImplType)
-			   .append("\n");
+			dbg.append("\n").append("\t\t\t\t\t- ").append("BEAN implementation is available in the classpath: ").append(_beanServiceImplType);
 		}
 		if (CollectionUtils.hasData(_proxyTypeByImpl)) {
+			dbg.append("\n");
 			for (Iterator<Map.Entry<ServicesImpl,Class<? extends ServiceProxyImpl>>> meIt = _proxyTypeByImpl.entrySet().iterator(); meIt.hasNext(); ) {
 				Map.Entry<ServicesImpl,Class<? extends ServiceProxyImpl>> me = meIt.next();
-				dbg.append("\t-").append(me.getKey()).append(" proxy > ").append(me.getValue());
+				dbg.append("\t\t\t\t\t- ").append(me.getKey()).append(" proxy > ").append(me.getValue());
 				if (meIt.hasNext()) dbg.append("\n");
 			}
 		}

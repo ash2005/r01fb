@@ -6,7 +6,7 @@
 	</pifService>
 	
 	<!-- Signature -->
-  	<signatureService>
+  	<signatureService mock='false'>
  		<wsURL>http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/X43FNSHF2?WSDL</wsURL>
  		<sessionLoginAppId>R01F</sessionLoginAppId>
  		<certificateId>0035</certificateId>
@@ -16,7 +16,7 @@
 	<xlnets loginAppCode='X42T' token='httpProvided'>	<!-- token=file/httpProvided/loginApp -->
 		<!--
 		if token=file: 			...path to a mock xlnets token (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate one)
-		if token=httpProvided:  ...url to the url that provides the token (ie: http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet)
+		if token=httpProvided:  ...url to the url that provides the token (ie: http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet?login_app=appId)
 		if token=loginApp		...not used 
 		-->
 		<sessionToken>http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet</sessionToken>

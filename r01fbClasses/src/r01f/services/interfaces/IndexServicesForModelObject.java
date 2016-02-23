@@ -7,7 +7,7 @@ import r01f.model.IndexableModelObject;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.usercontext.UserContext;
 
-public interface IndexServicesForModelObject<O extends OID,M extends IndexableModelObject<O>> 
+public interface IndexServicesForModelObject<O extends OID,M extends IndexableModelObject> 
 		 extends ServiceInterface {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ENTITY INDEX

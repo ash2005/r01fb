@@ -11,7 +11,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Module;
 
 import lombok.extern.slf4j.Slf4j;
-import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.AppAndComponent;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.ServicesPackages;
 import r01f.services.core.internal.ServicesCoreBootstrapGuiceModule;
@@ -30,7 +30,7 @@ public class ServicesClientBootstrapModulesFinder {
 	/**
 	 * Api app code
 	 */
-	private final AppCode _apiAppCode;
+	private final AppAndComponent _apiAppAndModule;
 	/**
 	 * Bootstrap client guice modules
 	 */
@@ -39,11 +39,11 @@ public class ServicesClientBootstrapModulesFinder {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	public ServicesClientBootstrapModulesFinder(final AppCode apiAppCode) {
-		_apiAppCode = apiAppCode;
+	public ServicesClientBootstrapModulesFinder(final AppAndComponent apiAppAndComponent) {
+		_apiAppAndModule = apiAppAndComponent;
 		
 		// Try to find guice modules
-    	String clientGuiceModulePackage = ServicesPackages.clientGuiceModulePackage(apiAppCode);
+    	String clientGuiceModulePackage = ServicesPackages.clientGuiceModulePackage(apiAppAndComponent);
 		
 		List<String> pckgs = Lists.newArrayListWithExpectedSize(2);
 		pckgs.add(ServicesClientGuiceModule.class.getPackage().getName());	// beware to include also the package where ServicesClientGuiceModule is
@@ -64,9 +64,10 @@ public class ServicesClientBootstrapModulesFinder {
 	public Collection<Class<? extends ServicesClientAPIBootstrapGuiceModuleBase>> findProxyBingingsGuiceModuleTypes() {
 		Set<Class<? extends ServicesClientAPIBootstrapGuiceModuleBase>> bootstrapModuleTypes = _filterModulesOfType(ServicesClientAPIBootstrapGuiceModuleBase.class);
 		if (CollectionUtils.isNullOrEmpty(bootstrapModuleTypes)) {
-			log.warn("There's NO binding for client bindings-module in the classpath! There MUST be AT LEAST a guice binding module extending {} at package {}.client.internal in the classpath: " + 
+			log.warn("There's NO binding for client bindings-module in the classpath! There MUST be AT LEAST a guice binding module extending {} at package {} in the classpath: " + 
 					 "The client-side bindings could NOT be bootstraped",
-					 ServicesClientAPIBootstrapGuiceModuleBase.class,_apiAppCode);
+					 ServicesClientAPIBootstrapGuiceModuleBase.class,
+					 ServicesPackages.clientGuiceModulePackage(_apiAppAndModule));
 //			throw new IllegalStateException(Throwables.message("There's NO binding for client bindings-module in the classpath! There MUST be AT LEAST a guice binding module extending {} at package {}.client.internal in the classpath: " + 
 //														       "The client-side bindings could NOT be bootstraped",
 //															   ServicesClientAPIBootstrapGuiceModuleBase.class,_apiAppCode));

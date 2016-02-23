@@ -15,8 +15,8 @@ import r01f.guids.VersionIndependentOID;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.types.Paths;
 import r01f.types.Range;
-import r01f.types.UrlPath;
 import r01f.types.url.Url;
+import r01f.types.url.UrlPath;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
@@ -102,7 +102,7 @@ public class RESTServiceResourceUrlPathBuilders {
 		}
 		@Override
 		public UrlPath pathOfResource() {
-			return UrlPath.of(_resourcePath);
+			return UrlPath.from(_resourcePath);
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -177,7 +177,11 @@ public class RESTServiceResourceUrlPathBuilders {
 	@GwtIncompatible("Not used from GWT")
 	public static abstract class RESTServiceResourceUrlPathBuilderForVersionableModelObjectPersistenceBase<O extends OIDForVersionableModelObject>
 						 extends RESTServiceResourceUrlPathBuilderForModelObjectPersistenceBase<O> {
-		
+		public RESTServiceResourceUrlPathBuilderForVersionableModelObjectPersistenceBase(final RESTServiceEndPointUrl endPointUrl,
+																			  			 final UrlPath resourcePath) {
+			super(endPointUrl,
+				  resourcePath);
+		}
 		public RESTServiceResourceUrlPathBuilderForVersionableModelObjectPersistenceBase(final Url host,
 																						 final UrlPath endPointBasePath,
 																		       			 final UrlPath resourcePath) {

@@ -9,9 +9,7 @@ import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import r01f.exceptions.Throwables;
 import r01f.guids.AppAndComponent;
-import r01f.guids.CommonOIDs.AppCode;
 import r01f.services.client.internal.ServiceToImplAndProxyDef;
 import r01f.services.core.internal.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
 import r01f.services.core.internal.EJBImplementedServicesCoreGuiceModuleBase;
@@ -19,7 +17,6 @@ import r01f.services.core.internal.RESTImplementedServicesCoreGuiceModuleBase;
 import r01f.services.core.internal.ServicesCoreBootstrapGuiceModule;
 import r01f.services.core.internal.ServletImplementedServicesCoreGuiceModuleBase;
 import r01f.services.interfaces.ServiceInterface;
-import r01f.services.interfaces.ServiceInterfaceFor;
 import r01f.util.types.collections.CollectionUtils;
 
 @Accessors(prefix="_")
@@ -31,7 +28,7 @@ public class ServiceBootstrapDef {
 	/**
 	 * API app code
 	 */
-	@Getter private final AppCode _apiAppCode;
+	@Getter private final AppAndComponent _apiAppAndModule;
 	/**
 	 * Core app code and module
 	 */

@@ -56,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.types.Path;
 import r01f.types.Paths;
-import r01f.types.UrlPath;
+import r01f.types.url.UrlPath;
 import r01f.types.url.UrlQueryString;
 import r01f.util.types.Numbers;
 import r01f.util.types.Strings;
@@ -754,10 +754,10 @@ public class GenericHttpProxyServlet
             targetURLPath = Paths.forUrlPaths().join(targetURLPath,
             						   				 servletPath);
         } 
-        else if (servletPath.startsWith(Path.of(_pathTrim).asAbsoluteString())) {
+        else if (servletPath.startsWith(Path.from(_pathTrim).asAbsoluteString())) {
         	// remove the pathTrim part
         	targetURLPath = Paths.forUrlPaths().join(targetURLPath,
-        											 servletPath.substring(Path.of(_pathTrim).asAbsoluteString().length()));
+        											 servletPath.substring(Path.from(_pathTrim).asAbsoluteString().length()));
         }
         // Handle the path given to the servlet
         String pathInfo = originalRequest.getPathInfo();		// Returns any extra path information associated with the URL the client sent

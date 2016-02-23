@@ -18,7 +18,7 @@ import r01f.util.types.collections.CollectionUtils;
  * Base type for REST services that encapsulates the common search index ops: indexing, searching
  */
 @Accessors(prefix="_")
-public abstract class RESTIndexDelegateBase<O extends OID,M extends IndexableModelObject<O>> 
+public abstract class RESTIndexDelegateBase<O extends OID,M extends IndexableModelObject> 
               extends RESTDelegateForModelObjectBase<M> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS

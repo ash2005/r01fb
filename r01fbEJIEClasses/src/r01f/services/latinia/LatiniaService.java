@@ -9,6 +9,10 @@ import javax.xml.namespace.QName;
 import javax.xml.rpc.handler.HandlerInfo;
 import javax.xml.rpc.handler.HandlerRegistry;
 
+import com.ejie.w91d.client.W91DSendSms;
+import com.ejie.w91d.client.W91DSendSmsWebServiceImplService_Impl;
+import com.google.inject.Singleton;
+
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.marshalling.Marshaller;
@@ -22,10 +26,6 @@ import r01f.types.Factory;
 import r01f.util.types.Strings;
 import r01f.xml.XMLUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.ejie.w91d.client.W91DSendSms;
-import com.ejie.w91d.client.W91DSendSmsWebServiceImplService_Impl;
-import com.google.inject.Singleton;
 
 /**
  * Encapsulates latinia message sending
@@ -208,6 +208,16 @@ public class LatiniaService
 /////////////////////////////////////////////////////////////////////////////////////////
 //	API
 /////////////////////////////////////////////////////////////////////////////////////////
+	public String getLatiniaRequestMessageAsXml(final LatiniaRequestMessage msg) {
+		LatiniaRequest request = new LatiniaRequest();
+		request.addMessage(msg);
+		
+//		StringBuilder requestXml = new StringBuilder("<![CDATA[");
+//		requestXml.append(_apiData.getLatiniaObjsMarshaller().xmlFromBean(request));
+//		requestXml.append("]]>");
+		StringBuilder requestXml = new StringBuilder(_apiData.getLatiniaObjsMarshaller().xmlFromBean(request));
+		return requestXml.toString();
+	}
 	public LatiniaResponse sendNotification(final LatiniaRequestMessage msg) {
 		log.debug("[Latinia] > Send message");
 
@@ -215,19 +225,14 @@ public class LatiniaService
 		W91DSendSms sendSmsService = _wsClientFactory.create();
 		if (sendSmsService == null) throw new IllegalStateException(Throwables.message("Could NOT create a {} instance!",W91DSendSms.class));
 
-		// [2] - Compose the request
-		LatiniaRequest request = new LatiniaRequest();
-		request.addMessage(msg);
 
-		// [3] - Send the request
+		// [2] - Send the request
 		LatiniaResponse response = null;
 		try {
-			StringBuilder requestXml = new StringBuilder("<![CDATA[");
-			requestXml.append(_apiData.getLatiniaObjsMarshaller().xmlFromBean(request));
-			requestXml.append("]]>");
+			String requestXml = this.getLatiniaRequestMessageAsXml(msg);
 			log.info("[Latinia] > request XML: {} ",requestXml);
 
-			final String responseXml = sendSmsService.sendSms(requestXml.toString());
+			final String responseXml = sendSmsService.sendSms(requestXml);
 			if (!Strings.isNullOrEmpty(responseXml)) {
 				String theResponseXml = Strings.of(responseXml).replaceAll("PETICION","RESPUESTA")
 											   .asString();

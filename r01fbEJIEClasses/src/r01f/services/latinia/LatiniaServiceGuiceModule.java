@@ -89,7 +89,8 @@ public class LatiniaServiceGuiceModule
 	LatiniaService _provideLatiniaService(@XMLPropertiesComponent("latinia") final XMLPropertiesForAppComponent props) {
 		// Provide a new latinia service api data using the provider
 		LatiniaServiceApiDataProvider latiniaApiServiceProvider = new LatiniaServiceApiDataProvider(_appCode,
-																									props,_latiniaPropsXPath);
+																									props,
+																									_latiniaPropsXPath);
 		// Using the latinia service api data create the LatiniaService object
 		LatiniaService outLatiniaService = new LatiniaService(latiniaApiServiceProvider.get());
 		return outLatiniaService;

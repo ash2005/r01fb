@@ -110,7 +110,7 @@ public class I18NMessageAnnotationGuiceHandler
 																	   final ResourcesLoaderDefLocation resLoadDefLocAnnotation) {
         AppCode appCode = AppCode.forId(resLoadDefLocAnnotation.appCode());
         AppComponent component = AppComponent.forId(resLoadDefLocAnnotation.component());
-        Path xPath = Path.of(resLoadDefLocAnnotation.xPath());
+        Path xPath = Path.from(resLoadDefLocAnnotation.xPath());
         
         XMLPropertyLocation xmlPropLoc = XMLPropertyLocation.createFor(appCode,component,xPath);
         ResourcesLoaderDef outDef = ResourcesLoaderDefBuilder.forDefinitionAt(xmlProperties,xmlPropLoc);

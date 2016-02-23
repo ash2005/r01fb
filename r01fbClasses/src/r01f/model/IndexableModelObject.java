@@ -1,6 +1,5 @@
 package r01f.model;
 
-import r01f.guids.OID;
 import r01f.model.facets.Facetable;
 import r01f.model.facets.HasEntityVersion;
 import r01f.model.facets.HasNumericID;
@@ -27,7 +26,7 @@ import r01f.model.facets.Summarizable.HasSummaryFacet;
  * 
  * @param <O> the indexed oid type (it must not have to be the same as the model object's oid)
  */
-public interface IndexableModelObject<O extends OID> 
+public interface IndexableModelObject 
 		 extends ModelObject,
 		 		 HasModelObjectMetaData,
 		 		 Facetable,

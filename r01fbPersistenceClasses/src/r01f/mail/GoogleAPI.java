@@ -304,12 +304,12 @@ public class GoogleAPI {
 		private GoogleAPIClientIDJsonKeyPath(final ResourcesLoaderType resourcesLoaderType,
 											 final String path) {
 			super(resourcesLoaderType,
-				  Path.of(path));
+				  Path.from(path));
 		}
 		private GoogleAPIClientIDJsonKeyPath(final ResourcesLoaderType resourcesLoaderType,
 											 final Path path) {
 			super(resourcesLoaderType,
-				  Path.of(path));
+				  Path.from(path));
 		}
 		public static GoogleAPIClientIDJsonKeyPath loadedFromClassPath(final Path path) {
 			return new GoogleAPIClientIDJsonKeyPath(ResourcesLoaderType.CLASSPATH,
@@ -334,12 +334,12 @@ public class GoogleAPI {
 		public GoogleAPIClientIDP12KeyPath(final ResourcesLoaderType resourcesLoaderType,
 										   final String path) {
 			super(resourcesLoaderType,
-				  Path.of(path));
+				  Path.from(path));
 		}
 		public GoogleAPIClientIDP12KeyPath(final ResourcesLoaderType resourcesLoaderType,
 										   final Path path) {
 			super(resourcesLoaderType,
-				  Path.of(path));
+				  Path.from(path));
 		}
 		public static GoogleAPIClientIDP12KeyPath loadedFromClassPath(final Path path) {
 			return new GoogleAPIClientIDP12KeyPath(ResourcesLoaderType.CLASSPATH,

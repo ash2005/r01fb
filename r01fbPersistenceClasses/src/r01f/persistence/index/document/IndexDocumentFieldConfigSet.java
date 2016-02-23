@@ -27,7 +27,7 @@ import com.google.common.collect.Maps;
  * @see IndexDocumentFieldConfigSet
  */
 @Slf4j
-public class IndexDocumentFieldConfigSet<M extends IndexableModelObject<? extends OID>> {
+public class IndexDocumentFieldConfigSet<M extends IndexableModelObject> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////

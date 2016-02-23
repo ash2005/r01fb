@@ -171,8 +171,8 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 * @return
 	 */
 	public boolean containsAllPathElements(final String... pathElsToCheck) {
-		Path subPath = Path.of(pathElsToCheck);
-		Path fullPath = Path.of(_pathElements.toArray(new String[_pathElements.size()]));
+		Path subPath = Path.from(pathElsToCheck);
+		Path fullPath = Path.from(_pathElements.toArray(new String[_pathElements.size()]));
 		return fullPath.asRelativeString().contains(subPath.asRelativeString());
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -202,8 +202,8 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	 */
 	public Path getFolderPath() {
 		if (_pathElements.size() == 1 && this.isFilePath()) return null;
-		if (_pathElements.size() == 1) return Path.of(_pathElements.get(0));
-		return Path.of(this.getFirstNPathElements(_pathElements.size()-1)
+		if (_pathElements.size() == 1) return Path.from(_pathElements.get(0));
+		return Path.from(this.getFirstNPathElements(_pathElements.size()-1)
 						   .toArray(new String[_pathElements.size()-1]));
 	}
 	/**
@@ -384,10 +384,10 @@ abstract class PathBase<SELF_TYPE extends PathBase<SELF_TYPE>>
 	}
 	public static String asRelativeStringOrNull(final String path) {
 
-		return PathBase.asRelativeStringOrNull(Path.of(path));
+		return PathBase.asRelativeStringOrNull(Path.from(path));
 	}
 	public static String asAbsoluteStringOrNull(final String path) {
-		return PathBase.asAbsoluteStringOrNull(Path.of(path));
+		return PathBase.asAbsoluteStringOrNull(Path.from(path));
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  

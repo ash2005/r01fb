@@ -17,27 +17,25 @@ import r01f.guids.AppAndComponent;
 import r01f.services.ServicesImpl;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.services.interfaces.ServiceProxyImpl;
-import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
 @Slf4j
-@RequiredArgsConstructor
 public class ServicesClientInterfaceToImplOrProxyBinder {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
-	public Map<Class<? extends ServiceInterface>,
-			   Class<? extends ServiceInterface>> bindServiceInterfacesToProxiesOrImpls(final Binder binder,
-										  			  									final Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceIfaceToImplAndProxiesByAppModule) {
+	public static Map<Class<? extends ServiceInterface>,
+			   		  Class<? extends ServiceInterface>> bindServiceInterfacesToProxiesOrImpls(final Binder binder,
+										  			  										   final Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceIfaceToImplAndProxiesByAppModule) {
 		// Bind every interface to it's implementation and proxies
 		Collection<ServiceToImplAndProxyDef<? extends ServiceInterface>> allServiceToImplAndProxiesDefs = Lists.newArrayList(Iterables.concat(serviceIfaceToImplAndProxiesByAppModule.values()));
-		return this.bindServiceInterfacesToProxiesOrImpls(binder,
-														  allServiceToImplAndProxiesDefs);
+		return ServicesClientInterfaceToImplOrProxyBinder.bindServiceInterfacesToProxiesOrImpls(binder,
+														  										allServiceToImplAndProxiesDefs);
 	}
 	
-	public Map<Class<? extends ServiceInterface>,
-			   Class<? extends ServiceInterface>> bindServiceInterfacesToProxiesOrImpls(final Binder binder,
-										  			  									final Collection<ServiceToImplAndProxyDef<? extends ServiceInterface>> serviceIfacesToImplAndProxiesDef) {
+	public static Map<Class<? extends ServiceInterface>,
+			          Class<? extends ServiceInterface>> bindServiceInterfacesToProxiesOrImpls(final Binder binder,
+										  			  										   final Collection<ServiceToImplAndProxyDef<? extends ServiceInterface>> serviceIfacesToImplAndProxiesDef) {
 		Map<Class<? extends ServiceInterface>,Class<? extends ServiceInterface>> outServiceInterfaceTypeToImplOrProxyType = Maps.newHashMap();
 		
 		// Bind every interface to it's implementation and proxies
@@ -65,14 +63,16 @@ public class ServicesClientInterfaceToImplOrProxyBinder {
 	 * @param apiDef
 	 */
 	@SuppressWarnings({"unchecked"})
-	private <S extends ServiceInterface> Class<S> _bindServiceInterfaceToImplOrProxy(final Binder binder,
-																   		 	  		 final ServiceToImplAndProxyDef<S> serviceToImplDef) {
+	private static <S extends ServiceInterface> Class<S> _bindServiceInterfaceToImplOrProxy(final Binder binder,
+																   		 	  		 		final ServiceToImplAndProxyDef<S> serviceToImplDef) {
 		Class<S> serviceImplOrProxyType = null;
+		
+		log.warn("\t\t> {} ",serviceToImplDef.debugInfo());
 		
 		// [1] - The bean impl ia available... NO proxy is needed
 		if (serviceToImplDef.getBeanServiceImplType() != null) {
 			
-			log.warn("\t\t>Bind {} to the BEAN IMPLEMENTATION: {} (no proxy needed)",serviceToImplDef.getInterfaceType(),serviceToImplDef.getBeanServiceImplType());
+			log.warn("\t\t\t>Bind {} to the BEAN IMPLEMENTATION: {} (no proxy needed)",serviceToImplDef.getInterfaceType(),serviceToImplDef.getBeanServiceImplType());
 
 			// The implementation is available:  Bind the service implementation to the interface
 			// 									 annotated with @ServicesCoreImplementation
@@ -93,7 +93,7 @@ public class ServicesClientInterfaceToImplOrProxyBinder {
 				serviceImplOrProxyType = (Class<S>)serviceToImplDef.getServiceProxyImplTypeFor(defaultServiceImpl);
 				binder.bind(serviceToImplDef.getInterfaceType())
 					  .to(serviceImplOrProxyType);
-				log.warn("\t\t>Bind {} to the DEFAULT PROXY: {}",
+				log.warn("\t\t\t>Bind {} to the DEFAULT PROXY: {}",
 						 serviceToImplDef.getInterfaceType(),serviceImplOrProxyType);
 
 				
@@ -102,7 +102,7 @@ public class ServicesClientInterfaceToImplOrProxyBinder {
 				serviceImplOrProxyType = (Class<S>)serviceToImplDef.getServiceProxyImplTypeFor(ServicesImpl.REST);
 				binder.bind(serviceToImplDef.getInterfaceType())
 					  .to(serviceImplOrProxyType);
-				log.warn("\t\t>Bind {} to the DEFAULT PROXY: {} (the default={} was NOT found so used {} instead)",
+				log.warn("\t\t\t>Bind {} to the DEFAULT PROXY: {} (the default={} was NOT found so used {} instead)",
 						 serviceToImplDef.getInterfaceType(),ServicesImpl.REST,
 						 defaultServiceImpl,serviceImplOrProxyType);
 				
@@ -112,14 +112,14 @@ public class ServicesClientInterfaceToImplOrProxyBinder {
 				serviceImplOrProxyType = (Class<S>)serviceToImplDef.getServiceProxyImplTypeFor(anyImpl);
 				binder.bind(serviceToImplDef.getInterfaceType())
 					  .to(serviceImplOrProxyType);
-				log.warn("\t\t>Bind {} to the DEFAULT PROXY: {} (the default={} was NOT found so used {} instead)",
+				log.warn("\t\t\t>Bind {} to the DEFAULT PROXY: {} (the default={} was NOT found so used {} instead)",
 						 serviceToImplDef.getInterfaceType(),anyImpl,
 						 defaultServiceImpl,serviceImplOrProxyType);
 			} 
 			
 			// c) bind the proxy to service impl to be used at ServicesClientProxyLazyLoaderGuiceMethodInterceptor
 			if (CollectionUtils.isNullOrEmpty(serviceToImplDef.getProxyTypeByImpl())) {
-				log.error("\t\t>NO proxy for {} was not found: Is there any proxy type implementing {} available in the classpath?",
+				log.error("\t\t\t>NO proxy for {} was not found: Is there any proxy type implementing {} available in the classpath?",
 						  serviceToImplDef.getInterfaceType(),serviceToImplDef.getInterfaceType());
 			}
 		}

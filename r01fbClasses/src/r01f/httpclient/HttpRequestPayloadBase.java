@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.httpclient.HttpRequestFormParameterForMultiPartBinaryData.HttpRequestFormBinaryParameterTransferEncoding;
 import r01f.mime.MimeType;
+import r01f.mime.MimeTypes;
 
 
 @Accessors(prefix="_")
@@ -14,7 +15,7 @@ abstract class HttpRequestPayloadBase<SELF_TYPE extends HttpRequestPayloadBase<S
 //  STATUS
 /////////////////////////////////////////////////////////////////////////////////////////	
 	@Getter @Setter(AccessLevel.PACKAGE) private byte[] _content;
-	@Getter @Setter(AccessLevel.PACKAGE) private MimeType _mimeType = MimeType.OCTECT_STREAM;	// default
+	@Getter @Setter(AccessLevel.PACKAGE) private MimeType _mimeType = MimeTypes.OCTECT_STREAM;	// default
 	@Getter @Setter(AccessLevel.PACKAGE) private HttpRequestFormBinaryParameterTransferEncoding _transferEncoding = HttpRequestFormBinaryParameterTransferEncoding.BINARY;
 	
 			@Setter(AccessLevel.PACKAGE) private transient boolean _mustEncodeToTargetServerCharset = false;

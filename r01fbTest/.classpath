@@ -9,5 +9,9 @@
 	<classpathentry kind="con" path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?project=r01fbTest&amp;ivyXmlPath=ivy.xml&amp;confs=runtime"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/LIB_ MYSQL"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/LIB_PIF"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/LIB_SHF"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/LIB_WL11"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/LIB_XLNETS"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

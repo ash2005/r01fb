@@ -33,9 +33,6 @@ public class Path
 	public Path(final Object obj) {
 		super(obj);
 	}
-	public Path(final String newPath) {
-		super(newPath);
-	}
 	public <P extends IsPath> Path(final P otherPath) {
 		super(otherPath);
 	}
@@ -51,14 +48,14 @@ public class Path
 	 * @return
 	 */
 	public static Path valueOf(final String path) {
-		return Path.of(path);
+		return Path.from(path);
 	}
 	/**
 	 * Factory from path components
 	 * @param elements 
 	 * @return the {@link Path} object
 	 */
-	public static Path of(final String... elements) {
+	public static Path from(final String... elements) {
 		if (CollectionUtils.isNullOrEmpty(elements)) return null;
 		return new Path(elements);
 	}
@@ -67,7 +64,7 @@ public class Path
 	 * @param other 
 	 * @return the new {@link Path} object
 	 */
-	public static <P extends IsPath> Path of(final P other) {
+	public static <P extends IsPath> Path from(final P other) {
 		if (other == null) return null;
 		Path outPath = new Path(other);
 		return outPath;
@@ -77,25 +74,16 @@ public class Path
 	 * @param obj 
 	 * @return the {@link Path} object
 	 */
-	public static Path of(final Object obj) {
+	public static Path from(final Object... obj) {
 		if (obj == null) return null;
 		return new Path(obj);
-	}
-	/**
-	 * Factory from a {@link String} object
-	 * @param thePath
-	 * @return the new {@link Path}
-	 */
-	public static Path of(final String thePath) {
-		if (thePath == null) return null;
-		return new Path(thePath);
 	}
 	/**
 	 * Factory from a {@link File} object 
 	 * @param file
 	 * @return
 	 */
-	public static Path of(final File file) {
+	public static Path from(final File file) {
 		if (file == null) return null;
 		return new Path(file.getAbsolutePath());
 	}
@@ -105,5 +93,26 @@ public class Path
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		return new Path(_pathElements);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  JOIN & PREPEND
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Joins this path with another ones returning a new {@link Path}
+	 * object
+	 * @param other
+	 * @return
+	 */
+	public Path joinWith(final Object... other) {
+		return Paths.forPaths().join(this,
+									 other);
+	}
+	/**
+	 * @param other
+	 * @return
+	 */
+	public Path prependWith(final Object... other) {
+		return Paths.forPaths().prepend(this,
+										other);
 	}
 }

@@ -2,6 +2,7 @@ package r01f.test.ejie;
 
 import java.io.File;
 
+import org.junit.Test;
 import org.w3c.dom.Document;
 
 import com.google.inject.Guice;
@@ -20,8 +21,13 @@ import r01f.xmlproperties.XMLPropertiesGuiceModule;
 @Slf4j
 public class SignatureServiceTest {
 
-	public static void main(String[] args) {
+	
+	@Test
+	@SuppressWarnings("static-method")
+	public void testSignatureService() {
 		try {
+			AppCode requestorAppCode = AppCode.forId("aa88b");
+			
 			Injector injector = Guice.createInjector(new XMLPropertiesGuiceModule(),
 					 								 new SignatureServiceGuiceModule(AppCode.forId("r01fb"),
 					 										 						 AppComponent.forId("test"),
@@ -32,23 +38,23 @@ public class SignatureServiceTest {
 			// Sign text
 			String textToSign = "Hola mundo!";
 			log.info("[Signature]: {}",textToSign);
-			String signature = service.requiredBy(AppCode.forId("r01fb"))
+			String signature = service.requiredBy(requestorAppCode)
 									  .createXAdESSignatureOf(textToSign)
 									  .asString();
 			log.info("[Signature]: {}",signature);
 			
 			// verify
 			log.info("[Verify signature]");
-			service.requiredBy(AppCode.forId("r01fb"))
+			service.requiredBy(requestorAppCode)
 				   .verifyXAdESSignature(textToSign,signature);
 			
 			// Sign file
-			Path filePath = Path.of("d:/temp_dev/r01fb/r01fbTestFile.txt");
+			Path filePath = Path.from("d:/temp_dev/r01fb/r01fbTestFile.txt");
 			log.info("[File Signature]: {}",filePath);
 			File file = new File(filePath.asAbsoluteString());
 			Strings.of(textToSign)
 				   .save(file);
-			Document signatureXml = service.requiredBy(AppCode.forId("r01fb"))
+			Document signatureXml = service.requiredBy(requestorAppCode)
 										   .createXAdESSignatureOf(file).asXMLDocument();			
 			log.info(XMLUtils.asString(signatureXml));
 			

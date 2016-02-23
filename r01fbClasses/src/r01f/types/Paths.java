@@ -20,6 +20,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.reflection.ReflectionUtils;
+import r01f.types.url.UrlPath;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -100,10 +101,10 @@ public abstract class Paths {
 	}
 	public static String asRelativeStringOrNull(final String path) {
 
-		return Paths.asRelativeStringOrNull(Path.of(path));
+		return Paths.asRelativeStringOrNull(Path.from(path));
 	}
 	public static String asAbsoluteStringOrNull(final String path) {
-		return Paths.asAbsoluteStringOrNull(Path.of(path));
+		return Paths.asAbsoluteStringOrNull(Path.from(path));
 	}
 	/**
 	 * Returns {@link String} with the path as an absolute path (not starting with /)
@@ -155,25 +156,21 @@ public abstract class Paths {
 			Object[] array = (Object[])obj;
 			LinkedList<String> els = Lists.newLinkedList();
 			for (Object objEl : array) {
+				if (objEl == null) continue;
 				if (objEl instanceof IsPath) {
 					els.addAll(((IsPath)objEl).getPathElements());
+				} else if (objEl instanceof Collection) {
+					els.addAll(Paths.pathElementsFrom(objEl));	// recurse					
 				} else {
 					els.addAll(_normalizePathElement(objEl.toString()));	
-				}
+				} 
 			}
 			outCol = Lists.newArrayList(els);			
 		} 
-		else if (obj instanceof Collection) {
+		else if (obj instanceof Collection) {			
 			Collection<?> col = (Collection<?>)obj;
-			LinkedList<String> els = Lists.newLinkedList();
-			for (Object objEl : col) {
-				if (objEl instanceof IsPath) {
-					els.addAll(((IsPath)objEl).getPathElements());
-				} else {
-					els.addAll(_normalizePathElement(objEl.toString()));
-				}
-			}
-			outCol = Lists.newArrayList(els);
+			Object[] array = col.toArray(new Object[col.size()]);
+			outCol = Paths.pathElementsFrom(array);				// recurse
 		}
 		else {
 			outCol = _normalizePathElement(obj.toString());
@@ -325,6 +322,64 @@ public abstract class Paths {
 //  PREPEND
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * Prepends a variable length path elements to a given path
+	 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
+	 * @param path the parent path
+	 * @param elements the path elements to be joined with path
+	 * @return a new {@link IsPath} object
+	 */
+	public static <P extends IsPath> P prepend(final Class<P> pathType,
+											   final P path,
+											   final Object... elements) {
+		if (CollectionUtils.isNullOrEmpty(elements)) return path;
+		if (path == null) return Paths.join(pathType,
+										    elements);		// elements will be normalized
+		
+		Collection<String> pathElsToPrepend = Paths.pathElementsFrom(elements);		// elements will be normalized at Paths.pathElementsFrom
+		return Paths.prepend(pathType,
+						     path,
+						     pathElsToPrepend);
+	}
+	/**
+	 * Prepends a path element to a given path
+	 * The path element can be anything, form another Path to an array of path element Strings or a Collection
+	 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
+	 * @param path the parent path
+	 * @param element the path elements to be joined with path
+	 * @return a new {@link IsPath} object
+	 */
+	public static <P extends IsPath> P prepend(final Class<P> pathType,
+									 		   final P path,
+									 		   final Object element) {
+		if (element == null) return path;		// no changes
+		if (path == null) return Paths.join(pathType,
+											element);		// elements will be normalized
+		
+		Collection<String> pathElsToPrepend = Paths.pathElementsFrom(element);		// elements will be normalized at Paths.pathElementsFrom
+		return Paths.prepend(pathType,
+						  	 path,
+						  	 pathElsToPrepend);
+	}
+	/**
+	 * Joins Collection of path elements to a given path
+	 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
+	 * @param path the parent path
+	 * @param elements the path elements to be joined with path
+	 * @return a new {@link IsPath} object
+	 */
+	public static <P extends IsPath> P prepend(final Class<P> pathType,
+									 		   final P path,
+									 		   final Collection<String> elements) {
+		if (CollectionUtils.isNullOrEmpty(elements)) return path;	// no changes
+		if (path == null) return Paths.join(pathType,
+											elements);		// elements will be normalized
+		
+		Collection<String> newPathEls = _joinCols21(path.getPathElements(),
+											        _normalizePathElements(elements));	// elements NEEDS normalization	
+		return _createPathInstanceFromElements(pathType,
+											   newPathEls);
+	}
+	/**
 	 * Prepends a path to another path
 	 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
 	 * @param path the parent path
@@ -469,19 +524,6 @@ public abstract class Paths {
 							  elements);
 		}
 		/**
-		 * Joins a string that can be a path element or a full path with the given path
-		 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
-		 * @param path the parent path
-		 * @param element the path elements to be joined with path
-		 * @return a new {@link IsPath} object
-		 */
-		public P join(final P path,
-					  final String element) {
-			return Paths.join(_pathType,
-							  path,
-							  element);
-		}
-		/**
 		 * Joins a path to another path
 		 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
 		 * @param path the parent path
@@ -507,6 +549,59 @@ public abstract class Paths {
 			return Paths.joinCustomized(_pathType,
 										path, 
 										element,vars);
+		}
+		/**
+		 * Joins a string that can be a path element or a full path with the given path
+		 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
+		 * @param path the parent path
+		 * @param element the path elements to be joined with path
+		 * @return a new {@link IsPath} object
+		 */
+		public P join(final P path,
+					  final String element) {
+			return Paths.join(_pathType,
+							  path,
+							  element);
+		}
+		/**
+		 * Prepends a variable length path elements to a given path
+		 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
+		 * @param path the parent path
+		 * @param elements the path elements to be joined with path
+		 * @return a new {@link IsPath} object
+		 */
+		public P prepend(final P path,
+					  	 final Object... elements) {
+			return Paths.prepend(_pathType,
+							  	 path,
+							  	 elements);
+		}
+		/**
+		 * Prepends a path element to a given path
+		 * The path element can be anything, form another Path to an array of path element Strings or a Collection
+		 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
+		 * @param path the parent path
+		 * @param element the path elements to be joined with path
+		 * @return a new {@link IsPath} object
+		 */
+		public P prepend(final P path,
+					     final Object element) {
+			return Paths.prepend(_pathType,
+							  	 path,
+							  	 element);
+		}
+		/**
+		 * Prepends Collection of path elements to a given path
+		 * @param pathType the path type (ie {@link UrlPath} or {@link Path})
+		 * @param path the parent path
+		 * @param elements the path elements to be joined with path
+		 * @return a new {@link IsPath} object
+		 */
+		public P prepend(final P path,
+					     final Collection<String> elements) {
+			return Paths.prepend(_pathType,
+							     path,
+							     elements);
 		}
 		/**
 		 * Prepends a path to another path

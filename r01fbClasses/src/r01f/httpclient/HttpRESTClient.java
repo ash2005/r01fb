@@ -13,6 +13,7 @@ import com.google.common.collect.Lists;
 
 import r01f.exceptions.Throwables;
 import r01f.mime.MimeType;
+import r01f.mime.MimeTypes;
 import r01f.types.url.Url;
 import r01f.util.types.collections.CollectionUtils;
 
@@ -231,7 +232,7 @@ public class HttpRESTClient {
 		HttpResponse outResponse = null;
 		try {
 			MimeType theMimeType = mimeType != null ? mimeType
-													: MimeType.APPLICATION_XML;
+													: MimeTypes.APPLICATION_XML;
 			outResponse = HttpClient.forUrl(url)	// url-encode los parametros! en otro caso NO funciona con jersey
 									.withURLParameters(_composeUrlParameters(urlParameters))
 									.notUsingProxy()
@@ -260,7 +261,7 @@ public class HttpRESTClient {
 									  final InputStream postPayload) {
 		HttpResponse outResponse = HttpRESTClient.doPOST(url,urlParameters,
 														 headers,
-														 postPayload,MimeType.APPLICATION_XML);
+														 postPayload,MimeTypes.APPLICATION_XML);
 		return outResponse;
 	}
 	/**

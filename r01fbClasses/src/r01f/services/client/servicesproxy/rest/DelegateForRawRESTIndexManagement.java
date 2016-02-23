@@ -8,7 +8,7 @@ import r01f.httpclient.HttpClient;
 import r01f.httpclient.HttpRequestPayload;
 import r01f.httpclient.HttpResponse;
 import r01f.marshalling.Marshaller;
-import r01f.mime.MimeType;
+import r01f.mime.MimeTypes;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.persistence.index.IndexManagementCommand;
 import r01f.services.ServiceProxyException;
@@ -47,13 +47,13 @@ public class DelegateForRawRESTIndexManagement
 								             .withHeader("userContext",userContextXml)								             
 								             .PUT()
 								             	.withPayload(HttpRequestPayload.wrap(dataXml)
-								             								   .mimeType(MimeType.APPLICATION_XML))								             
+								             								   .mimeType(MimeTypes.APPLICATION_XML))								             
 											 .getResponse();
 				} else {
 					httpResponse = HttpClient.forUrl(restResourceUrl)		
 								             .PUT()
 								             	.withPayload(HttpRequestPayload.wrap(dataXml)
-								             								   .mimeType(MimeType.APPLICATION_XML))
+								             								   .mimeType(MimeTypes.APPLICATION_XML))
 											 .getResponse();
 				}
 			}

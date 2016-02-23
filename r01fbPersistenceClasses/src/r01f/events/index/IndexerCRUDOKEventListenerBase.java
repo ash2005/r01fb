@@ -20,7 +20,7 @@ import r01f.util.types.Strings;
  * @param <M>
  */
 @Slf4j
-abstract class IndexerCRUDOKEventListenerBase<O extends OID,M extends IndexableModelObject<O>,
+abstract class IndexerCRUDOKEventListenerBase<O extends OID,M extends IndexableModelObject,
 											  S extends IndexServicesForModelObject<O,M>> 
        extends CRUDOperationOKEventListenerBase {
 

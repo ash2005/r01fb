@@ -150,7 +150,7 @@ public class Strings {
 	public static StringExtended load(final ResourcesLoader loader,
 									  final String filePath) throws IOException {
 		return Strings.load(loader,
-							Path.of(filePath));
+							Path.from(filePath));
 	}
 	/**
 	 * Creates a new {@link StringExtended} wrapper object to have access to fluent operations

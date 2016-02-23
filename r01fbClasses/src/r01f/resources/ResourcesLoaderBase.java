@@ -51,7 +51,7 @@ abstract class ResourcesLoaderBase
 	@Override
 	public InputStream getInputStream(final String resourcePath,
 									  final boolean reload) throws IOException {
-		return this.getInputStream(Path.of(resourcePath),
+		return this.getInputStream(Path.from(resourcePath),
 								   reload);
 	}
 	@Override

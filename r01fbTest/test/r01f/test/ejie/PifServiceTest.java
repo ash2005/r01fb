@@ -26,7 +26,7 @@ public class PifServiceTest {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTANTS
 /////////////////////////////////////////////////////////////////////////////////////////
-	private static final Path TEST_FILE_PATH = Path.of("d:/temp_dev/r01fb/r01fbTestFile.txt");
+	private static final Path TEST_FILE_PATH = Path.from("d:/temp_dev/r01fb/r01fbTestFile.txt");
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Check at: http://svc.integracion.jakina.ejiedes.net/y31dBoxWAR/appbox
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ public class PifServiceTest {
 							.asString());
 			
 			// Do upload
-			Path pifDstPath = Path.of("/x42t/r01fb/r01fbTestFile.txt");
+			Path pifDstPath = Path.from("/x42t/r01fb/r01fbTestFile.txt");
 			PifFileInfo uploadedFileInfo = service.uploadFile(input,
 												  			  pifDstPath,
 												  			  true,						// preserve file name 

@@ -37,7 +37,7 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 	/**
 	 * The api app code
 	 */
-	private final AppCode _apiAppCode;
+	private final AppAndComponent _apiAppAndModule;
 	/**
 	 * The core app codes and modules and the default service proxy impl 
 	 * (it's loaded from {apiAppCode}.client.properties.xml
@@ -74,10 +74,10 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 	 */
 	public Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> findServiceInterfacesToImplAndProxiesBindings(final Collection<AppCode> coreAppCodes) {
 		log.warn("\t\tFinding {}-implementing types at [{}] client app code and {} core app codes",
-				 ServiceInterface.class.getSimpleName(),_apiAppCode,coreAppCodes);
+				 ServiceInterface.class.getSimpleName(),_apiAppAndModule,coreAppCodes);
 		
 		// Find all the ServiceInterface implementing types
-		ServiceInterfaceImplementingTypes serviceInterfaceImplementingTypes = new ServiceInterfaceImplementingTypes(_apiAppCode,
+		ServiceInterfaceImplementingTypes serviceInterfaceImplementingTypes = new ServiceInterfaceImplementingTypes(_apiAppAndModule,
 																													coreAppCodes);
 		
 		// ... within all filter all service interfaces
@@ -176,7 +176,7 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 		  		 extends HashSet<Class<? extends ServiceInterface>> {
 		private static final long serialVersionUID = 1764833596552304436L;
 		
-		@Getter private final AppCode _apiAppCode;
+		@Getter private final AppAndComponent _apiAppAndModule;
 		@Getter private final Collection<AppCode> _coreAppCodes;
 		
 		@Getter private final Memoized<Set<Class<? extends ServiceInterface>>> _interfaceTypes = new Memoized<Set<Class<? extends ServiceInterface>>>() {
@@ -211,21 +211,21 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 																											}
 																				   		  	  		  };
 						
-		public ServiceInterfaceImplementingTypes(final AppCode apiAppCode,
+		public ServiceInterfaceImplementingTypes(final AppAndComponent apiAppAndModule,
 												 final Collection<AppCode> coreAppCodes) {
-			_apiAppCode = apiAppCode;
+			_apiAppAndModule = apiAppAndModule;
 			_coreAppCodes = coreAppCodes;
 			
 			// Find all service interface implementations...
 			List<String> pckgs = Lists.newLinkedList();		
 			
 			// Service interfaces
-			pckgs.add(ServiceInterface.class.getPackage().getName());			// service interfaces
-			pckgs.add(ServicesPackages.serviceInterfacePackage(apiAppCode));	// xx.api.interfaces...
+			pckgs.add(ServiceInterface.class.getPackage().getName());				// service interfaces
+			pckgs.add(ServicesPackages.serviceInterfacePackage(_apiAppAndModule));	// xx.api.interfaces...
 			
 			// Proxies
 			pckgs.add(ServiceProxyImpl.class.getPackage().getName());
-			pckgs.add(ServicesPackages.serviceProxyPackage(apiAppCode));		// xxx.client.servicesproxy.(bean|rest|ejb...)
+			pckgs.add(ServicesPackages.serviceProxyPackage(_apiAppAndModule));		// xxx.client.servicesproxy.(bean|rest|ejb...)
 			
 			// Core implementations
 			if (CollectionUtils.hasData(coreAppCodes)) {
@@ -252,11 +252,13 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 												public boolean apply(final Class<? extends ServiceInterface> type) {
 													// A ServiceInterface MUST:
 													//		a) be an interface at service interfaces package
-													//		b) is annotated with @ServiceInterfaceFor
+													//		b) is annotated with @ServiceInterfaceFor													
 													
 													// a) check that is an interface at service interfaces package
-													boolean canBeServiceInterface = type.getPackage().getName().startsWith(ServicesPackages.serviceInterfacePackage(_apiAppCode))	// it's a service interface
-																				&&  ReflectionUtils.isInterface(type);																// it's NOT instanciable
+													boolean canBeServiceInterface = type.getPackage().getName().startsWith(ServicesPackages.serviceInterfacePackage(_apiAppAndModule))	// it's a service interface
+																				&&  ReflectionUtils.isInterface(type);																	// it's NOT instanciable
+													if (!canBeServiceInterface) log.debug("{} cannot be a service interface because it's NOT in package {}",
+																						  type.getPackage().getName(),ServicesPackages.serviceInterfacePackage(_apiAppAndModule));
 													
 													// b) check that directly extends ServiceInterface
 													boolean isAnnotated = ReflectionUtils.typeAnnotation(type,ServiceInterfaceFor.class) != null;
@@ -274,9 +276,9 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 								 .filter(new Predicate<Class<? extends ServiceInterface>>() {
 												@Override
 												public boolean apply(final Class<? extends ServiceInterface> type) {
-													return type.getPackage().getName().startsWith(ServicesPackages.serviceProxyPackage(_apiAppCode))		// it's a service proxy
-													    && ReflectionUtils.isImplementing(type,ServiceProxyImpl.class)										// it's a service proxy impl
-													    && ReflectionUtils.isInstanciable(type);															// it's instanciable
+													return type.getPackage().getName().startsWith(ServicesPackages.serviceProxyPackage(_apiAppAndModule))		// it's a service proxy
+													    && ReflectionUtils.isImplementing(type,ServiceProxyImpl.class)											// it's a service proxy impl
+													    && ReflectionUtils.isInstanciable(type);																// it's instanciable
 												}
 								 		 })
 								 .transform(new Function<Class<? extends ServiceInterface>,Class<? extends ServiceProxyImpl>>() {

@@ -2,6 +2,10 @@ package r01f.services.persistence.delegates.search;
 
 import java.util.Collection;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.eventbus.EventBus;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import r01f.guids.OID;
@@ -16,10 +20,6 @@ import r01f.persistence.search.Searcher;
 import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-import com.google.common.eventbus.EventBus;
 
 /**
  * Base for services of model objects with indexing and searching

@@ -13,7 +13,7 @@ import r01f.usercontext.UserContext;
  * @param <F>
  * @param <I>
  */
-public abstract class ClientAPIDelegateForModelObjectIndexServices<O extends OID,M extends IndexableModelObject<O>>
+public abstract class ClientAPIDelegateForModelObjectIndexServices<O extends OID,M extends IndexableModelObject>
 	 		  extends ClientAPIServiceDelegateBase<IndexServicesForModelObject<O,M>> {
 
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -1,22 +1,34 @@
 package r01f.file;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 
+import r01f.types.Path;
 import r01f.util.types.Strings;
 
 
 
 public class Files {
+/////////////////////////////////////////////////////////////////////////////////////////
+//  FIELDS
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Size of the buffer to read/write data
+	 */
+	private static final int BUFFER_SIZE = 4096;	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -173,4 +185,51 @@ public class Files {
 		if (!folder.isDirectory()) throw new IllegalArgumentException("File " + folder.getAbsolutePath() + " is NOT a folder!");
 		return FileUtils.deleteQuietly(folder);
 	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  ZIP FILE EXTRACT
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Extracts a zip file specified by the zipFilePath to a directory specified
+	 * by destDirectory (will be created if does not exists)
+	 * 
+	 * @param zipFileIS
+	 * @param destFolder
+	 * @throws IOException
+	 */
+	public static void unzip(final InputStream zipFileIS,
+							 final Path destFolder) throws IOException {
+		ZipInputStream zipIn = new ZipInputStream(zipFileIS);
+		ZipEntry entry = zipIn.getNextEntry();
+		// iterates over entries in the zip file
+		while (entry != null) {
+			Path extractedFilePath = destFolder.joinWith(entry.getName());
+			File extractedFile = new File(extractedFilePath.asAbsoluteString());
+			
+			// ensure the parent folder exists... otherwise a FileNotFoundException will be raised
+			FileUtils.forceMkdir(extractedFile.getParentFile());
+			// extract the file
+			_extractFile(zipIn,
+						 extractedFilePath);
+			// close the zip entry and go for the next
+			zipIn.closeEntry();
+			entry = zipIn.getNextEntry();
+		}
+		zipIn.close();
+	}
+	/**
+	 * Extracts a zip entry (file entry)
+	 * @param zipIn
+	 * @param extractedFilePath
+	 * @throws IOException
+	 */
+	private static void _extractFile(final ZipInputStream zipIn,
+									 final Path extractedFilePath) throws IOException {
+		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(extractedFilePath.asAbsoluteString()));
+		byte[] bytesIn = new byte[BUFFER_SIZE];
+		int read = 0;
+		while ((read = zipIn.read(bytesIn)) != -1) {
+			bos.write(bytesIn, 0, read);
+		}
+		bos.close();
+	}	
 }

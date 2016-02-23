@@ -60,7 +60,7 @@ public class XMLPropertyLocation
 		if (m.find() && m.groupCount() == 3) {
 			AppCode appCode = AppCode.forId(m.group(1));
 			AppComponent component = AppComponent.forId(m.group(2));
-			Path xPath = Path.of(m.group(3));
+			Path xPath = Path.from(m.group(3));
 			outLoc = new XMLPropertyLocation(appCode,component,xPath);
 		}
 		return outLoc;

@@ -7,6 +7,6 @@ import r01f.model.IndexableModelObject;
  * with {@link ModelObjectData}
  */
 public interface VoidSearchResultItem 
-		 extends SearchResultItemForModelObject<VoidOID,IndexableModelObject<VoidOID>> {
+		 extends SearchResultItemForModelObject<VoidOID,IndexableModelObject> {
 	/* marker interface */
 }

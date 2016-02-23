@@ -28,19 +28,19 @@ public class FileToBeLoaded
 /////////////////////////////////////////////////////////////////////////////////////////
 	public static FileToBeLoaded classPathLoaded(final String filePath) {
 		return new FileToBeLoaded(ResourcesLoaderType.CLASSPATH,
-							  Path.of(filePath));
+							  Path.from(filePath));
 	}
 	public static FileToBeLoaded classPathLoaded(final Path filePath) {
 		return new FileToBeLoaded(ResourcesLoaderType.CLASSPATH,
-							  Path.of(filePath));
+							  Path.from(filePath));
 	}
 	public static FileToBeLoaded fileSystemLoaded(final String filePath) {
 		return new FileToBeLoaded(ResourcesLoaderType.FILESYSTEM,
-							  Path.of(filePath));
+							  Path.from(filePath));
 	}
 	public static FileToBeLoaded fileSystemLoaded(final Path filePath) {
 		return new FileToBeLoaded(ResourcesLoaderType.FILESYSTEM,
-							  Path.of(filePath));
+							  Path.from(filePath));
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METHODS

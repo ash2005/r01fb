@@ -136,13 +136,13 @@ public final class XMLPropertiesForApp {
     	 * @return el nodo xml que conteniene la proiedade
     	 */
     	public Node node(final String propXPath) {
-    		return _cache.getPropertyNode(_component,Path.of(propXPath));
+    		return _cache.getPropertyNode(_component,Path.from(propXPath));
     	}
     	/**
     	 * @return la lista de nodos que verifican el xPath
     	 */
     	public NodeList nodeList(final String propXPath) {
-    		return _cache.getPropertyNodeList(_component,Path.of(propXPath));
+    		return _cache.getPropertyNodeList(_component,Path.from(propXPath));
     	}
 		/**
 		 * Transform the child nodes into a collection of objects
@@ -168,7 +168,7 @@ public final class XMLPropertiesForApp {
 	     * @return <code>true</code> si la propiedad está definida en el fichero, <code>false</code> en otro caso.
 	     */
 	    public boolean existProperty(final String propXPath) {
-	    	boolean outExists = _cache.existProperty(_component,Path.of(propXPath));
+	    	boolean outExists = _cache.existProperty(_component,Path.from(propXPath));
 	    	return outExists;
 	    }
 	    /**
@@ -186,7 +186,7 @@ public final class XMLPropertiesForApp {
 	     * @return Un string con la propiedad o <code>null</code> si la propiedad no existe.
 	     */
 	    public <T> T get(final String propXPath,final T defaultValue) {
-	    	return _cache.getProperty(_component,Path.of(propXPath),
+	    	return _cache.getProperty(_component,Path.from(propXPath),
 	    							  defaultValue,
 	    							  new TypeRef<T>() {/* empty */});
 	    }
@@ -204,7 +204,7 @@ public final class XMLPropertiesForApp {
 	     * @return El valor de la propiedad o el valor por defecto que se pasa si la propiedad es <code>null</code>.
 	     */
 	    public String getString(final String propXPath,final String defaultValue) {
-	        String outStr = _cache.getProperty(_component,Path.of(propXPath),
+	        String outStr = _cache.getProperty(_component,Path.from(propXPath),
 	        								   defaultValue,
 	        								   String.class);
 	        return outStr;
@@ -257,7 +257,7 @@ public final class XMLPropertiesForApp {
 	     * @return El valor de la propiedad o el valor por defecto que se pasa si la propiedad es <code>null</code>.
 	     */
 	    public Number getNumber(final String propXPath,final Number defaultValue) {
-	    	Number outNum = _cache.getProperty(_component,Path.of(propXPath),
+	    	Number outNum = _cache.getProperty(_component,Path.from(propXPath),
 	    									   defaultValue,
 	    									   Number.class);
 	        return outNum;
@@ -353,7 +353,7 @@ public final class XMLPropertiesForApp {
 	     * @return El valor de la propiedad o el valor por defecto que se pasa si la propiedad es <code>null</code>.
 	     */
 	    public boolean getBoolean(final String propXPath,final boolean defaultValue) {
-	    	Boolean bool = _cache.getProperty(_component,Path.of(propXPath),
+	    	Boolean bool = _cache.getProperty(_component,Path.from(propXPath),
 	    									  defaultValue,
 	    									  Boolean.class);
 	        return bool != null ? bool : false;
@@ -375,7 +375,7 @@ public final class XMLPropertiesForApp {
 	     */
 	    @SuppressWarnings("unchecked")
 	    public Properties getProperties(final String propXPath) {
-	    	Map<String,List<String>> map = _cache.getProperty(_component,Path.of(propXPath),
+	    	Map<String,List<String>> map = _cache.getProperty(_component,Path.from(propXPath),
 	    													  null,
 	    													  Map.class);
 	    	// Pasar a un properties
@@ -441,7 +441,7 @@ public final class XMLPropertiesForApp {
 	    public List<String> getListOfStrings(final String propXPath) {
 	    	String effXPath = (propXPath != null && !propXPath.endsWith("/child::*")) ? propXPath.concat("/child::*")
 	    																			  : propXPath;
-	    	Map<String,List<String>> map = _cache.getProperty(_component,Path.of(effXPath),
+	    	Map<String,List<String>> map = _cache.getProperty(_component,Path.from(effXPath),
 	    													  null,
 	    													  Map.class);
 	    	// Pasar a un properties
@@ -489,7 +489,7 @@ public final class XMLPropertiesForApp {
 	     * @return El objeto obtenido del XML.
 	     */
 	    public <T> T getObject(final String propXPath,Class<T> objType,final Marshaller marshaller) {
-	    	T outObj = _cache.getProperty(_component,Path.of(propXPath),
+	    	T outObj = _cache.getProperty(_component,Path.from(propXPath),
 	    								  null,
 	    								  objType,marshaller);
 	    	if (outObj == null) {
@@ -508,7 +508,7 @@ public final class XMLPropertiesForApp {
 		public <T> T getObject(final String propXPath,
 							   final Function<Node,T> transformFuncion) {
 			T outObj = null;
-			Node node = _cache.getPropertyNode(_component,Path.of(propXPath));
+			Node node = _cache.getPropertyNode(_component,Path.from(propXPath));
 			if (node != null) outObj = transformFuncion.apply(node);
 			return outObj;
 		}

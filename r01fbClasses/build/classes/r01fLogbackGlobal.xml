@@ -69,13 +69,15 @@ which contains environment-dependent configuable values
 			 When in a NOT-weblogic environmente (ie Tomcat), the default value is used $(weblogic.Name:-[defaultValue])
 			 see http://logback.qos.ch/manual/configuration.html#variableSubstitution 	 
 		-->
-		<File>${logPath}/${appName}_${weblogic.Name:-default}.log</File>	
+		<file>${logPath}/${appName}_${weblogic.Name:-default}.log</file>	
 		<encoder>
-		  <pattern>%date %-5level %logger{10} - %message%n %exception{30}</pattern>
+			<pattern>%date %-5level %logger{10} - %message%n %exception{30}</pattern>
 		</encoder>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<FileNamePattern>${logPath}/${appName}.%d{yyyy-MM-dd}.log</FileNamePattern>
-			<MaxHistory>10</MaxHistory>
+			<!-- daily rollover -->
+			<fileNamePattern>${logPath}/${appName}_${weblogic.Name:-default}_%d{yyyy-MM-dd}.gz</fileNamePattern>
+			<!-- keep 10 days' worth of history -->
+			<maxHistory>10</maxHistory>
 		</rollingPolicy>
 	</appender>
 	

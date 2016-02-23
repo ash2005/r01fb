@@ -89,7 +89,7 @@ public abstract class SearchGuiceModuleBase
 			log.warn("\t\t\t...binding search components for {}.{}",this.getAppCode(),this.getAppComponent());
 			for (SearchComponents comp : _searchComponents) {
 				if (CollectionUtils.hasData(comp.getIndexers())) {
-					for (IndexerComponent<? extends IndexableModelObject<?>> indexer : comp.getIndexers()) {
+					for (IndexerComponent<? extends IndexableModelObject> indexer : comp.getIndexers()) {
 						// Index document's fields config
 						log.warn("\t\t\t\t-index document's fields config {} TO {}",indexer.getIndexDocumentFieldsConfigGuiceKey(),indexer.getIndexerType());
 						binder.bind(indexer.getIndexDocumentFieldsConfigGuiceKey())
@@ -123,7 +123,7 @@ public abstract class SearchGuiceModuleBase
 			for (SearchComponents comp : _searchComponents) {
 				// indexers
 				if (CollectionUtils.hasData(comp.getIndexers())) {
-					for (IndexerComponent<? extends IndexableModelObject<?>> indexer : comp.getIndexers()) {
+					for (IndexerComponent<? extends IndexableModelObject> indexer : comp.getIndexers()) {
 						outServicesToExpose.add(indexer.getIndexerGuiceKey());
 					}
 				}
@@ -148,10 +148,10 @@ public abstract class SearchGuiceModuleBase
 				if (CollectionUtils.isNullOrEmpty(comp.getIndexers())) continue;	// ignore this component
 				
 				outDocTypes.addAll(FluentIterable.from(comp.getIndexers())
-									  		     .transform(new Function<IndexerComponent<? extends IndexableModelObject<?>>,
+									  		     .transform(new Function<IndexerComponent<? extends IndexableModelObject>,
 									  				   				     IndexDocumentFieldConfigSet<?>>() {
 																	@Override 
-																	public IndexDocumentFieldConfigSet<?> apply(final IndexerComponent<? extends IndexableModelObject<?>> indexerComponent) {
+																	public IndexDocumentFieldConfigSet<?> apply(final IndexerComponent<? extends IndexableModelObject> indexerComponent) {
 																		return indexerComponent.getIndexDocumentFieldsConfig();
 																	}
 									  			 		   })

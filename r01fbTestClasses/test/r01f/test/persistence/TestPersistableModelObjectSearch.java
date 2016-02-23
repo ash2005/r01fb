@@ -4,14 +4,15 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-
 import org.junit.Assert;
 
+import com.google.common.base.Stopwatch;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import r01f.concurrent.Threads;
 import r01f.guids.OID;
-import r01f.model.ModelObject;
+import r01f.model.IndexableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.search.SearchFilterForModelObject;
 import r01f.model.search.SearchResultItemForModelObject;
@@ -19,10 +20,8 @@ import r01f.model.search.SearchResults;
 import r01f.reflection.ReflectionUtils;
 import r01f.services.client.api.delegates.ClientAPIDelegateForModelObjectSearchServices;
 
-import com.google.common.base.Stopwatch;
-
 @RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-public class TestPersistableModelObjectSearch<F extends SearchFilterForModelObject,I extends SearchResultItemForModelObject<? extends OID,? extends ModelObject>> {
+public class TestPersistableModelObjectSearch<F extends SearchFilterForModelObject,I extends SearchResultItemForModelObject<? extends OID,? extends IndexableModelObject>> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////	
@@ -32,7 +31,7 @@ public class TestPersistableModelObjectSearch<F extends SearchFilterForModelObje
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static <F extends SearchFilterForModelObject,I extends SearchResultItemForModelObject<? extends OID,? extends ModelObject>>
+	public static <F extends SearchFilterForModelObject,I extends SearchResultItemForModelObject<? extends OID,? extends IndexableModelObject>>
 		   TestPersistableModelObjectSearch<F,I> create(final ClientAPIDelegateForModelObjectSearchServices<F,I> searchApi,
 				   											final TestPersistableModelObjectFactory<? extends OID,? extends PersistableModelObject<? extends OID>> modelObjFactory) {
 		return new TestPersistableModelObjectSearch<F,I>(searchApi,

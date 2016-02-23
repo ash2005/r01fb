@@ -88,8 +88,12 @@
 		<!-- ============================================================================================================================== -->
 		<!-- GoogleAPI                                                                                                                      -->
 		<!-- ============================================================================================================================== -->
-		<dependency org="com.google.api-client" name="google-api-client" rev="1.19.1"/>
-		<dependency org="com.google.apis" name="google-api-services-gmail" rev="v1-rev26-1.19.0"/>
+		<dependency org="com.google.api-client" name="google-api-client" rev="1.19.1">
+			<exclude org="com.google.guava" name="guava-jdk5"/>
+		</dependency>
+		<dependency org="com.google.apis" name="google-api-services-gmail" rev="v1-rev26-1.19.0">
+			<exclude org="com.google.guava" name="guava-jdk5"/>
+		</dependency>
 
 		<!-- ============================================================================================================================== -->
 		<!-- Twilio                                                                                                                         -->

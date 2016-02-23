@@ -7,8 +7,8 @@ import r01f.persistence.index.IndexManagementCommand;
 import r01f.services.client.servicesproxy.rest.RESTServiceResourceUrlPathBuilders.RESTServiceResourceUrlPathBuilder;
 import r01f.services.interfaces.IndexManagementServices;
 import r01f.types.Paths;
-import r01f.types.UrlPath;
 import r01f.types.url.Url;
+import r01f.types.url.UrlPath;
 import r01f.usercontext.UserContext;
 
 public abstract class RESTServicesForIndexManagementProxyBase

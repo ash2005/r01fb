@@ -46,7 +46,7 @@ public class ReflectionException
 ///////////////////////////////////////////////////////////////////////////////
 //	METHODS
 ///////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("null")
+	@Override 
 	public synchronized Throwable getCause() {
 		// If it's and InvocationTagetException, return the cause
 		Throwable cause = super.getCause();

@@ -1,15 +1,11 @@
 package r01f.model.metadata;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
-
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -17,8 +13,18 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Maps;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
-import r01f.guids.CommonOIDs.AppCode;
+import r01f.guids.AppAndComponent;
 import r01f.model.ModelObject;
 import r01f.model.annotations.ModelObjectData;
 import r01f.model.search.SearchFilter;
@@ -27,12 +33,6 @@ import r01f.reflection.ReflectionUtils;
 import r01f.services.client.internal.ServicesClientAPIBootstrapGuiceModuleBase;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.annotations.GwtIncompatible;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Maps;
 
 
 /**
@@ -55,19 +55,33 @@ public class ModelObjectTypeMetaDataBuilder {
 	/**
 	 * Inits the META_DATA_CACHE for every model object at the provided app code
 	 * This method is called at the CLIENT bootstrapping (see {@link ServicesClientAPIBootstrapGuiceModuleBase})
-	 * @param appCode
+	 * @param apiAppAndModule
 	 */
-	public static void init(final AppCode appCode) {
-		log.info("Finding model objects for {} appCode at {}.model.*",appCode,appCode);
+	public static void init(final AppAndComponent apiAppAndModule) {
+		log.info("Finding model objects for {} api at {}.model.*",apiAppAndModule.getAppCode(),apiAppAndModule.getAppCode());
 		
 		// Find every type annotated with ModelObjectData
-		String modelObjPackage = Strings.of("{}.model")
-									  	.customizeWith(appCode)
-									  	.asString();
+		final String modelObjPackage = Strings.customized("{}.model",
+														  apiAppAndModule.getAppCode());
 		List<URL> modelObjTypesUrl = new ArrayList<URL>();
 		modelObjTypesUrl.addAll(ClasspathHelper.forPackage(modelObjPackage));	// xxx.model.*
 		Reflections ref = new Reflections(new ConfigurationBuilder()					
-													.setUrls(modelObjTypesUrl)	
+													.setUrls(// org.reflections.ClasspathHelper seems to return ONLY the jar or path containing the given package
+															 // ... so the package MUST be added back to the url to minimize scan time and unneeded class loading
+															 FluentIterable.from(modelObjTypesUrl)
+																		   .transform(new Function<URL,URL>() {
+																								@Override
+																								public URL apply(final URL url) {
+																									try {
+																										return new URL(url.toString() + modelObjPackage.replace(".", "/")
+																																					   .replace("\\", "/"));
+																									} catch (MalformedURLException ex) {
+																										ex.printStackTrace();
+																									}
+																									return url;
+																								}
+																		   			   })
+																		   .toList())
 													.setScanners(new SubTypesScanner(),
 																 new TypeAnnotationsScanner()));
 		Set<Class<?>> modelObjTypes = ref.getTypesAnnotatedWith(ModelObjectData.class);

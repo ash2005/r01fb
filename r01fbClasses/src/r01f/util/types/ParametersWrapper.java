@@ -6,7 +6,7 @@ import r01f.types.Provider;
 import r01f.types.annotations.Inmutable;
 
 /**
- * Helper type to build string-encoded parameters that encapsulates all the string building stuff ofering an api
+ * Helper type to build string-encoded parameters that encapsulates all the string building stuff offering an api
  * that isolates user from string concat errors
  */
 @Inmutable

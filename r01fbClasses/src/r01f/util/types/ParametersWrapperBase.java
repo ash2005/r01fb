@@ -165,7 +165,7 @@ public abstract class ParametersWrapperBase<SELF_TYPE extends ParametersWrapperB
 		if (Strings.isNullOrEmpty(paramsStr)) return null;
 		
 		Map<String,String> paramMap = Maps.newHashMap();
-		Iterable<String> params = Strings.of(paramsStr)
+		Iterable<String> params = Strings.of(paramsStr.trim())
 								 		 .splitter(DEFAUL_PARAM_SPLIT_CHAR)
 								 		 .split();
 		Iterator<String> paramsIt = params.iterator();
@@ -178,7 +178,11 @@ public abstract class ParametersWrapperBase<SELF_TYPE extends ParametersWrapperB
 				String theParamValue = decodeParamValues ? DEFAULT_URL_ENCODE_PARAM_VALUE_ENCODER_DECODER.decodeValue(paramValue)
 														 : paramValue;
 				paramMap.put(paramName,theParamValue);
-			}			
+			} else {
+				String paramName = param;
+				String theParamValue = "";
+				paramMap.put(paramName,theParamValue);
+			}
 		}
 		return _createParameterWrapperInstanceFromElements(pwType,
 														   paramMap);
@@ -227,8 +231,10 @@ public abstract class ParametersWrapperBase<SELF_TYPE extends ParametersWrapperB
 		if (paramWrapper == null) return otherParamWrapper;
 		
 		Map<String,String> params = paramWrapper.getParams();
-		Map<String,String> otherParams = paramWrapper.getParams();
+		Map<String,String> otherParams = otherParamWrapper.getParams();
 		Map<String,String> allParams = Maps.newHashMapWithExpectedSize(params.size() + otherParams.size());
+		allParams.putAll(params);
+		allParams.putAll(otherParams);
 		return _createParameterWrapperInstanceFromElements(pwType,
 														   allParams);
 	}
@@ -265,6 +271,8 @@ public abstract class ParametersWrapperBase<SELF_TYPE extends ParametersWrapperB
 			outValueFormated = Strings.of(_paramAndValueSerializeTemplate)
 									  .customizeWith(paramName,theParamValue)
 									  .asString();
+		} else {
+			outValueFormated = paramName;
 		}
 		return outValueFormated;
 	}

@@ -191,7 +191,7 @@ public class PifService {
 												   preserveName,timeUnit.toMillis(timeTolive));
 			outputData = new PifFileInfo(MimeType.forName(result.getContentType()),
 										 FileName.of(result.getFileName()), 
-										 Path.of(result.getFilePath()), 
+										 Path.from(result.getFilePath()), 
 										 result.getSize());
 		} catch(Throwable th) {
 			log.error("[PifService] > Error while calling PIF service: {}",th.getMessage(),th);
