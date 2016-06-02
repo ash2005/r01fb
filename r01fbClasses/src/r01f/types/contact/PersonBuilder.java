@@ -15,93 +15,88 @@ public class PersonBuilder
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ID
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static PersonBuilderNameStep createPersonWithId(final PersonID id) {
-		Person person = new Person();
+	public static <ID extends PersonID> PersonBuilderNameStep<ID> createPersonWithId(final ID id) {
+		Person<ID> person = new Person<ID>();
 		person.setId(id);
 		return new PersonBuilder() {/* nothing */}
-						.new PersonBuilderNameStep(person) {/* nothing */};
-	}
-	public static PersonBuilderNameStep createPersonWithoutId() {
-		Person person = new Person();
-		return new PersonBuilder() {/* nothing */}
-						.new PersonBuilderNameStep(person) {/* nothing */};
+						.new PersonBuilderNameStep<ID>(person) {/* nothing */};
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  NAME, SURNAME & SALUTATION
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public abstract class PersonBuilderNameStep {
-		private final Person _person;
+	public abstract class PersonBuilderNameStep<ID extends PersonID> {
+		private final Person<ID> _person;
 		
-		public PersonBuilderSurnamesStep withName(final String name) {
+		public PersonBuilderSurnamesStep<ID> withName(final String name) {
 			_person.setName(name);
-			return new PersonBuilderSurnamesStep(_person) {/* nothing */};
+			return new PersonBuilderSurnamesStep<ID>(_person) {/* nothing */};
 		}
-		public PersonBuilderSurnamesStep noName() {
-			return new PersonBuilderSurnamesStep(_person) {/* nothing */};
+		public PersonBuilderSurnamesStep<ID> noName() {
+			return new PersonBuilderSurnamesStep<ID>(_person) {/* nothing */};
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public abstract class PersonBuilderSurnamesStep {
-		private final Person _person;
+	public abstract class PersonBuilderSurnamesStep<ID extends PersonID> {
+		private final Person<ID> _person;
 		
-		public PersonBuilderSalutationStep withSurname(final String surname1) {
+		public PersonBuilderSalutationStep<ID> withSurname(final String surname1) {
 			_person.setSurname1(surname1);
-			return new PersonBuilderSalutationStep(_person) {/* nothing */};
+			return new PersonBuilderSalutationStep<ID>(_person) {/* nothing */};
 		}
-		public PersonBuilderSalutationStep withSurnames(final String surname1,final String surname2) {
+		public PersonBuilderSalutationStep<ID> withSurnames(final String surname1,final String surname2) {
 			_person.setSurname1(surname1);
 			_person.setSurname2(surname2);
-			return new PersonBuilderSalutationStep(_person) {/* nothing */};
+			return new PersonBuilderSalutationStep<ID>(_person) {/* nothing */};
 		}
-		public PersonBuilderSalutationStep noSurnames() {
-			return new PersonBuilderSalutationStep(_person) {/* nothing */};
+		public PersonBuilderSalutationStep<ID> noSurnames() {
+			return new PersonBuilderSalutationStep<ID>(_person) {/* nothing */};
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public abstract class PersonBuilderSalutationStep {
-		private final Person _person;
+	public abstract class PersonBuilderSalutationStep<ID extends PersonID> {
+		private final Person<ID> _person;
 		
-		public PersonBuilderPrefLangStep useSalutation(final PersonSalutation salutation) {
+		public PersonBuilderPrefLangStep<ID> useSalutation(final PersonSalutation salutation) {
 			_person.setSalutation(salutation);
-			return new PersonBuilderPrefLangStep(_person) {/* nothing */};
+			return new PersonBuilderPrefLangStep<ID>(_person) {/* nothing */};
 		}
-		public PersonBuilderPrefLangStep noSalutation() {
-			return new PersonBuilderPrefLangStep(_person) {/* nothing */};
+		public PersonBuilderPrefLangStep<ID> noSalutation() {
+			return new PersonBuilderPrefLangStep<ID>(_person) {/* nothing */};
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public abstract class PersonBuilderPrefLangStep {
-		private final Person _person;
+	public abstract class PersonBuilderPrefLangStep<ID extends PersonID> {
+		private final Person<ID> _person;
 		
-		public PersonBuilderDetailsStep preferredLanguage(final Language lang) {
+		public PersonBuilderDetailsStep<ID> preferredLanguage(final Language lang) {
 			_person.setPreferredLang(lang);
-			return new PersonBuilderDetailsStep(_person) {/* nothing */};
+			return new PersonBuilderDetailsStep<ID>(_person) {/* nothing */};
 		}
-		public PersonBuilderDetailsStep noPreferredLanguage() {
-			return new PersonBuilderDetailsStep(_person) {/* nothing */};
+		public PersonBuilderDetailsStep<ID> noPreferredLanguage() {
+			return new PersonBuilderDetailsStep<ID>(_person) {/* nothing */};
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public abstract class PersonBuilderDetailsStep {
-		private final Person _person;
+	public abstract class PersonBuilderDetailsStep<ID extends PersonID> {
+		private final Person<ID> _person;
 		
-		public PersonBuilderBuildStep withDetails(final String details) {
+		public PersonBuilderBuildStep<ID> withDetails(final String details) {
 			_person.setDetails(details);
-			return new PersonBuilderBuildStep(_person) {/* nothing */ };
+			return new PersonBuilderBuildStep<ID>(_person) {/* nothing */ };
 		}
-		public PersonBuilderBuildStep noDetails() {
-			return new PersonBuilderBuildStep(_person) {/* nothing */ };
+		public PersonBuilderBuildStep<ID> noDetails() {
+			return new PersonBuilderBuildStep<ID>(_person) {/* nothing */ };
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public abstract class PersonBuilderBuildStep {
-		private final Person _person;
+	public abstract class PersonBuilderBuildStep<ID extends PersonID> {
+		private final Person<ID> _person;
 		
-		public Person build() {
+		public Person<ID> build() {
 			return _person;
 		}
 	}

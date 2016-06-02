@@ -2,7 +2,6 @@ package r01f.persistence.db.entities;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -12,29 +11,17 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
 
+import org.eclipse.persistence.annotations.OptimisticLocking;
+import org.eclipse.persistence.annotations.OptimisticLockingType;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import org.eclipse.persistence.annotations.OptimisticLocking;
-import org.eclipse.persistence.annotations.OptimisticLockingType;
-
 import r01f.guids.CommonOIDs.UserCode;
 import r01f.guids.OID;
-import r01f.locale.Language;
 import r01f.model.ModelObjectTracking;
-import r01f.model.PersistableModelObject;
-import r01f.model.facets.HasName;
-import r01f.model.facets.LangDependentNamed;
-import r01f.model.facets.LangDependentNamed.HasLangDependentNamedFacet;
-import r01f.model.facets.LangInDependentNamed;
-import r01f.model.facets.LangInDependentNamed.HasLangInDependentNamedFacet;
-import r01f.model.facets.Summarizable.HasSummaryFacet;
 import r01f.persistence.db.DBEntity;
-import r01f.types.summary.LangDependentSummary;
-import r01f.types.summary.LangIndependentSummary;
-import r01f.types.summary.Summary;
 import r01f.util.types.Dates;
 import r01f.util.types.Strings;
 
@@ -129,7 +116,6 @@ public abstract class DBEntityBase
 	@Column(name="ENTITY_VERSION") @Version	
 	@Getter @Setter protected long _entityVersion;
 	
-	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  AUTO-UPDATE CREATE_DATE AND LAST_UPDATE_DATE
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -183,8 +169,10 @@ public abstract class DBEntityBase
 	}
 	@Override
 	public void setTrackingInfo(final ModelObjectTracking trackingInfo) {
-		this.setCreatorUserCode(trackingInfo.getCreatorUserCode());
-		this.setLastUpdatorUserCode(trackingInfo.getLastUpdatorUserCode());
+		if (trackingInfo != null) {
+			this.setCreatorUserCode(trackingInfo.getCreatorUserCode());
+			this.setLastUpdatorUserCode(trackingInfo.getLastUpdatorUserCode());
+		}
 	}
 	@Override
 	public ModelObjectTracking getTrackingInfo() {
@@ -194,60 +182,5 @@ public abstract class DBEntityBase
 		if (_creator != null) outTrck.setCreatorUserCode(UserCode.forId(_creator));
 		if (_lastUpdator != null) outTrck.setLastUpdatorUserCode(UserCode.forId(_lastUpdator));
 		return outTrck;
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Tries to get a name from the object
-	 * @param modelObject
-	 * @return
-	 */
-	protected static <R extends PersistableModelObject<? extends OID>> String _persistableModelObjectInternalName(final R modelObject) {
-		String outName = null;
-		
-		// [1] try to get the name from the summary
-		if (modelObject.hasFacet(HasSummaryFacet.class)) {
-			Summary summary = modelObject.asFacet(HasSummaryFacet.class)
-											.asSummarizable()
-												.getSummary();
-			if (summary != null) {
-				if (summary.isLangDependent()) {
-					LangDependentSummary langDepSum = summary.asLangDependent();
-					StringBuilder sb = new StringBuilder();
-					for (Iterator<Language> langIt = langDepSum.getAvailableLanguages().iterator(); langIt.hasNext(); ) {
-						Language lang = langIt.next();
-						sb.append("[" + lang + "]: " + langDepSum.asString(lang));
-						if (langIt.hasNext()) sb.append(", ");
-					}
-					outName = sb.toString();
-				} else {
-					LangIndependentSummary langIndepSum = summary.asLangIndependent();
-					outName = langIndepSum.asString();
-				}
-			}
-		}
-		// [2]... if no name was retrieved, try to use the model object's name
-		if (Strings.isNullOrEmpty(outName) && modelObject.hasFacet(HasName.class)) {
-			if (modelObject.hasFacet(HasLangDependentNamedFacet.class)) {
-				LangDependentNamed langNames = modelObject.asFacet(HasLangDependentNamedFacet.class)
-												   		  .asLangDependentNamed();
-				StringBuilder sb = new StringBuilder();
-				for (Iterator<Language> langIt = langNames.getAvailableLanguages().iterator(); langIt.hasNext(); ) {
-					Language lang = langIt.next();
-					sb.append("[" + lang + "]: " + langNames.getNameIn(lang));
-					if (langIt.hasNext()) sb.append(", ");
-				}
-				outName = sb.toString();
-			} else {
-				LangInDependentNamed name = modelObject.asFacet(HasLangInDependentNamedFacet.class)
-													   .asLangInDependentNamed();
-				outName = name.getName();
-			}
-		} 
-		// There's nowhere to get a summary
-		if (Strings.isNullOrEmpty(outName)) outName = "Could NOT get the object's name neither from the summary or the name";
-
-		return outName;
 	}
 }

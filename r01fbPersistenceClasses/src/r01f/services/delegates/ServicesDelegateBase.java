@@ -44,15 +44,6 @@ public abstract class ServicesDelegateBase
 		}
 		return ((CoreServiceBase)_serviceImpl).getServiceProperties();
 	}
-//	@Override
-//	public EventBus getEventBus() {
-//		if (!(_serviceImpl instanceof HasEventBus)) {
-//			return null;
-//			//throw new IllegalStateException(Throwables.message("The service impl of type {} does NOT have an EventBus (it does NOT implements {}",
-//			//												   _serviceImpl.getClass(),HasEventBus.class));
-//		}
-//		return ((HasEventBus)_serviceImpl).getEventBus();	// wtf!!!		
-//	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////

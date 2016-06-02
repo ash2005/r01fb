@@ -44,6 +44,25 @@ public class PersistenceOperationExecOK<T>
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	public boolean isCRUDOK() {
+		return this instanceof CRUDOK;
+	}
+	@Override
+	public boolean isCRUDOnMultipleOK() {
+		return this instanceof CRUDOnMultipleOK;
+	}
+	@Override
+	public boolean isFindOK() {
+		return this instanceof FindOK;
+	}
+	@Override
+	public boolean isFindSummariesOK() {
+		return this instanceof FindSummariesOK;
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	@Override
 	public String getDetailedMessage() {
 		// info about the returned object
 		String resultInfo = null;
@@ -59,7 +78,7 @@ public class PersistenceOperationExecOK<T>
 			resultInfo = "null";
 		}
 		// the debug info
-		return Strings.customized("The execution of '{}' operation {} was SUCCESSFUL returning {}",
+		return Strings.customized("The execution of '{}' operation was SUCCESSFUL returning {}",
 						  		  _requestedOperationName,
 						  		  resultInfo);	
 	}

@@ -6,26 +6,8 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
 /**
- * Generador de OIDS
- * La configuración del generador de OIDs se hace en el fichero de propiedades de la aplicación en una sección
- * como la siguiente:
- *  <guidGenerator>
- *       <sequence name='default'>
- *           <uniqueId>desa</uniqueId>   <!-- loc=lc,sb_des=sd,sb_pru=sp,des=ds,pru=pr,pro=pd -->
- *           <bindingId></bindingId>
- *           <length>36</length>
- *       </sequence>
- *  </guidGenerator>
- *  Es necesario indicar:
- *          - El codigo de aplicacion para el que se quiere generar OIDs
- *          - La secuencia para la que se quieren generar OIDs
- *
- *  En caso en que falten parametros se toma la siguiente configuración:
- *          - uniqueID = unknown
- *          - length = 36
- *  El identificador generado para el entorno local de la aplicación x42t y length de 35 es de la forma:
- * 			Código de aplicación + entorno + guid(35caracteres)
- * 			x42tlc010e649a03f96408eeb78e532b216a3f94d
+ * OID (guid) generator
+ * The OIDs to be generated config is at a properties file (see {@link GUIDDispenserDef})
  */
 public class SimpleGUIDDispenser 
   implements GUIDDispenser {
@@ -35,20 +17,14 @@ public class SimpleGUIDDispenser
 	private static String LETTERS = "0123456789abcdefghijklmnopqrstuvxyz";
 	
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  INJECT
+//  FIELDS
 ///////////////////////////////////////////////////////////////////////////////////////////
-	/** en este caso NO se inyecta NADA (no es necesario) */
-	
-///////////////////////////////////////////////////////////////////////////////////////////
-//  ESTADO
-///////////////////////////////////////////////////////////////////////////////////////////
-    private GUIDDispenserDef _dispDef = null;		// Definicion del dispenser
+    private GUIDDispenserDef _dispDef = null;		// Dispenser definition
     
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  INTERFAZ GUIDDispenserFactory utilizado en Guice AssistedInject para permitir 
-//  crear objetos GUIDDispenser en base a una definición GUIDDispenserDef que solo 
-//  se conoce en tiempo de ejecución (ver documentación de GUIDDispenserManagerGuiceModule)
-//  Ver GUIDDispenserFlavourFactory!!!
+//  INTERFACE GUIDDispenserFactory used by Guice AssistedInject to create GUIDDispenser  
+//  objects using a GUIDDispenserDef definition that's only known at runtime
+//  (ver documentación de GUIDDispenserManagerGuiceModule)
 ///////////////////////////////////////////////////////////////////////////////////////////
     static interface SimpleGUIDDispenserFactory 
              extends GUIDDispenserFlavourFactory {
@@ -58,10 +34,8 @@ public class SimpleGUIDDispenser
 //  CONSTRUCTOR & FACTORY
 ///////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * Constructor a partir de la definición del dispenser
-     * Es utilizado por Guice AssistedInject para inyectar cualquier cosa (en este caso NO se inyecta nada -ver HighLowGUIDDispenser-)
-     * a la vez que se pasan parámetros en tiempo de ejecución
-     * @param def definición del dispenser
+     * Constructor used by Guice AssistedInject to inject the definition
+     * @param def
      */
     @Inject
     public SimpleGUIDDispenser(@Assisted final GUIDDispenserDef def) {
@@ -79,17 +53,22 @@ public class SimpleGUIDDispenser
 
         SecureRandom randomGen = new SecureRandom();
         
-        // Obtener una secuencia aleatoria compuesta de tres partes: timeStamp, identificador único que depende de la máquina y un random
+        // Get a random sequence built upon three parts: 
+        //		- timeStamp
+        //		- unique identifier (machine dependent)
+        //		- a random
         long timeStampLong = new java.util.Date().getTime();		// TimeStamp	
-        int objectHashCode = System.identityHashCode(this);			// HashCode que depende de la máquina
+        int objectHashCode = System.identityHashCode(this);			// HashCode
         long secureInt = randomGen.nextLong();						// Random
         String uniqueId = Long.toHexString(timeStampLong) + Integer.toHexString(objectHashCode) + Long.toHexString(secureInt);
         
-        // crear un array de bytes del tamaño del guid relleno con caracteres aleatorios por la izq y con la secuencia aleatoria por la derecha
+        // Create an byte array with the size of the guid filled with 
+        //		- random chars from the left 
+        //		- the previous random sequence from the right
         char[] resultCharArray = new char[guidLength];
-        // - caracteres aleatorios por la izq
+        // - left pad with random chars
         for (int i = 0; i < guidLength - uniqueId.length(); i++) resultCharArray[i] = LETTERS.charAt(randomGen.nextInt(LETTERS.length()));		
-        // - secuencia aleatoria por la drcha en sentido inverso
+        // - the previously generated sequence inverted
         int cont = uniqueId.length() - 1;								
         for (int i = guidLength; i > 0; i--) {						
             if (cont >= 0) resultCharArray[i - 1] = uniqueId.charAt(cont);

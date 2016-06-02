@@ -1,13 +1,16 @@
 package r01f.test.persistence;
 
 import java.util.Collection;
+import java.util.Date;
 
 import com.google.common.collect.Lists;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import r01f.concurrent.Threads;
+import r01f.guids.CommonOIDs.UserCode;
 import r01f.guids.OID;
+import r01f.model.ModelObjectTracking;
 import r01f.model.PersistableModelObject;
 import r01f.services.client.api.delegates.ClientAPIDelegateForModelObjectCRUDServices;
 import r01f.types.Factory;
@@ -28,24 +31,24 @@ public class TestPersistableModelObjectFactory<O extends OID,M extends Persistab
 //  CONSTRUCTORS TO USE WHEN THERE'RE BACKGROUND JOBS (ie indexing)
 /////////////////////////////////////////////////////////////////////////////////////////
 	public TestPersistableModelObjectFactory(final Class<M> modelObjType,
-														final Factory<M> mockObjectsFactory,
-												 		final ClientAPIDelegateForModelObjectCRUDServices<O,M> crudAPI,
-												 		final long milisToWaitForBackgroundJobs) {
+											 final Factory<M> mockObjectsFactory,
+											 final ClientAPIDelegateForModelObjectCRUDServices<O,M> crudAPI,
+											 final long milisToWaitForBackgroundJobs) {
 		_modelObjType = modelObjType;
 		_mockObjectsFactory = mockObjectsFactory;
 		_CRUDApi = crudAPI;
 		_milisToWaitForBackgroundJobs = milisToWaitForBackgroundJobs;
 	}
 	public TestPersistableModelObjectFactory(final Class<M> modelObjType,
-														final Factory<M> mockObjectsFactory,
-														final long milisToWaitForBackgroundJobs) {
+											 final Factory<M> mockObjectsFactory,
+											 final long milisToWaitForBackgroundJobs) {
 		this(modelObjType,
 			 mockObjectsFactory,
 			 null,
 			 milisToWaitForBackgroundJobs);
 	}
 	public TestPersistableModelObjectFactory(final Class<M> modelObjType,
-														final long milisToWaitForBackgroundJobs) {
+											 final long milisToWaitForBackgroundJobs) {
 		this(modelObjType,
 			 null,
 			 null,
@@ -55,15 +58,15 @@ public class TestPersistableModelObjectFactory<O extends OID,M extends Persistab
 //  CONSTRUCTORS TO USE WHEN THERE'RE NO BACKGROUND JOBS 
 /////////////////////////////////////////////////////////////////////////////////////////
 	public TestPersistableModelObjectFactory(final Class<M> modelObjType,
-														final Factory<M> mockObjectsFactory,
-												 		final ClientAPIDelegateForModelObjectCRUDServices<O,M> crudAPI) {
+											 final Factory<M> mockObjectsFactory,
+											 final ClientAPIDelegateForModelObjectCRUDServices<O,M> crudAPI) {
 		_modelObjType = modelObjType;
 		_mockObjectsFactory = mockObjectsFactory;
 		_CRUDApi = crudAPI;
 		_milisToWaitForBackgroundJobs = 0L;
 	}
 	public TestPersistableModelObjectFactory(final Class<M> modelObjType,
-														final Factory<M> mockObjectsFactory) {
+											 final Factory<M> mockObjectsFactory) {
 		this(modelObjType,
 			 mockObjectsFactory,
 			 null,
@@ -105,10 +108,12 @@ public class TestPersistableModelObjectFactory<O extends OID,M extends Persistab
 		// create test model objects
 		_createdMockModelObjectsOids = Lists.newArrayListWithExpectedSize(numOfObjsToCreate);
 		for (int i=0; i < numOfObjsToCreate; i++) {
-			M modelObjectToBeCreated = _mockObjectsFactory.create();
-			_CRUDApi.save(modelObjectToBeCreated);
-			_createdMockModelObjectsOids.add(modelObjectToBeCreated.getOid());
-			System.out.println("... Created " + _modelObjType.getSimpleName() + " mock object with oid=" + modelObjectToBeCreated.getOid());
+			M modelObjectToBeCreated = _mockObjectsFactory.create();		
+			 modelObjectToBeCreated.setTrackingInfo(new ModelObjectTracking(UserCode.forId("testUser"),new Date()));			// Ensure tracking info			
+			
+			M createdModelObj = _CRUDApi.save(modelObjectToBeCreated);
+			_createdMockModelObjectsOids.add(createdModelObj.getOid());
+			System.out.println("... Created " + _modelObjType.getSimpleName() + " mock object with oid=" + createdModelObj.getOid());
 		}
 	}
 	/**

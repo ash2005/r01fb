@@ -5,26 +5,21 @@ import lombok.NoArgsConstructor;
 
 
 /**
- * Persistencia en memoria de GUIDs
- *      Implementa el interfaz GUIDPersist almacenando en memoria el 
- *      valor de la parte high de la clave y la definicion del GUID
+ * GUIDs memory persistence
+ * Implements {@link HighLowGUIDPersist} interface storing at memory the high part of  
+ * the key
  */
 @NoArgsConstructor
 public class HighLowMemoryGUIDPersist 
   implements HighLowGUIDPersist {
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  ESTADO
+//  FIELDS
 ///////////////////////////////////////////////////////////////////////////////////////////
-	private GUIDDispenserDef _dispDef;		// Definición del dispenser
-    private HighLowKey _highKey;           	// Valor actual de la parte high
+	private GUIDDispenserDef _dispDef;		// dispenser definition
+    private HighLowKey _highKey;           	// guid actual high key part 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CONSTRUCTOR
-///////////////////////////////////////////////////////////////////////////////////////////        
- 
-    
-///////////////////////////////////////////////////////////////////////////////////////////
-//  INTERFAZ UIDPersist
+//  UIDPersist
 ///////////////////////////////////////////////////////////////////////////////////////////    
     @Override
     public HighLowKey getHighKeyValue(final GUIDDispenserDef dispDef) {
@@ -32,7 +27,8 @@ public class HighLowMemoryGUIDPersist
         						: new HighLowKey(Integer.parseInt(_dispDef.getProperty("highKeyBytes")));
     }
     @Override
-    public boolean updateGUID(final GUIDDispenserDef dispDef,final HighLowKey highKey) {
+    public boolean updateGUID(final GUIDDispenserDef dispDef,
+    						  final HighLowKey highKey) {
         _highKey = highKey;
         return true;
     }    

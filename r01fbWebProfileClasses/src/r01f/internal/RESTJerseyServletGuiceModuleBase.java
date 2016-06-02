@@ -5,15 +5,14 @@ import java.util.Map;
 
 import javax.ws.rs.core.Application;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import r01f.guids.CommonOIDs.AppCode;
-
 import com.sun.jersey.guice.JerseyServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
- * Every GUICE module is installed at R01EInjector singleton holder
+ * Every GUICE module is installed at {appCode}Injector singleton holder
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -22,8 +21,6 @@ public class RESTJerseyServletGuiceModuleBase
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@SuppressWarnings("unused")
-	private final AppCode _appCode;
 	private final Class<? extends Application> _jerseyAppType;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  

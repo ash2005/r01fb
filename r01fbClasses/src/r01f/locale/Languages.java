@@ -1,5 +1,7 @@
 package r01f.locale;
 
+import java.text.Collator;
+import java.util.Comparator;
 import java.util.Locale;
 
 import r01f.exceptions.Throwables;
@@ -27,7 +29,9 @@ public class Languages {
 	public static final Locale CZECH = new Locale("cs","CZ");
 	public static final Locale ROMANIAN = new Locale("ro","RO");
 	public static final Locale JAPANESE = new Locale("ja","JP");
-	public static final Locale RUSSIAN = new Locale("ru","RU"); 
+	public static final Locale RUSSIAN = new Locale("ru","RU");
+	public static final Locale ITALIAN = new Locale("it","IT"); 
+	public static final Locale PORTUGUESE = new Locale("pt","PT");
 	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  BUILDERS
@@ -167,11 +171,18 @@ public class Languages {
 		case RUSSIAN:
 			outLocale = Languages.RUSSIAN;
 			break;
+		case ITALIAN:
+			outLocale = Languages.ITALIAN;
+			break;
+		case PORTUGUESE:
+			outLocale = Languages.PORTUGUESE;
+			break;
 		default:
 			outLocale = Languages.getLocale(Language.DEFAULT);
 			break;
 		}
 		return outLocale;
+		
 	}
 	/**
 	 * A var that represents a language
@@ -257,5 +268,25 @@ public class Languages {
 					  .add(text)
 					  .customizeWith(Languages.country(lang))
 					  .asString();
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Returns a {@link String} compartor that takes the language into account
+	 * @param lang
+	 * @return
+	 */
+	public static Comparator<String> stringComparatorFor(final Language lang) {
+		// use a collator to compare the names taking the locale into account
+		final Collator collator = Collator.getInstance(Languages.getLocale(lang));
+		collator.setStrength(Collator.PRIMARY);
+		
+		return new Comparator<String>() {
+						@Override
+						public int compare(final String arg0,final String arg1) {
+							return collator.compare(arg0,arg1);
+						}
+			   };
 	}
 }

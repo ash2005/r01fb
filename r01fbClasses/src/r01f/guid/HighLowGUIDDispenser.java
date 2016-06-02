@@ -78,18 +78,18 @@ public class HighLowGUIDDispenser
         if (_dispDef.getProperty("highKeyBytes") == null) {
             log.warn("No se ha definido la propiedad {}properties/highKeyBytes en el fichero definición de guids de la aplicacion {}. Se toma un tamaño de {}",
             		 _xPathBase(_dispDef.getSequenceName()),_dispDef.getAppCode().asString(),Integer.toString(_dispDef.getLength() / 2));
-            _dispDef.putProperty("highKeyBytes",Integer.toString(_dispDef.getLength() / 2));
+            _dispDef.getProperties().put("highKeyBytes",Integer.toString(_dispDef.getLength() / 2));
         }
         if (_dispDef.getProperty("lowKeyBytes") == null) {
             log.warn("No se ha definido la propiedad {}properties/lowKeyBytes en el fichero de properties de la aplicacion {}. Se toma un tamaño de {}",
             		 _xPathBase(_dispDef.getSequenceName()),_dispDef.getAppCode().asString(),Integer.toString(_dispDef.getLength() / 2));
-            _dispDef.putProperty("lowKeyBytes",Integer.toString(_dispDef.getLength() / 2));
+            _dispDef.getProperties().put("lowKeyBytes",Integer.toString(_dispDef.getLength() / 2));
         }
         // Persistencia del GUID
         if (_dispDef.getProperty("persistenceBindingId") == null) {
             log.warn("No se ha definido la propiedad {}properties/persistenceBindingId en el fichero definición de guids de la aplicacion {}. Se toma la persistencia en MEMORIA por defecto!!!!",
             		 _xPathBase(_dispDef.getSequenceName()),_dispDef.getAppCode());
-            _dispDef.putProperty("persistenceBindingId","inMemoryHighKeyPersist");
+            _dispDef.getProperties().put("persistenceBindingId","inMemoryHighKeyPersist");
         }
 
 
@@ -125,7 +125,7 @@ public class HighLowGUIDDispenser
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS PRIVADOS PARA OBTENER EL VALOR HIGH
+//  PRIVATE METHODS
 ///////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Incrementa en uno el valor actual de la parte high, y luego

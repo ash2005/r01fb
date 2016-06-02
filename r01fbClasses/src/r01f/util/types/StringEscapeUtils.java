@@ -1,5 +1,6 @@
 package r01f.util.types;
 
+import com.google.appengine.api.search.query.QueryParser.sep_return;
 import com.google.common.annotations.GwtIncompatible;
 
 public class StringEscapeUtils {
@@ -61,7 +62,7 @@ public class StringEscapeUtils {
 	 * Supports all known HTML 4.0 entities, including funky accents. 
 	 * Note that the commonly used apostrophe escape character (&apos;) is not a legal entity and so is not supported).
 	 */
-	@GwtIncompatible("apache commons StringEscaptUtils is NOT supported by GWT")
+	@GwtIncompatible("apache commons StringEscapeUtils is NOT supported by GWT")
 	public static CharSequence escapeHTML(final CharSequence str) {
 		return new StringBuilder(org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(str.toString()));
 	}
@@ -70,10 +71,48 @@ public class StringEscapeUtils {
 	 * For example: "bread" & "butter" => &quot;bread&quot; &amp; &quot;butter&quot;.
 	 * Supports only the five basic XML entities (gt, lt, quot, amp, apos). Does not support DTDs or external entities.
 	 * Note that unicode characters greater than 0x7f are currently escaped to their numerical \\u equivalent. 
-	 * This may change in future releases.
 	 */
-	@GwtIncompatible("apache commons StringEscaptUtils is NOT supported by GWT")
+	@GwtIncompatible("apache commons StringEscapeUtils is NOT supported by GWT")
 	public static CharSequence escapeXML(final CharSequence _buffer) {
 		return new StringBuilder(org.apache.commons.lang3.StringEscapeUtils.escapeXml10(_buffer.toString()));
+	}
+	/**
+	 * Escapes the characters in a {@code String} using Java String rules.
+	 * For example: ""αινσϊρφ"" => \u00E1\u00E9\u00ED\u00F3\u00FA\u00F1\u00F6.
+	 */
+	@GwtIncompatible("apache commons StringEscapeUtils is NOT supported by GWT")
+	public static CharSequence escapeJava(final CharSequence _buffer) {
+		return new StringBuilder(org.apache.commons.lang3.StringEscapeUtils.escapeJava(_buffer.toString()));
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * UnEscapes the characters in a String using HTML entities.
+	 * For example: &quot;bread&quot; &amp; &quot;butter&quot; ==> "bread" & "butter"
+	 * Supports all known HTML 4.0 entities, including funky accents. 
+	 * Note that the commonly used apostrophe escape character (&apos;) is not a legal entity and so is not supported).
+	 */
+	@GwtIncompatible("apache commons StringEscapeUtils is NOT supported by GWT")
+	public static CharSequence unescapeHTML(final CharSequence str) {
+		return new StringBuilder(org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4(str.toString()));
+	}
+	/**
+	 * UnEscapes the characters in a String using XML entities.
+	 * For example: &quot;bread&quot; &amp; &quot;butter&quot; ==> "bread" & "butter"
+	 * Supports only the five basic XML entities (gt, lt, quot, amp, apos). Does not support DTDs or external entities.
+	 * Note that unicode characters greater than 0x7f are currently escaped to their numerical \\u equivalent. 
+	 */
+	@GwtIncompatible("apache commons StringEscapeUtils is NOT supported by GWT")
+	public static CharSequence unescapeXML(final CharSequence _buffer) {
+		return new StringBuilder(org.apache.commons.lang3.StringEscapeUtils.unescapeXml(_buffer.toString()));
+	}
+	/**
+	 * UnEscapes the characters in a {@code String} using Java String rules.
+	 * For example: \u00E1\u00E9\u00ED\u00F3\u00FA\u00F1\u00F6. ==> "αινσϊρφ"
+	 */
+	@GwtIncompatible("apache commons StringEscapeUtils is NOT supported by GWT")
+	public static CharSequence unescapeJava(final CharSequence _buffer) {
+		return new StringBuilder(org.apache.commons.lang3.StringEscapeUtils.unescapeJava(_buffer.toString()));
 	}
 }

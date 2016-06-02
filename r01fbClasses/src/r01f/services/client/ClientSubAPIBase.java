@@ -2,6 +2,9 @@ package r01f.services.client;
 
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import r01f.marshalling.HasModelObjectsMarshaller;
+import r01f.marshalling.Marshaller;
+import r01f.model.ModelObject;
 import r01f.usercontext.UserContext;
 
 /**
@@ -10,19 +13,24 @@ import r01f.usercontext.UserContext;
 @Accessors(prefix="_")
 @RequiredArgsConstructor
 public abstract class ClientSubAPIBase<S extends ClientAPI,
-									   P extends ServiceProxiesAggregator> {
+									   P extends ServiceProxiesAggregator> 
+		   implements HasModelObjectsMarshaller {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  STATUS (injected by constructor)
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * User context
 	 */
-	private final UserContext _userContext;
+	protected final UserContext _userContext;
+	/**
+	 * Marshaller
+	 */
+	protected final Marshaller _modelObjectsMarshaller;
 	/**
 	 * Reference to the client-apis
 	 * it's normal that another sub-api must be used from a sub-api
 	 */
-	private final S _clientAPIs;
+	protected final S _clientAPIs;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -45,5 +53,11 @@ public abstract class ClientSubAPIBase<S extends ClientAPI,
 	@SuppressWarnings("unchecked")
 	public <U extends UserContext> U getUserContext() {
 		return (U)_userContext;
+	}
+	/**
+	 * @return the {@link ModelObject}s {@link Marshaller}
+	 */
+	public Marshaller getModelObjectsMarshaller() {
+		return _modelObjectsMarshaller;
 	}
 }

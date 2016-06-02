@@ -2,7 +2,6 @@ package r01f.guids;
 
 import javax.xml.bind.annotation.XmlAttribute;
 
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +27,7 @@ public abstract class OIDBaseMutable<T>
 //  FIELDS
 ///////////////////////////////////////////////////////////////////////////////
 	@XmlAttribute(name="oid")	
-	@Getter @Setter(AccessLevel.PROTECTED) private T _id;	// it's important the setter method for the marshalling
+	@Getter @Setter /*(AccessLevel.PROTECTED)*/ private T _id;	// it's important the setter method for the marshalling
 ///////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 ///////////////////////////////////////////////////////////////////////////////

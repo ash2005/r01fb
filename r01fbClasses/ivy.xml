@@ -148,9 +148,9 @@
 		<dependency org="com.google.code.gson" name="gson" rev="2.2.4" transitive="false"/>
 		<dependency org="org.json" name="json" rev="20140107" transitive="false"/>
 		
-		<dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.6.2" transitive="false"/>
-		<dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.6.2" transitive="false"/>		
-		<dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.6.2" transitive="false"/>
+		<dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.7.2" transitive="false"/>
+		<dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.7.2" transitive="false"/>		
+		<dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.7.2" transitive="false"/>
 
         <!-- ============================================================================================================================== -->
 		<!-- TIKA (used for MimeType detection)																		                        -->

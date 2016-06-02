@@ -3,6 +3,8 @@ package r01f.types.contact;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.google.common.annotations.GwtIncompatible;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -49,6 +51,7 @@ public class ContactWeb
 		_web = web;
 		return this;
 	}
+	@GwtIncompatible("Url NOT usable in GWT")
 	public ContactWeb url(final String web) {
 		_web = Url.from(web);
 		return this;

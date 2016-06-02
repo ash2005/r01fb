@@ -200,4 +200,23 @@ public class GeoOIDs {
 			return new GeoStreetID(Long.parseLong(str));
 		}
 	}
+	/**
+	 * Zip (postal code)
+	 */
+	@Inmutable
+	@XmlRootElement(name="geoZipCode")
+	@NoArgsConstructor
+	public static class GeoZipCode 
+			    extends OIDBaseMutable<String> {
+		private static final long serialVersionUID = -3531756242105659769L;
+		public GeoZipCode(final String oid) {
+			super(oid);
+		}
+		public static GeoZipCode forId(final String id) {
+			return new GeoZipCode(id);
+		}
+		public static GeoZipCode valueOf(final String str) {
+			return new GeoZipCode(str);
+		}
+	}
 }

@@ -287,25 +287,25 @@ public class Range<T extends Comparable<T>>
 		RangeDef bounds = _parseBounds(rangeStr);
 		if (dataType == java_util_Date_class|| dataType == java_sql__Date_class) {
 			outRange = _parseDateRange(bounds.getLowerBound(),bounds.getLowerBoundType(),
-												 bounds.getUpperBound(),bounds.getUpperBoundType());
+									   bounds.getUpperBound(),bounds.getUpperBoundType());
 		} else if (dataType == java_lang_Byte_class) {
 			outRange = _parseByteRange(bounds.getLowerBound(),bounds.getLowerBoundType(),
-												 bounds.getUpperBound(),bounds.getUpperBoundType());
+									   bounds.getUpperBound(),bounds.getUpperBoundType());
 		} else if (dataType == java_lang_Integer_class) {
 			outRange = _parseIntRange(bounds.getLowerBound(),bounds.getLowerBoundType(),
-												bounds.getUpperBound(),bounds.getUpperBoundType());
+									  bounds.getUpperBound(),bounds.getUpperBoundType());
 		} else if (dataType == java_lang_Short_class) {
 			outRange = _parseShortRange(bounds.getLowerBound(),bounds.getLowerBoundType(),
-												  bounds.getUpperBound(),bounds.getUpperBoundType());
+										bounds.getUpperBound(),bounds.getUpperBoundType());
 		} else if (dataType == java_lang_Long_class) {
 			outRange = _parseLongRange(bounds.getLowerBound(),bounds.getLowerBoundType(),
-												 bounds.getUpperBound(),bounds.getUpperBoundType());
+									   bounds.getUpperBound(),bounds.getUpperBoundType());
 		} else if (dataType ==java_lang_Double_class) {
 			outRange = _parseDoubleRange(bounds.getLowerBound(),bounds.getLowerBoundType(),
-												   bounds.getUpperBound(),bounds.getUpperBoundType());
+										 bounds.getUpperBound(),bounds.getUpperBoundType());
 		} else if (dataType == java_lang_Float_class) {
 			outRange = _parseFloatRange(bounds.getLowerBound(),bounds.getLowerBoundType(),
-												  bounds.getUpperBound(),bounds.getUpperBoundType());
+										bounds.getUpperBound(),bounds.getUpperBoundType());
 		} else {
 			throw new IllegalArgumentException("Type " + dataType + " is NOT supported in Range");
 		}

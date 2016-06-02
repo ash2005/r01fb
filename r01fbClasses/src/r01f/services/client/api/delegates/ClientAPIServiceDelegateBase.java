@@ -1,20 +1,27 @@
 package r01f.services.client.api.delegates;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import r01f.marshalling.HasModelObjectsMarshaller;
+import r01f.marshalling.Marshaller;
+import r01f.model.ModelObject;
 import r01f.services.interfaces.ServiceInterface;
 import r01f.usercontext.UserContext;
 
 @Accessors(prefix="_")
-public abstract class ClientAPIServiceDelegateBase<S extends ServiceInterface> {
+public abstract class ClientAPIServiceDelegateBase<S extends ServiceInterface> 
+		   implements HasModelObjectsMarshaller {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * The user context
 	 */
-	@Getter(AccessLevel.PROTECTED) protected final UserContext _userContext;
+	@Getter protected final UserContext _userContext;
+	/**
+	 * {@link ModelObject}s {@link Marshaller}
+	 */
+	@Getter protected final Marshaller _modelObjectsMarshaller;
 	/**
 	 * The service interface 
 	 */
@@ -23,9 +30,11 @@ public abstract class ClientAPIServiceDelegateBase<S extends ServiceInterface> {
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	public ClientAPIServiceDelegateBase(final UserContext userContext,
+										final Marshaller modelObjectsMarshaller,
 										final S serviceProxy) {
 		_userContext = userContext;
-		_serviceProxy = serviceProxy;
+		_modelObjectsMarshaller = modelObjectsMarshaller;
+		_serviceProxy = serviceProxy;		
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  

@@ -2,32 +2,32 @@ package r01f.services.client.internal;
 
 import java.util.Collection;
 
+import javax.inject.Inject;
+
 import org.aopalliance.intercept.MethodInterceptor;
 
 import com.google.inject.Binder;
 import com.google.inject.PrivateBinder;
-import com.google.inject.Provides;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.MapBinder;
 
 import lombok.EqualsAndHashCode;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.AppAndComponent;
-import r01f.guids.CommonOIDs.AppCode;
-import r01f.guids.CommonOIDs.AppComponent;
 import r01f.inject.HasMoreBindings;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
+import r01f.services.ServiceIDs.ClientApiAppAndModule;
+import r01f.services.ServiceIDs.CoreAppAndModule;
 import r01f.services.ServicesMainGuiceBootstrap;
 import r01f.services.client.ClientAPI;
 import r01f.services.client.ServiceProxiesAggregator;
 import r01f.services.core.internal.ServicesCoreForAppModulePrivateGuiceModule;
 import r01f.services.interfaces.ServiceInterface;
-import r01f.usercontext.UserContext;
 import r01f.xmlproperties.XMLProperties;
-import r01f.xmlproperties.XMLPropertiesComponent;
+import r01f.xmlproperties.XMLPropertiesComponentImpl;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
 /**
@@ -65,12 +65,20 @@ import r01f.xmlproperties.XMLPropertiesForAppComponent;
 public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 		   implements ServicesClientGuiceModule {	// this is a client guice bindings module
 /////////////////////////////////////////////////////////////////////////////////////////
-//  FIELDS
+//  FIELDS (all are set at bootstraping time at {@link ServicesMainGuiceBootstrap})
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * API app code
 	 */
-	protected final AppAndComponent _apiAppAndModule;
+	private ClientApiAppAndModule _apiAppAndModule;
+	/**
+	 * The client api that exposes the fine-grained services interfaces
+	 */
+	private Class<? extends ClientAPI> _clientApiType;
+	/**
+	 * A type that aggregates the fine-grained services proxies
+	 */
+	private Class<? extends ServiceProxiesAggregator> _servicesProxiesAggregatorType;
 	/**
 	 * Service interface type to bean impl or rest / ejb, etc proxy matchings (bindings) 
 	 * This type instance has a Map member for every core appCode / module which key is the service interface type and the value is the
@@ -82,39 +90,58 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 	 * Since there's a {@link ServicesCoreForAppModulePrivateGuiceModule} private module for every core appCode / module,
 	 * this type has a Map member for every core appCode / module
 	 */
-	private final ServiceInterfaceTypesToImplOrProxyMappings _serviceInterfaceTypesToImplOrProxyMappings;
+	private ServiceInterfaceTypesToImplOrProxyMappings _serviceInterfaceTypesToImplOrProxyMappings;
 	/**
 	 * The core app and modules
-	 * (is set at bootstraping time at {@link ServicesMainGuiceBootstrap})
 	 */
-	@Setter private Collection<AppAndComponent> _coreAppAndModules;
+	private Collection<CoreAppAndModule> _coreAppAndModules;
 /////////////////////////////////////////////////////////////////////////////////////////
-//  CONSTRUCTOR
+//  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public ServicesClientAPIBootstrapGuiceModuleBase(final AppAndComponent apiAppAndModule,
-													 final ServiceInterfaceTypesToImplOrProxyMappings serviceInterfaceTypesToImplOrProxyMappings) {
+	public void setContext(final ClientApiAppAndModule apiAppAndModule,
+					 	   final Class<? extends ClientAPI> clientApiType,
+					 	   final Class<? extends ServiceProxiesAggregator> servicesProxiesAggregatorType,
+					 	   final ServiceInterfaceTypesToImplOrProxyMappings serviceInterfaceTypesToImplOrProxyMappings,
+					 	   final Collection<CoreAppAndModule> coreAppAndModules) {
 		_apiAppAndModule = apiAppAndModule;
+		_clientApiType = clientApiType;
+		_servicesProxiesAggregatorType = servicesProxiesAggregatorType;
 		_serviceInterfaceTypesToImplOrProxyMappings = serviceInterfaceTypesToImplOrProxyMappings;
-	}
-	public ServicesClientAPIBootstrapGuiceModuleBase(final AppCode apiAppCode,
-													 final ServiceInterfaceTypesToImplOrProxyMappings serviceInterfaceTypesToImplOrProxyMappings) {
-		this(AppAndComponent.composedBy(apiAppCode,AppComponent.forId("client")),
-			 serviceInterfaceTypesToImplOrProxyMappings);
+		_coreAppAndModules = coreAppAndModules;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  MODULE INTERFACE
 /////////////////////////////////////////////////////////////////////////////////////////	
 	@Override
-	public void configure(final Binder binder) {		
+	public void configure(final Binder binder) {	
 		Binder theBinder = binder;
 		
 		// Find the model object types
-		ModelObjectTypeMetaDataBuilder.init(_apiAppAndModule);
+		ModelObjectTypeMetaDataBuilder.init(AppAndComponent.composedBy(_apiAppAndModule.getAppCode().asAppCode(),
+																	   _apiAppAndModule.getModule().asAppComponent()));
 		
 		// Other module-specific bindings
 		if (this instanceof HasMoreBindings) {
 			((HasMoreBindings)this).configureMoreBindings(binder);
 		}
+		
+		// [0] - Bind a provider of the properties for the client
+		log.warn("{}.properties.xml properties are available for injection as a {} annotated with @XmlPropertiesComponent(\"{}\")",
+				 _apiAppAndModule,XMLPropertiesForAppComponent.class.getSimpleName(),_apiAppAndModule.getModule());
+		binder.bind(XMLPropertiesForAppComponent.class)
+			  .annotatedWith(new XMLPropertiesComponentImpl(_apiAppAndModule.getModule().asString())) // @XMLPropertiesComponent("client")
+			  .toProvider(// the provider
+					  	  new Provider<XMLPropertiesForAppComponent>() {
+					  				@Inject
+					  				private XMLProperties _props;
+					  				
+									@Override
+									public XMLPropertiesForAppComponent get() {
+										return _props.forAppComponent(_apiAppAndModule.getAppCode().asAppCode(),
+																	  _apiAppAndModule.getModule().asAppComponent());	// usually it's client
+									}
+			  			  })
+			  .in(Singleton.class);
 		
 		// [1] - Bind the Services proxy aggregator types as singletons
 		//		 The services proxy aggregator instance contains fields for every fine-grained service proxy
@@ -123,50 +150,9 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 		
 		// [2] - Bind the client API aggregator types as singletons
 		//		 The ClientAPI is injected with a service proxy aggregator defined at [2]
-		Collection<Class<? extends ClientAPI>> clientAPITypes = _bindAPIAggregatorImpls(theBinder);
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  USER CONTEXT PROVIDERS
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Provides an user context
-	 */
-	protected abstract <U extends UserContext> U _provideUserContext();
-	
-	@Provides 
-	UserContext provideUserContext() {
-		return _provideUserContext();
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  CLIENT PROPERTIES PROVIDER
-/////////////////////////////////////////////////////////////////////////////////////////
-	@Singleton
-	@Provides @XMLPropertiesComponent("client")
-	XMLPropertiesForAppComponent _provideClientProperties(final XMLProperties props) {
-		log.warn("{}.properties.xml properties are available for injection as a {} annotated with @XmlPropertiesComponent(\"client\")",
-				 _apiAppAndModule,
-				 XMLPropertiesForAppComponent.class.getSimpleName());
-		return props.forAppComponent(_apiAppAndModule.getAppCode(),
-									 _apiAppAndModule.getAppComponent());	// usually it's client
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  API Aggregator
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Binds the client API aggregator that provides convenient access to the services
-	 * To do so, the API in turn uses a {@link ServiceProxiesAggregator} instance 
-	 * references to {@link ServiceInterface} implementations that are on-demand injected at {@link ServicesClientProxyLazyLoaderGuiceMethodInterceptor} 
-	 * @param binder
-	 */
-	private Collection<Class<? extends ClientAPI>> _bindAPIAggregatorImpls(final Binder binder) {
-		ServicesClientAPIFinder clientAPIFinder = new ServicesClientAPIFinder(_apiAppAndModule);
-		Collection<Class<? extends ClientAPI>> clientAPITypes = clientAPIFinder.findClientAPIs();
-		for (Class<? extends ClientAPI> clientAPIType : clientAPITypes) {
-			log.warn("\tClientAPI > {} ",clientAPIType);
-			binder.bind(clientAPIType)
-				  .in(Singleton.class);
-		}
-		return clientAPITypes;
+		log.warn("\tClient API > {}",_clientApiType);
+		binder.bind(_clientApiType)
+			  .in(Singleton.class);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SERVICES PROXY
@@ -206,15 +192,9 @@ public abstract class ServicesClientAPIBootstrapGuiceModuleBase
 							   serviceProxyGetterInterceptor);
 		
 		// Bind every services proxy aggregator implementation
-		ServicesClientAPIFinder clientProxyAggregatorFinder = new ServicesClientAPIFinder(_apiAppAndModule);
-		Collection<Class<? extends ServiceProxiesAggregator>> proxyAggregatorTypes = clientProxyAggregatorFinder.findClientAPIProxyAggregatorTypes();
-		log.info("[ServiceProxyAggregator] > {} implementations",proxyAggregatorTypes.size());
-		
-		for (Class<? extends ServiceProxiesAggregator> proxyAggregatorType : proxyAggregatorTypes) {
-			log.info("\t\t- {}",proxyAggregatorType);
-			binder.bind(proxyAggregatorType)
-			      .in(Singleton.class);
-		}
+		log.info("[ServiceProxyAggregator] > {}",_servicesProxiesAggregatorType);
+		binder.bind(_servicesProxiesAggregatorType)
+		      .in(Singleton.class);
 	}
 }
  

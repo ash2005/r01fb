@@ -2,6 +2,11 @@ package r01f.persistence;
 
 import java.util.Collection;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +18,6 @@ import r01f.persistence.db.DBEntity;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * Builder type for {@link FindSummariesResult}-implementing types:
@@ -70,7 +70,6 @@ public class FindSummariesResultBuilder
 		protected final UserContext _userContext;
 		protected final Class<M> _entityType;
 		
-		
 		//  --------- ERROR
 		public FindSummariesResultBuilderForError<M> errorFindingSummaries() {
 			return new FindSummariesResultBuilderForError<M>(_userContext,
@@ -79,26 +78,13 @@ public class FindSummariesResultBuilder
 		// ---------- SUCCESS FINDING 
 		public <S extends SummarizedModelObject<M>>
 			   FindSummariesOK<M> foundSummaries(final Collection<S> summaries) {
-			FindSummariesOK<M> outFoundSummaries = new FindSummariesOK<M>();
-			outFoundSummaries.setModelObjectType(_entityType);
-			outFoundSummaries.setRequestedOperation(PersistenceRequestedOperation.FIND);
-			outFoundSummaries.setPerformedOperation(PersistencePerformedOperation.FOUND);
-			outFoundSummaries.setOperationExecResult(summaries);	
-			return outFoundSummaries;
+			return _modelObjectSummariesFrom(summaries,
+											 _entityType);
 		}
-		public <DB extends DBEntity,
-				S extends SummarizedModelObject<M>>
-			   FindSummariesOK<M> foundDBEntities(final Collection<DB> dbEntities,
-							   					  final Function<DB,S> transformer) {
-			Collection<? extends SummarizedModelObject<M>> summaries = null;
-			if (CollectionUtils.hasData(dbEntities)) {
-				summaries = FluentIterable.from(dbEntities)
-										  .transform(transformer)
-										  .toList();
-			} else {
-				summaries = Sets.newHashSet();
-			}
-			return this.foundSummaries(summaries);
+		public <DB extends DBEntity> FindSummariesResultBuilderDBEntityTransformStep<DB,M> foundDBEntities(final Collection<DB> dbEntities) {
+			return new FindSummariesResultBuilderDBEntityTransformStep<DB,M>(_userContext,
+																			 _entityType,
+																			 dbEntities);
 		}
 		public FindOnModelObjectOK<M> noSummaryFound() {
 			FindOnModelObjectOK<M> outFoundEntities = new FindOnModelObjectOK<M>();
@@ -108,8 +94,39 @@ public class FindSummariesResultBuilder
 			outFoundEntities.setOperationExecResult(Lists.<M>newArrayList());	// no data found
 			return outFoundEntities;
 		}
-		
 	}	
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	public class FindSummariesResultBuilderDBEntityTransformStep<DB extends DBEntity,
+																 M extends PersistableModelObject<? extends OID>> {
+		protected final UserContext _userContext;
+		protected final Class<M> _entityType;
+		protected final Collection<DB> _dbEntities;
+		
+		public <S extends SummarizedModelObject<M>>
+			   FindSummariesOK<M> transformedToSummarizedModelObjectUsing(final Function<DB,S> transformer) {
+			Collection<? extends SummarizedModelObject<M>> summaries = null;
+			if (CollectionUtils.hasData(_dbEntities)) {
+				summaries = FluentIterable.from(_dbEntities)
+										  .transform(transformer)
+										  .toList();
+			} else {
+				summaries = Sets.newHashSet();
+			}
+			return _modelObjectSummariesFrom(summaries,
+											 _entityType);
+		}
+	}
+	private static <M extends PersistableModelObject<? extends OID>,
+					S extends SummarizedModelObject<M>>
+		   FindSummariesOK<M> _modelObjectSummariesFrom(final Collection<S> summaries,
+				   										final Class<M> entityType) {
+		FindSummariesOK<M> outFoundSummaries = new FindSummariesOK<M>();
+		outFoundSummaries.setModelObjectType(entityType);
+		outFoundSummaries.setRequestedOperation(PersistenceRequestedOperation.FIND);
+		outFoundSummaries.setPerformedOperation(PersistencePerformedOperation.FOUND);
+		outFoundSummaries.setOperationExecResult(summaries);	
+		return outFoundSummaries;
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ERROR
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -16,8 +16,10 @@ import lombok.experimental.Accessors;
 import r01f.guids.OID;
 import r01f.guids.OIDs;
 import r01f.locale.LanguageTexts;
+import r01f.marshalling.Marshaller;
 import r01f.model.IndexableModelObject;
 import r01f.model.ModelObject;
+import r01f.model.PersistableModelObject;
 import r01f.model.facets.HasEntityVersion;
 import r01f.model.facets.HasNumericID;
 import r01f.model.facets.HasOID;
@@ -29,6 +31,7 @@ import r01f.model.search.SearchFilterForModelObject;
 import r01f.model.search.SearchResultItemForModelObject;
 import r01f.model.search.SearchResults;
 import r01f.persistence.db.DBEntity;
+import r01f.persistence.db.TransformsDBEntityIntoModelObject;
 import r01f.persistence.db.entities.DBEntityForModelObject;
 import r01f.persistence.search.Searcher;
 import r01f.types.Factory;
@@ -39,7 +42,7 @@ import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
 
 /**
- * Base type for types that implements db searching ({@link R01EDBSearcher} interface)
+ * Base type for types that implements db searching ({@link Searcher} interface)
  * @param <F>
  */
 @Accessors(prefix="_")
@@ -57,13 +60,20 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 	 */
 	@Getter(AccessLevel.PROTECTED) private final EntityManager _entityManager;	
 	/**
+	 * objects marshaller
+	 */
+	@Getter(AccessLevel.PROTECTED) private final Marshaller _marshaller;
+	/**
 	 * The name of the entity
 	 */
-	@Getter(AccessLevel.PROTECTED) private final Class<? extends DBEntity> _entityType;
+	@Getter(AccessLevel.PROTECTED) private final Class<? extends DBEntity> _dbEntityType;
 	/**
 	 * Factory of {@link SearchResultItemForModelObject} instances
 	 */
 	@Getter(AccessLevel.PROTECTED) private final Factory<I> _searchResultItemsFactory;
+	
+	@Getter(AccessLevel.PROTECTED) private TransformsDBEntityIntoModelObject<DBEntityForModelObject<?>,
+																		   PersistableModelObject<? extends OID>> _dbEntityToModelObjectTransformer;
 	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SEARCH   
@@ -73,7 +83,7 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 							final F filter) {
 		// [1]: Build the query
 		Query q = DBSearchQuery.of(_entityManager)
-							   .forEntity(_entityType)
+							   .forEntity(_dbEntityType)
 							   .withPredicates(filter.getBooleanQuery())
 					   .getCountQuery();
 		// [2]: run the query
@@ -91,7 +101,7 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 		
 		// [1]-build the query
 		Query q = DBSearchQuery.of(_entityManager)
-								   .forEntity(_entityType)
+								   .forEntity(_dbEntityType)
 								   .withPredicates(filter.getBooleanQuery())
 							   .getResultsQuery();
 		q.setFirstResult(firstResultItemOrder);
@@ -131,7 +141,7 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 		
 		// [1]: Build the query
 		Query q = DBSearchQuery.of(_entityManager)
-								   .forEntity(_entityType)
+								   .forEntity(_dbEntityType)
 								   .withPredicates(filter.getBooleanQuery())
 							   .getOidsQuery();
 		
@@ -156,7 +166,8 @@ public abstract class DBSearcherBase<F extends SearchFilterForModelObject,
 	private I _createSearchResultItemFor(final UserContext userContext,
 										 final DBEntityForModelObject<?> dbEntity) {
 		// [0] - Get the model object from the dbEntity
-		IndexableModelObject modelObj = dbEntity.toModelObject(userContext);
+		IndexableModelObject modelObj = (IndexableModelObject)_dbEntityToModelObjectTransformer.dbEntityToModelObject(userContext,
+																													  dbEntity);
 		
 		// [1] - Use the search result item factory to create an item
 		I item = _searchResultItemsFactory.create();	

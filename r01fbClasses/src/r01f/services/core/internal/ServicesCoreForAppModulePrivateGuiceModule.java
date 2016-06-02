@@ -10,7 +10,6 @@ import com.google.inject.name.Names;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import r01f.inject.ServiceHandler;
 import r01f.services.ServiceBootstrapDef;
 import r01f.services.client.internal.ServicesClientInterfaceToImplOrProxyBinder;
 import r01f.services.interfaces.ServiceInterface;
@@ -43,19 +42,15 @@ public class ServicesCoreForAppModulePrivateGuiceModule
 		Binder theBinder = this.binder();
 		
 		// Bind the CORE guice modules					
-		boolean dbModulePresent = false;
 		if (CollectionUtils.hasData(_coreBootstrapDef.getPrivateBootstrapGuiceModuleInstances())) {
 			log.warn("[START]-Binding CORE modules for {}====================================================================================",_coreBootstrapDef.getCoreAppCodeAndModule());
 			// do NOT install the REST core buide modules (they're binded at ServicesMainGuiceBootstrap, otherwise they're not visible
-			// to the outside world and Guice Servlet filter cannot see REST resources)
+			// to the outside world and so the Guice Servlet filter cannot see REST resources)
 			for (ServicesCoreBootstrapGuiceModule coreGuiceModule : _coreBootstrapDef.getPrivateBootstrapGuiceModuleInstances()) {
 				// install the core bootstrap guice module
 				theBinder.install(coreGuiceModule);
 				
-				// if the core bootstrap guice module has db persistence bindings, the jpa service handler must be exposed (see below)
-				if (!dbModulePresent && coreGuiceModule.isModuleInstalled(DBPersistenceGuiceModule.class)) dbModulePresent = true;
-				
-				// it the core bootstrap guice module exposes any of it's bindings
+				// if the core bootstrap guice module exposes any of it's bindings
 				if (coreGuiceModule instanceof ServicesCoreBootstrapGuiceModuleExposesBindings) {
 					ServicesCoreBootstrapGuiceModuleExposesBindings exposes = (ServicesCoreBootstrapGuiceModuleExposesBindings)coreGuiceModule;
 					exposes.exposeBindings(this.binder());
@@ -103,12 +98,6 @@ public class ServicesCoreForAppModulePrivateGuiceModule
 				 numBindings,_coreBootstrapDef.getCoreAppCodeAndModule().asString());
 		
 		
-		
-		// expose the JPA's service handler (if available)
-		if (dbModulePresent) {
-			this.expose(ServiceHandler.class)
-				.annotatedWith(Names.named(_coreBootstrapDef.getCoreAppCodeAndModule().asString())); 
-		}
 		log.warn("  [END]-Binding serviceInterface to proxy for {}======================================================================",_coreBootstrapDef.getCoreAppCodeAndModule());
 	}
 }

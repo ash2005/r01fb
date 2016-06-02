@@ -10,10 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import r01f.exceptions.Throwables;
-import r01f.generics.TypeRef;
-import r01f.reflection.fluent.FluentReflection;
-
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -21,6 +17,10 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+
+import r01f.exceptions.Throwables;
+import r01f.generics.TypeRef;
+import r01f.reflection.fluent.FluentReflection;
 
 /**
  * Fluent APIs to operate with Collections
@@ -234,22 +234,19 @@ public class CollectionWrappers {
 	    	return this.toStringSeparatedWith(',');
 	    }
 	    /**
-	     * Returns the {@link Collection} elements as a comma-separated {@link String}
+	     * Returns the {@link Collection} elements as a char-separated {@link String}
 	     * @return 
 	     */
 	    public String toStringSeparatedWith(final char ch) {
-	    	if (CollectionUtils.isNullOrEmpty(_theCol)) return "";
-	    	StringBuilder sb = new StringBuilder();
-	    	for (Iterator<T> it = _theCol.iterator(); it.hasNext(); ) {
-	    		T el = it.next();
-	    		if (el == null) {
-	    			sb.append("null");
-	    		} else {
-	    			sb.append(el.toString());
-	    		}
-	    		if (it.hasNext()) sb.append(ch);
-	    	}
-	    	return sb.toString();
+	    	return this.toStringSeparatedWith(Character.toString(ch));
+	    }
+	    /**
+	     * Returns the {@link Collection} elements as a String-separated {@link String}
+	     * @param joiner
+	     * @return
+	     */
+	    public String toStringSeparatedWith(final String joiner) {
+	    	return CollectionUtils.toStringSeparatedWith(_theCol,joiner);    	
 	    }
 	}
 ///////////////////////////////////////////////////////////////////////////////

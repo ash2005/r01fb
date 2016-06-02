@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -20,6 +19,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.OID;
+import r01f.marshalling.HasModelObjectsMarshaller;
 import r01f.marshalling.Marshaller;
 import r01f.model.ModelObject;
 import r01f.model.jobs.EnqueuedJob;
@@ -112,13 +112,9 @@ public class RESTResponseTypeMappersForModelObjects {
 	@Accessors(prefix="_")
 	public static abstract class ModelObjectResponseTypeMapperBase<M extends ModelObject> 
 		        		 extends XMLMarshalledObjectResultTypeMapperBase<M> {
-		
-		@Getter private final Marshaller _objectsMarshaller;
-		
-		@Inject
 		public ModelObjectResponseTypeMapperBase(final Marshaller marshaller) {
-			super(ModelObject.class);
-			_objectsMarshaller = marshaller;
+			super(ModelObject.class,
+				  marshaller);
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -131,11 +127,9 @@ public class RESTResponseTypeMappersForModelObjects {
 	public static abstract class SearchModelObjectResponseTypeMapperBase 
 		     			 extends XMLMarshalledObjectResultTypeMapperBase<SearchModelObject> {
 		
-		@Getter private final Marshaller _objectsMarshaller;
-		
 		public SearchModelObjectResponseTypeMapperBase(final Marshaller marshaller) {
-			super(SearchModelObject.class);
-			_objectsMarshaller = marshaller;
+			super(SearchModelObject.class,
+				  marshaller);
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -192,11 +186,10 @@ public class RESTResponseTypeMappersForModelObjects {
 	public static abstract class IndexManagementCommandResponseTypeMapperBase 
 		     			 extends XMLMarshalledObjectResultTypeMapperBase<IndexManagementCommand> {
 		
-		@Getter private final Marshaller _objectsMarshaller;
 		
 		public IndexManagementCommandResponseTypeMapperBase(final Marshaller marshaller) {
-			super(IndexManagementCommand.class);
-			_objectsMarshaller = marshaller;
+			super(IndexManagementCommand.class,
+				  marshaller);
 		}
 	}
 	/**
@@ -206,11 +199,9 @@ public class RESTResponseTypeMappersForModelObjects {
 	public static abstract class EnqueuedJobResponseTypeMapperBase 
 		     			 extends XMLMarshalledObjectResultTypeMapperBase<EnqueuedJob> {
 		
-		@Getter private final Marshaller _objectsMarshaller;
-		
 		public EnqueuedJobResponseTypeMapperBase(final Marshaller marshaller) {
-			super(EnqueuedJob.class);
-			_objectsMarshaller = marshaller;
+			super(EnqueuedJob.class,
+				  marshaller);
 		}
 	}
 

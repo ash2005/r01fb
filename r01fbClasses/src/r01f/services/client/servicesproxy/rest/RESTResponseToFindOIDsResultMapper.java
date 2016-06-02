@@ -7,7 +7,6 @@ import r01f.exceptions.Throwables;
 import r01f.guids.OID;
 import r01f.httpclient.HttpResponse;
 import r01f.marshalling.Marshaller;
-import r01f.marshalling.MarshallerException;
 import r01f.model.PersistableModelObject;
 import r01f.persistence.FindOIDsError;
 import r01f.persistence.FindOIDsOK;
@@ -82,12 +81,10 @@ public class RESTResponseToFindOIDsResultMapper<O extends OID,M extends Persista
 		}
 		// [2] - Error while request processing: the PersistenceCRUDError comes INSIDE the response
 		else {
-			try {
-				outOpError = _marshaller.beanFromXml(responseStr);	// the rest endpoint response is a PersistenceCRUDError XML
-			} catch(MarshallerException mEx) {
-				log.error("Error parsing the {} response: {}",restResourceUrl,responseStr);
-				throw mEx;
-			}
+			outOpError = FindOIDsResultBuilder.using(userContext)
+										  	  .on(_modelObjectType)
+										  	  .errorFindingOids()
+										  	  		.causedBy(responseStr);
 		}
 		// [4] - Return the CRUDOperationResult
 		return outOpError;

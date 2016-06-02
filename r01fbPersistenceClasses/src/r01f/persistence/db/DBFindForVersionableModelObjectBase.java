@@ -3,6 +3,7 @@ package r01f.persistence.db;
 import javax.persistence.EntityManager;
 
 import lombok.experimental.Accessors;
+import r01f.marshalling.Marshaller;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
@@ -31,9 +32,11 @@ public abstract class DBFindForVersionableModelObjectBase<O extends OIDForVersio
 /////////////////////////////////////////////////////////////////////////////////////////
 	public DBFindForVersionableModelObjectBase(final Class<M> modelObjectType,final Class<DB> dbEntityType,
 											   final EntityManager entityManager,
+											   final Marshaller marshaller,
 											   final XMLPropertiesForAppComponent persistenceProps) {
 		super(modelObjectType,dbEntityType,
 			  entityManager,
+			  marshaller,
 			  persistenceProps);
 	}	
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,7 @@ package r01f.services.client.api.delegates;
 import java.util.Collection;
 
 import r01f.guids.OID;
+import r01f.marshalling.Marshaller;
 import r01f.model.IndexableModelObject;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.services.interfaces.IndexServicesForModelObject;
@@ -24,8 +25,10 @@ public abstract class ClientAPIDelegateForModelObjectIndexServices<O extends OID
 //  CONSTRUCTORS
 /////////////////////////////////////////////////////////////////////////////////////////
 	public ClientAPIDelegateForModelObjectIndexServices(final UserContext userContext,
-								   			 final IndexServicesForModelObject<O,M> services) {
+														final Marshaller modelObjectsMarshaller,
+								   			 			final IndexServicesForModelObject<O,M> services) {
 		super(userContext,
+			  modelObjectsMarshaller,
 			  services);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

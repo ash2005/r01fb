@@ -3,13 +3,14 @@ package r01f.types.contact;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
-import r01f.types.Range;
 
+import com.google.common.annotations.GwtIncompatible;
 
 /**
  * Contact person's phone
@@ -25,9 +26,10 @@ import r01f.types.Range;
 @Accessors(prefix="_")
 @NoArgsConstructor
 public class ContactPhone 
-     extends ContactInfoMediaBase<ContactPhone> {
+	 extends ContactInfoMediaBase<ContactPhone> {
 	
-	private static final long serialVersionUID = 5655704363671006182L;
+	private static final long serialVersionUID = 6677974112128068298L;
+	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -42,10 +44,23 @@ public class ContactPhone
 	@XmlAttribute(name="number")
 	@Getter @Setter private Phone _number;
 	/**
-	 * hour range when could be contacted
+	 * Hour range when could be contacted
+	 * 
+	 * It is stored like a String but internaly is used like a Range<Integer>. That is to avoid GWT incompatibility.
+	 * The lombok Getter and Setter are necesary because the explicit methods have the @GWTIncompatible annotation
+	 * and wont be generated in the GWT compilation.
 	 */
 	@XmlAttribute(name="availability")
-	@Getter @Setter private Range<Integer> _availableRangeForCalling;
+	@Getter(AccessLevel.PROTECTED) @Setter(AccessLevel.PROTECTED) private String _availableRangeForCallingStr = null;
+	@GwtIncompatible(value="METHOD")
+	public r01f.types.Range<Integer> getAvailableRangeForCalling() {
+		return r01f.types.Range.parse(this._availableRangeForCallingStr, Integer.class);
+	}
+	@GwtIncompatible(value="METHOD")
+	public void setAvailableRangeForCalling(r01f.types.Range<Integer> _availableRangeForCalling) {
+		this._availableRangeForCallingStr = _availableRangeForCalling.asString();
+	}
+	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FLUENT-API: CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -69,8 +84,11 @@ public class ContactPhone
 		_number = Phone.create(number);
 		return this;
 	}
-	public ContactPhone availableRangeForCalling(final Range<Integer> range) {
-		_availableRangeForCalling = range;
+	
+	@GwtIncompatible(value="METHOD")
+	public ContactPhone availableRangeForCalling(final r01f.types.Range<Integer> range) {
+		_availableRangeForCallingStr = range.asString();
 		return this;
 	}
+	
 }

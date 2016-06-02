@@ -66,7 +66,6 @@ class MappingReflectionUtils {
 	 * @return la instancia de la clase creada
      * @throws ReflectionException si ocurre algún error al obtener la instancia
 	 */
-	@SuppressWarnings("unchecked")
 	static <T> T createObjectInstance(final BeanMap newBeanMap,
 									  final Class<?>[] constructorArgsTypes,final Object[] constructorArgs) throws ReflectionException {
 		T outObj = null;

@@ -20,7 +20,7 @@ import lombok.experimental.Accessors;
 import r01f.guids.CommonOIDs.UserCode;
 import r01f.guids.OID;
 import r01f.guids.OIDs;
-import r01f.guids.VersionIndependentOID;
+import r01f.marshalling.Marshaller;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Facetables;
 import r01f.model.facets.Versionable.HasVersionableFacet;
@@ -51,9 +51,23 @@ public abstract class DBFindForModelObjectBase<O extends OID,M extends Persistab
 /////////////////////////////////////////////////////////////////////////////////////////
 	public DBFindForModelObjectBase(final Class<M> modelObjectType,final Class<DB> dbEntityType,
 									final EntityManager entityManager,
+									final Marshaller marshaller,
 									final XMLPropertiesForAppComponent persistenceProps) {
 		super(modelObjectType,dbEntityType,
 			  entityManager,
+			  marshaller,
+			  persistenceProps);
+	}
+	
+	public DBFindForModelObjectBase(final Class<M> modelObjectType,final Class<DB> dbEntityType,
+									final TransformsDBEntityIntoModelObject<DB,M> dbEntityIntoModelObjectTransformer,
+									final EntityManager entityManager,
+									final Marshaller marshaller,
+									final XMLPropertiesForAppComponent persistenceProps) {
+		super(modelObjectType,dbEntityType,
+			  dbEntityIntoModelObjectTransformer,
+			  entityManager,
+			  marshaller,
 			  persistenceProps);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

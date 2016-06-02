@@ -16,7 +16,7 @@ import r01f.persistence.PersistenceRequestedOperation;
  * {@link ExceptionMapper}(s) used to map {@link Exception}s to {@link Response}s
  * 
  * <pre>
- * IMPORTANT!	Do NOT forget to include this types at the getClasses() method of {@link R01ERESTApp} type
+ * IMPORTANT!	Do NOT forget to include this types at the getClasses() method of {@link {AppCode}RESTApp} type
  * </pre>
  */
 public class RESTExceptionMappers {
@@ -64,7 +64,6 @@ public class RESTExceptionMappers {
 			if (persistEx.getPersistenceErrorType()
 						 .isServerError()) {			// Server Error
 				// force exception stack trace print
-				//th.printStackTrace();
 				outResponse = Response.status(Status.INTERNAL_SERVER_ERROR)
 									  .header("x-r01-errorCode",PersistenceErrorType.SERVER_ERROR)
 									  .header("x-r01-extErrorCode",persistEx.getExtendedCode())

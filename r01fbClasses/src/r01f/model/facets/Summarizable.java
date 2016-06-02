@@ -10,9 +10,9 @@ import r01f.util.types.Strings;
  * <pre class='brush:java'>
  * 		Summarizable outSummarizable = new InmutableSummarizable(this.getClass()) {
  * 												@Override
-												public Summary getSummary() {
-													// use SummaryBuilder to build a summary
-												}
+ * 												public Summary getSummary() {
+ *													// use SummaryBuilder to build a summary
+ *												}
  * 									   }
  * </pre>
  */

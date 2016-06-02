@@ -2,16 +2,18 @@ package r01f.services.delegates.persistence;
 
 import javax.persistence.EntityManager;
 
+import com.google.common.eventbus.EventBus;
+
 import lombok.experimental.Accessors;
 import r01f.exceptions.Throwables;
+import r01f.marshalling.HasModelObjectsMarshaller;
+import r01f.marshalling.Marshaller;
+import r01f.persistence.db.DBBase;
 import r01f.persistence.db.HasEntityManager;
 import r01f.persistence.db.HasEntityManagerProvider;
 import r01f.services.delegates.ServicesDelegateBase;
 import r01f.services.interfaces.ServiceInterface;
-import r01f.services.persistence.CorePersistenceServiceBase;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
-
-import com.google.common.eventbus.EventBus;
 
 @Accessors(prefix="_")
 public abstract class PersistenceServicesDelegateBase
@@ -32,12 +34,6 @@ public abstract class PersistenceServicesDelegateBase
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public XMLPropertiesForAppComponent getPersistenceProperties() {
-		if (!(_serviceImpl instanceof CorePersistenceServiceBase)) {
-			return null;
-		}
-		return ((CorePersistenceServiceBase)_serviceImpl).getServiceProperties();
-	}
 	@Override
 	public EntityManager getEntityManager() {
 		// Get an entity manager from the service
@@ -52,15 +48,17 @@ public abstract class PersistenceServicesDelegateBase
 		}
 		return outEntityManager;
 	}
-//	/**
-//	 * Rollbacks the current transaction if it exists
-//	 */
-//	public void roolbackTransactionIfExists() {
-//		EntityManager entityManager = this.getEntityManager();
-//		// if there's an ongoing transaction rollback it
-//		if (entityManager.isJoinedToTransaction() 
-//		 && entityManager.getTransaction().isActive()) {
-//			entityManager.getTransaction().rollback();			
-//		}
-//	}
+	public XMLPropertiesForAppComponent getPersistenceProperties() {
+		if (!(_serviceImpl instanceof DBBase)) return null;
+		return ((DBBase)_serviceImpl).getPersistenceProperties();
+	}
+	public Marshaller getModelObjectsMarshaller() {
+		Marshaller outMarshaller = null;
+		if (_serviceImpl instanceof DBBase) {
+			outMarshaller = ((DBBase)_serviceImpl).getModelObjectsMarshaller();
+		} else if (_serviceImpl instanceof HasModelObjectsMarshaller) {
+			outMarshaller = ((HasModelObjectsMarshaller)_serviceImpl).getModelObjectsMarshaller();
+		} 
+		return outMarshaller;
+	}
 }

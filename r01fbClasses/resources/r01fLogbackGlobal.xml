@@ -19,7 +19,7 @@ This main logback.xml is NOT ENVIRONMENT DEPENDENT so it's located at
 
 In order to set environment-dependent values, the included appCode/appCodeLogback.xml files 
 are used. These appCode/appCodeLogback.xml files are at [{appCode}Config] project
-which contains environment-dependent configuable values
+which contains environment-dependent configurable values
 -->
 <included>
 	<!-- <property name="USER_HOME" value="${user.home}" />  -->
@@ -35,8 +35,8 @@ which contains environment-dependent configuable values
 				The [r01fbConfig] project will be present in the eclipse workspace and if the /r01fb/r01fbEnvironment.xml is 
 				classpath-accesible, the ${DATA_HOME} var will have the d:/temp_dev/log value
 				BEWARE!!!	Ensure the /r01fb/r01fbEnvironment.xml is accesible at the classpath
+	<include resource="r01fb/r01fbEnvironment.xml"/>
 	-->
-	<include resource="r01fb/r01fbEnvironment.xml"/>	<!-- BEWARE! this include usually is ONLY accesible at local environment -->
 	
 	<!-- 
 		local (see [Condigional processing of configuration files at http://logback.qos.ch/manual/configuration.html)

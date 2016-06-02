@@ -10,6 +10,7 @@ import org.w3c.dom.Node;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -19,13 +20,20 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import r01f.guids.AppAndComponent;
-import r01f.guids.CommonOIDs.AppCode;
-import r01f.guids.CommonOIDs.AppComponent;
 import r01f.internal.R01FBootstrapGuiceModule;
 import r01f.reflection.ReflectionUtils;
+import r01f.services.ServiceIDs.ClientApiAppAndModule;
+import r01f.services.ServiceIDs.ClientApiAppCode;
+import r01f.services.ServiceIDs.ClientApiModule;
+import r01f.services.ServiceIDs.CoreAppAndModule;
+import r01f.services.ServiceIDs.CoreAppCode;
+import r01f.services.ServiceIDs.CoreModule;
+import r01f.services.client.ClientAPI;
+import r01f.services.client.ServiceProxiesAggregator;
+import r01f.services.client.internal.ServiceInterfaceTypesToImplOrProxyMappings;
 import r01f.services.client.internal.ServiceToImplAndProxyDef;
 import r01f.services.client.internal.ServicesClientAPIBootstrapGuiceModuleBase;
+import r01f.services.client.internal.ServicesClientAPIFinder;
 import r01f.services.client.internal.ServicesClientBootstrapModulesFinder;
 import r01f.services.client.internal.ServicesClientGuiceModule;
 import r01f.services.client.internal.ServicesClientInterfaceToImplAndProxyFinder;
@@ -40,21 +48,30 @@ import r01f.services.interfaces.ServiceInterface;
 import r01f.services.interfaces.ServiceInterfaceFor;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-import r01f.util.types.collections.Lists;
 import r01f.xml.XMLUtils;
 import r01f.xmlproperties.XMLProperties;
 import r01f.xmlproperties.XMLPropertiesForApp;
+import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
 /**
  * Bootstraps a service-oriented guice-based application
- * Usage:
+ * Basic usage:
  * <pre class='brush:java'>
- *		Collection<Module> bootstrapModuleInstances = ServicesMainGuiceBootstrap.createForApi(R01MAppCode.API.code())
- *																				.loadBootstrapModuleInstances();
+ *		Collection<Module> bootstrapModules = ServicesMainGuiceBootstrap.createFor(ServicesInitDataBuilder.createForClientApi(apiAppCode,apiModule)
+ *						 								  												  .bootstrapedBy(MyBootstrapGuiceModule.class)
+ *						 								  												  .findServiceInterfacesAtDefaultPackage()	// finds services interfaces at apiAppCode.api.apiModule.interfaces
+ *						 								  												  .forServiceImplementations(CoreServiceImpl.of(coreAppCode,coreModule)
+ *						 										  																				    .defaultImpl(ServicesImpl.REST))
+ *						 								  												  .exposedByApiType(AA81CommonClientAPI.class)
+ *						 								  												  .withNamedServiceHandler(AA81AppCodes.COMMON_APP_AND_MOD_STR)
+ *						 								  												  .build())
+ *																		 .loadBootstrapModuleInstances();
  *		Injector injector = Guice.createInjector(bootstrapModuleInstances);
  * </pre>
- * A service-oriented application has two types of guice modules:
+ * 
+ * A service-oriented application has the following basic components:
  * <ul>
+ * 		<li>The services</li>
  * 		<li>The modules that bootstrap the client</li>
  * 		<li>The modules that bootstrap the core (server)<li>
  * </ul>
@@ -111,6 +128,31 @@ import r01f.xmlproperties.XMLPropertiesForApp;
  *			}
  * 		</pre> 
  * 
+ *	<clientPackages>
+ *		<!-- The package where the service interfaces are located -->
+ *		<lookForServiceInterfacesAt>aa81f.api.common.interfaces</lookForServiceInterfacesAt>
+ *		<!-- In order to bootstrap the client, the system will look for types extending ServicesClientAPIBootstrapGuiceModuleBase at the provided package -->
+ *		<lookForClientBootstrapTypesAt>aa81f.client.common.internal</lookForClientBootstrapTypesAt>
+ *		<!-- The package where the client api is located -->
+ *		<lookForClientApiAggregatorTypeAt>aa81f.client.common.api</lookForClientApiAggregatorTypeAt>
+ *	</clientPackages>
+ *	
+ *	<!--
+ *	Client Proxies to be used to access the services
+ *	(see ServicesMainGuiceBootstrap.java for details about how services client APIs are 
+ *	 bound to the services core implementation through a proxy)
+ *	Values:
+ *		- REST	 : use HTTP to access the REST end-point that exposes the services layer functions
+ *		- Servlet: a pseudo-REST http access end-point
+ *		- Bean	 : use the services layer functions directly accessing the beans that encapsulates them
+ *		- EJB 	 : use RMI to access the EJB end-point that exposes the services layer functions
+ *		- Mock 	 : use a mock-ed services layer functions
+ *	-->
+ *	<proxies>
+ *		<proxy appCode="aa81b" id="common" impl="REST">Granted Benefits core</proxy>
+ *	</proxies>
+ * 
+ * 
  * SERVER/CORE BOOTSTRAPING
  * ========================
  * At the java package yy.internal there MUST exist a type extending {@link BeanImplementedServicesCoreBootstrapGuiceModuleBase}
@@ -141,11 +183,23 @@ public class ServicesMainGuiceBootstrap {
 	@Accessors(prefix="_")
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 	private class ServiceClientDef {
-		@Getter private final AppAndComponent _apiAppAndModule;
-		@Getter private final Map<AppAndComponent,ServicesImpl> _coreAppAndModulesDefProxies;
+		@Getter private final ClientApiAppAndModule _apiAppAndModule;
+		@Getter private final Class<? extends ServicesClientAPIBootstrapGuiceModuleBase> _clientApiBootstrapModuleType;
+		@Getter private final ServiceInterfaceTypesToImplOrProxyMappings _serviceInterfacesToImplOrProxyMappings;
+		@Getter private final String _packageToLookForServiceInterfaces;
+		@Getter private final Class<? extends ServiceProxiesAggregator> _servicesProxiesAggregatorType;
+		@Getter private final Map<CoreAppAndModule,ServicesImpl> _coreAppAndModulesDefProxies;
+		@Getter private final Class<? extends ClientAPI> _clientApiType;
 		
-		public Collection<AppAndComponent> getCoreAppAndModules() {
+		public Collection<CoreAppAndModule> getCoreAppAndModules() {
 			return _coreAppAndModulesDefProxies != null ? _coreAppAndModulesDefProxies.keySet() : null;
+		}
+		public Collection<CoreAppCode> getCoreAppCodes() {
+			Collection<CoreAppCode> outCoreApps = Lists.newArrayList();
+			for (CoreAppAndModule appAndMod : this.getCoreAppAndModules()) {
+				if (!outCoreApps.contains(appAndMod.getAppCode())) outCoreApps.add(appAndMod.getAppCode());
+			}
+			return outCoreApps;
 		}
 	}
 	// Client definitions
@@ -153,36 +207,75 @@ public class ServicesMainGuiceBootstrap {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	private ServicesMainGuiceBootstrap(final Collection<AppAndComponent> apiAppAndModules) {
-		_clientDefs = Lists.newArrayList();
+	private ServicesMainGuiceBootstrap(final ServiceClientDef... defs) {
+		_clientDefs = Arrays.asList(defs);
+	}
+	private ServicesMainGuiceBootstrap(final ServicesInitData... initData) {
+		// Transform the init data to client defs
+		Collection<ServiceClientDef> clientDefs = Lists.newArrayListWithExpectedSize(initData.length);		
 		
-		for (final AppAndComponent apiAppAndModule : apiAppAndModules) {
-			final XMLPropertiesForApp _apiProps = XMLProperties.createForApp(apiAppAndModule.getAppCode())
-									 						   .notUsingCache();	
-			// Find all core appCode / modules from {apiAppCode}.client.properties.xml
-			Collection<AppAndComponent> coreAppAndModules = _apiProps.forComponent(apiAppAndModule.getAppComponent())		// usually this is simply client
-												  			    	 .propertyAt("/client/proxies")
-												  			    	 .asObjectList(new Function<Node,AppAndComponent>() {
+		for (ServicesInitData currInitData : initData) {
+			// Find the type that holds a Map that binds the service interface to the proxy or implementation
+			// (note that this type MUST be at the same package as the client api)
+	    	ServicesClientBootstrapModulesFinder clientBootstrapModulesFinder = new ServicesClientBootstrapModulesFinder(currInitData.getClientApiBootstrapType().getPackage().getName());
+			ServiceInterfaceTypesToImplOrProxyMappings serviceInterfaceTypesToImplOrProxyMappings = clientBootstrapModulesFinder.findServiceInterfaceTypesToImplOrProxyMappingsFor(currInitData.getCoreAppAndModules());
+			
+			// Find the type that aggregates all service interface proxies
+			ServicesClientAPIFinder clientAPIFinder = new ServicesClientAPIFinder();
+			Class<? extends ServiceProxiesAggregator> proxyAggregatorType = clientAPIFinder.findClientAPIProxyAggregatorType(currInitData.getApiType());
+			ServiceClientDef clientDef = new ServiceClientDef(currInitData.getClientAppAndModule(),
+															  currInitData.getClientApiBootstrapType(),
+															  serviceInterfaceTypesToImplOrProxyMappings,
+															  currInitData.getPackageToLookForServiceInterfaces(),
+															  proxyAggregatorType,
+															  currInitData.getCoreAppAndModulesDefProxies(),
+															  currInitData.getApiType());
+			clientDefs.add(clientDef);
+		}
+		_clientDefs = clientDefs;
+	}
+	private ServicesMainGuiceBootstrap(final ClientApiAppAndModule... apiAppAndModules) {
+		// The service client defs are loaded from a properties file
+		Collection<ServiceClientDef> clientDefs = Lists.newArrayListWithExpectedSize(apiAppAndModules.length);
+		
+		for (final ClientApiAppAndModule apiAppAndModule : apiAppAndModules) {
+			final XMLPropertiesForApp apiProps = XMLProperties.createForApp(apiAppAndModule.getAppCode().asAppCode())
+									 						  .notUsingCache();
+			final XMLPropertiesForAppComponent apiModuleProperties = apiProps.forComponent(apiAppAndModule.getModule().asAppComponent());
+			
+			// [0] - Load client bootstrapping info from the properties files
+			// The package where the certain mandatory client types are located
+			String pckgToLookForClientBootstrapType = apiModuleProperties.propertyAt("/client/clientPackages/lookForClientBootstrapTypesAt")
+															  			 .asString(ServicesPackages.clientBootstrapGuiceModulePackage(apiAppAndModule));
+			String pckToLookForServiceInterfaces = apiModuleProperties.propertyAt("/client/clientPackages/lookForServiceInterfacesAt")
+														   			  .asString(ServicesPackages.serviceInterfacePackage(apiAppAndModule));
+			String pckgToLookForClientApiAggregator = apiModuleProperties.propertyAt("/client/clientPackages/lookForClientApiAggregatorTypeAt")
+														   	  			 .asString(ServicesPackages.serviceProxyPackage(apiAppAndModule));
+			
+			
+			// Find all core appCode / modules from {apiAppCode}.{apiComponent}.properties.xml
+			Collection<CoreAppAndModule> coreAppAndModules = apiProps.forComponent(apiAppAndModule.getModule().asAppComponent())		// usually this is simply client
+												  			    	  .propertyAt("/client/proxies")
+												  			    	  .asObjectList(new Function<Node,CoreAppAndModule>() {
 																							@Override
-																							public AppAndComponent apply(final Node node) {
-																								AppCode coreAppCode = AppCode.forId(XMLUtils.nodeAttributeValue(node,"appCode"));
-																								AppComponent module = AppComponent.forId(XMLUtils.nodeAttributeValue(node,"id"));
-																								return AppAndComponent.composedBy(coreAppCode,module); 
+																							public CoreAppAndModule apply(final Node node) {
+																								CoreAppCode coreAppCode = CoreAppCode.forId(XMLUtils.nodeAttributeValue(node,"appCode"));
+																								CoreModule module = CoreModule.forId(XMLUtils.nodeAttributeValue(node,"id"));
+																								return CoreAppAndModule.of(coreAppCode,module); 
 																							}
-													 					          });
+													 					            });
 			// Find all core appCode / modules default proxy from {apiAppCode}.client.properties.xml
-			Map<AppAndComponent,ServicesImpl> coreAppAndModulesDefProxy = null;
+			Map<CoreAppAndModule,ServicesImpl> coreAppAndModulesDefProxy = null;
 			coreAppAndModulesDefProxy = Maps.toMap(coreAppAndModules,
-												   new Function<AppAndComponent,ServicesImpl>() {
+												   new Function<CoreAppAndModule,ServicesImpl>() {
 														@Override
-														public ServicesImpl apply(final AppAndComponent coreAppAndModule) {
+														public ServicesImpl apply(final CoreAppAndModule coreAppAndModule) {
 															String propsXPath = Strings.of("/client/proxies/proxy[@appCode='{}' and @id='{}']/@impl")
 																					   .customizeWith(coreAppAndModule.getAppCode(),
-																							   		  coreAppAndModule.getAppComponent())
+																							   		  coreAppAndModule.getModule())
 																					   .asString();
-															ServicesImpl configuredImpl = _apiProps.forComponent("client")
-																								   .propertyAt(propsXPath)
-																									 	.asEnumElement(ServicesImpl.class);
+															ServicesImpl configuredImpl = apiModuleProperties.propertyAt(propsXPath)
+																									 		 .asEnumElement(ServicesImpl.class);
 															if (configuredImpl == null) { 
 																log.warn("NO proxy impl for appCode/module={} configured at {}.client.properties.xml, {} is used by default",
 																		 coreAppAndModule,apiAppAndModule,ServicesImpl.REST);
@@ -191,50 +284,88 @@ public class ServicesMainGuiceBootstrap {
 															return configuredImpl;
 														}
 											});
+			// a bit of log
+			log.warn("[Client API: {}.{}]",apiAppAndModule.getAppCode(),apiAppAndModule.getModule());
+			log.warn("\tLocations:");
+			log.warn("\t\t-   Search for bootstrap guice modules at: {}",pckgToLookForClientBootstrapType);
+			log.warn("\t\t-        Search for service interfaces at: {}",pckToLookForServiceInterfaces);
+			log.warn("\t\t-Search for client api aggregator type at: {}",pckgToLookForClientApiAggregator);
+			log.warn("\tCore modules:");
+			if (CollectionUtils.hasData(coreAppAndModulesDefProxy)) {
+				for (Map.Entry<CoreAppAndModule,ServicesImpl> me : coreAppAndModulesDefProxy.entrySet()) {
+					log.warn("\t\t-{} > {}",me.getKey(),me.getValue());
+				}
+			}
+			
+			// [1] - Find the CLIENT API BOOTSTRAP guice module types
+	    	log.warn("[START]-Find CLIENT bootstrap modules at {}===========================================",pckgToLookForClientBootstrapType);
+	    	ServicesClientBootstrapModulesFinder clientBootstrapModulesFinder = new ServicesClientBootstrapModulesFinder(pckgToLookForClientBootstrapType);
+	    	// Find the client bootstrap module type
+			Class<? extends ServicesClientAPIBootstrapGuiceModuleBase> clientAPIBootstrapModulesType = clientBootstrapModulesFinder.findClientBootstrapGuiceModuleTypes();
+			
+			// Find the type that holds a Map that binds the service interface to the proxy or implementation
+			// (note that this type MUST be at the same package as the client api)
+			ServiceInterfaceTypesToImplOrProxyMappings serviceInterfaceTypesToImplOrProxyMappings = clientBootstrapModulesFinder.findServiceInterfaceTypesToImplOrProxyMappingsFor(coreAppAndModules);
+			log.warn("  [END]-Find CLIENT binding modules============================================");
+			
+			log.warn("[START]-Find CLIENT API at {}========================================================");
+			ServicesClientAPIFinder clientAPIFinder = new ServicesClientAPIFinder();
+			// Find the client api
+			Class<? extends ClientAPI> clientAPIType = clientAPIFinder.findClientAPI(pckgToLookForClientApiAggregator);
+			
+			// Find the type that aggregates the fine-grained service proxy types
+			// (note that this type is a generic param of the client api type)
+			Class<? extends ServiceProxiesAggregator> proxyAggregatorType = clientAPIFinder.findClientAPIProxyAggregatorType(clientAPIType);
+			
 			// Create the service definition
 			ServiceClientDef def = new ServiceClientDef(apiAppAndModule,
-														coreAppAndModulesDefProxy);
-			_clientDefs.add(def);
+														clientAPIBootstrapModulesType,
+														serviceInterfaceTypesToImplOrProxyMappings,
+														pckToLookForServiceInterfaces,
+														proxyAggregatorType,
+														coreAppAndModulesDefProxy,
+														clientAPIType);
+			clientDefs.add(def);
 		} // for
+		_clientDefs = clientDefs;
+	}	
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	public static ServicesMainGuiceBootstrap createForApi(final ClientApiAppCode apiAppCode) {
+		ClientApiAppAndModule apiAppAndModule = ClientApiAppAndModule.of(apiAppCode,ClientApiModule.DEFAULT);
+		return new ServicesMainGuiceBootstrap(apiAppAndModule);
 	}
-	public static ServicesMainGuiceBootstrap createForApi(final AppCode apiAppCode) {
-		AppAndComponent appAndComponent = AppAndComponent.composedBy(apiAppCode,AppComponent.forId("client"));
-		return new ServicesMainGuiceBootstrap(Lists.newArrayList(appAndComponent));
-	}
-	public static ServicesMainGuiceBootstrap createForApi(final AppCode... apiAppCodes) {
+	public static ServicesMainGuiceBootstrap createForApi(final ClientApiAppCode... apiAppCodes) {
 		return new ServicesMainGuiceBootstrap(FluentIterable.from(Arrays.asList(apiAppCodes))
-														    .transform(new Function<AppCode,AppAndComponent>() {
+														    .transform(new Function<ClientApiAppCode,ClientApiAppAndModule>() {
 																				@Override
-																		 		public AppAndComponent apply(final AppCode apiAppCode) {
-																					return AppAndComponent.composedBy(apiAppCode,AppComponent.forId("client"));
+																		 		public ClientApiAppAndModule apply(final ClientApiAppCode apiAppCode) {
+																					return ClientApiAppAndModule.of(apiAppCode,ClientApiModule.DEFAULT);
 																				}
 																	   })
-														    .toList());
+														    .toArray(ClientApiAppAndModule.class));
 	}
-	public static ServicesMainGuiceBootstrap createForApi(final AppAndComponent apiAppAndModule) {
-		return new ServicesMainGuiceBootstrap(Lists.newArrayList(apiAppAndModule));
+	public static ServicesMainGuiceBootstrap createForApi(final ClientApiAppAndModule apiAppAndModule) {
+		return new ServicesMainGuiceBootstrap(apiAppAndModule);
 	}
-	public static ServicesMainGuiceBootstrap createForApi(final AppAndComponent... apiAppAndModules) {
-		return new ServicesMainGuiceBootstrap(Lists.newArrayList(apiAppAndModules));
+	public static ServicesMainGuiceBootstrap createForApi(final ClientApiAppAndModule... apiAppAndModules) {
+		return new ServicesMainGuiceBootstrap(apiAppAndModules);
+	}
+	public static ServicesMainGuiceBootstrap createForApi(final Collection<ClientApiAppAndModule> apiAppAndModules) {
+		return new ServicesMainGuiceBootstrap(apiAppAndModules.toArray(new ClientApiAppAndModule[apiAppAndModules.size()]));
+	}
+	public static ServicesMainGuiceBootstrap createFor(final ServicesInitData... initData) {
+		if (CollectionUtils.isNullOrEmpty(initData)) throw new IllegalArgumentException();
+		return new ServicesMainGuiceBootstrap(initData);
+	}	
+	public static ServicesMainGuiceBootstrap createFor(final Collection<ServicesInitData> defs) {
+		if (CollectionUtils.isNullOrEmpty(defs)) throw new IllegalArgumentException();
+		return new ServicesMainGuiceBootstrap(defs.toArray(new ServicesInitData[defs.size()]));
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Install all guice modules for every api appCode
-	 * @param binder
-	 */
-	public void installBootstrapModuleInstances(final Binder binder) {
-		// Load bootstrap module instances
-		Collection<Module> modulesToInstall = this.loadBootstrapModuleInstances();
-		
-		// Install the modules
-		if (CollectionUtils.hasData(modulesToInstall)) {
-			for (Module mod : modulesToInstall) {
-				binder.install(mod);
-			}
-		}
-	}
 	/**
   	 * Load bootstrap module instances
 	 *	- If there's more than a single api appCode a private module for every api appCode is returned so 
@@ -242,19 +373,25 @@ public class ServicesMainGuiceBootstrap {
 	 *	- If there's a single api appCode there's no need to isolate every api appcode in it's own private module
 	 * @return
 	 */
-	public Collection<Module> loadBootstrapModuleInstances() {
-		List<Module> outModules = Lists.newArrayList();
+	Collection<Module> loadBootstrapModuleInstances() {
+		List<Module> bootstrapModules = Lists.newArrayList();
 		
 		// find the modules
+		log.warn("\n\n\n\n");
+		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		log.warn("CONFIGURING {} CLIENT APIs",_clientDefs.size());
+		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 		for (ServiceClientDef clientDef : _clientDefs) {
 			Module currApiModule = _bootstrapGuiceModuleFor(clientDef);
-			if (currApiModule != null) outModules.add(currApiModule);
+			if (currApiModule != null) bootstrapModules.add(currApiModule);
 		}
+		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		log.warn("\n\n\n\n");
 		
 		// Add the mandatory R01F guice modules
-		outModules.add(0,new R01FBootstrapGuiceModule());
+		bootstrapModules.add(0,new R01FBootstrapGuiceModule());
 		
-		return outModules;
+		return bootstrapModules;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -265,69 +402,66 @@ public class ServicesMainGuiceBootstrap {
 	 * @return
 	 */
 	private static Module _bootstrapGuiceModuleFor(final ServiceClientDef serviceClientDef) {
-		log.warn("\n\n\n\n");
-		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-		log.warn("[Find CLIENT & CORE MODULES for {} ({} core modules)]",serviceClientDef.getApiAppAndModule(),
-																		 serviceClientDef.getCoreAppAndModules() != null ? serviceClientDef.getCoreAppAndModules().size() : 0);
-		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-		// [1] - Find the CLIENT API BOOTSTRAP guice module types
-    	log.warn("[START]-Find CLIENT binding modules============================================");
-    	ServicesClientBootstrapModulesFinder clientBootstrapModulesFinder = new ServicesClientBootstrapModulesFinder(serviceClientDef.getApiAppAndModule());
-    	
-    	// The client bootstrap modules
-		final Collection<Class<? extends ServicesClientAPIBootstrapGuiceModuleBase>> clientAPIBootstrapModulesTypes = clientBootstrapModulesFinder.findProxyBingingsGuiceModuleTypes();
+		log.warn("\n\n");
+		log.warn("[CONFIGURING CLIENT & CORE MODULES for {}.{} ==> {} ({} core modules)]",
+				  serviceClientDef.getApiAppAndModule().getAppCode(),serviceClientDef.getApiAppAndModule().getModule(),
+				  serviceClientDef.getCoreAppAndModules(),
+				  serviceClientDef.getCoreAppAndModules() != null ? serviceClientDef.getCoreAppAndModules().size() : 0);
+		log.warn("Client app/module={}.{} will be bootstrapped with {}",
+				 serviceClientDef.getApiAppAndModule().getAppCode(),serviceClientDef.getApiAppAndModule().getModule(),
+				 serviceClientDef.getClientApiBootstrapModuleType());
 		
-		ServicesClientBootstrapModulesFinder.logFoundModules(clientAPIBootstrapModulesTypes);
-		log.warn("  [END]-Find CLIENT binding modules============================================");
+		log.warn("Client API: {}",serviceClientDef.getClientApiType());
+		log.warn("Service proxies will be looked for at: {}",
+				 serviceClientDef.getServicesProxiesAggregatorType().getPackage().getName());
 		
 		
 		// [2] - Find the CORE (server) bootstrap guice module types for the cores defined at r01m.client.properties.xml file
 		//		 for each app/component combination there might be multiple Bean/REST/EJB/Servlet, etc core bootstrap modules
     	log.warn("[START]-Find CORE binding modules==============================================");
-    	ServicesCoreBootstrapModulesFinder coreBootstrapModulesFinder = new ServicesCoreBootstrapModulesFinder(serviceClientDef.getApiAppAndModule(),
-    																										   serviceClientDef.getCoreAppAndModules());
-		final Map<AppAndComponent,
+    	ServicesCoreBootstrapModulesFinder coreBootstrapModulesFinder = new ServicesCoreBootstrapModulesFinder(serviceClientDef.getCoreAppAndModules());
+		final Map<CoreAppAndModule,
 				  Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> coreBootstrapModulesTypesByAppAndModule = coreBootstrapModulesFinder.findBootstrapGuiceModuleTypes();
 		log.warn("  [END]-Find CORE binding modules==============================================");
 
 		
 		// [3] - Find the client-api service interface to proxy and / or impls matchings 
-		//		 At {apiAppCode}.client.properties.xml all proxy/impl for every coreAppCode / module is defined:
-		//					<proxies>
-		//						<proxy appCode="coreAppCode1" id="moduleA1" impl="REST">Module definition</proxy>
-		//						<proxy appCode="coreAppCode1" id="moduleB1" impl="REST">Module definition</proxy>
-		//						<proxy appCode="coreAppCode2" id="moduleA2" impl="Bean">Module definition</proxy>
-		//					</proxies>
 		//		 now every client-api defined service interface is matched to a proxy implementation
-		log.warn("[START]-Find ServiceInterface to bean impl and proxy matchings ================");
-		ServicesClientInterfaceToImplAndProxyFinder serviceIfaceToImplAndProxiesFinder = new ServicesClientInterfaceToImplAndProxyFinder(serviceClientDef.getApiAppAndModule(),
+		log.warn("[START]-Find ServiceInterface to bean impl/proxy matchings ================");
+		ServicesClientInterfaceToImplAndProxyFinder serviceIfaceToImplAndProxiesFinder = new ServicesClientInterfaceToImplAndProxyFinder(serviceClientDef.getPackageToLookForServiceInterfaces(),
+																																		 serviceClientDef.getServicesProxiesAggregatorType().getPackage().getName(),
 																											   				        	 serviceClientDef.getCoreAppAndModulesDefProxies());
-		Collection<AppCode> coreAppCodes = _coreServicesAppCodes(serviceClientDef.getCoreAppAndModules());
-		final Map<AppAndComponent,
-				  Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceIfacesToImplAndProxiesByAppModule = serviceIfaceToImplAndProxiesFinder.findServiceInterfacesToImplAndProxiesBindings(coreAppCodes);
-		log.warn("  [END]-Find ServiceInterface to bean impl and proxy matchings ================");
+		final Map<CoreAppAndModule,
+				  Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceIfacesToImplAndProxiesByAppModule = serviceIfaceToImplAndProxiesFinder.findServiceInterfacesToImplAndProxiesBindings(serviceClientDef.getCoreAppCodes());
+		log.warn("  [END]-Find ServiceInterface to bean impl/proxy matchings ================");
 
 		
-		// [3] - Create a module for the API appCode that gets installed with:
+		// [4] - Create a module for the API appCode that gets installed with:
 		//			- A module with the client API bindins
 		//			- A private module with the core bindings for each core app module
-		log.warn("\n\n\n\n");
-		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-		log.warn("[Bind CLIENT & CORE MODULES for {} ({} core modules)]",serviceClientDef.getApiAppAndModule(),
-																		 serviceClientDef.getCoreAppAndModules() != null ? serviceClientDef.getCoreAppAndModules().size() : 0);
-		log.warn(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-		return new Module() {
+		log.warn("[START] Creating CLIENT & CORE MODULES");
+		Module outModule = new Module() {
 					@Override
 					public void configure(final Binder binder) {
+						log.warn("\n\n\n\n");
+						log.warn("///////////////////////////////////////////////////////////////////////");
+						log.warn("[BOOTSTRAPPING CLIENT & CORE MODULES for {}.{} ==> {} ({} core modules)]",
+								  serviceClientDef.getApiAppAndModule().getAppCode(),serviceClientDef.getApiAppAndModule().getModule(),
+								  serviceClientDef.getCoreAppAndModules(),
+								  serviceClientDef.getCoreAppAndModules() != null ? serviceClientDef.getCoreAppAndModules().size() : 0);
+						log.warn("///////////////////////////////////////////////////////////////////////");
+						// contains all the guice modules to be bootstraped: client & core
 						List<Module> bootstrapModuleInstances = Lists.newArrayList();
 						
-						// 3.1 - Add the CLIENT bootstrap guice modules
-						for (Class<? extends ServicesClientAPIBootstrapGuiceModuleBase> clientAPIBootstrapModule : clientAPIBootstrapModulesTypes) {
-							Module clientModule = ServiceBootstrapGuiceModuleUtils.createGuiceModuleInstance(clientAPIBootstrapModule);
-							((ServicesClientAPIBootstrapGuiceModuleBase)clientModule).setCoreAppAndModules(serviceClientDef.getCoreAppAndModules());
-							
-							bootstrapModuleInstances.add(0,clientModule);	// insert first!
-						}		
+						// 3.1 - Add the CLIENT bootstrap guice module
+						ServicesClientAPIBootstrapGuiceModuleBase clientModule = (ServicesClientAPIBootstrapGuiceModuleBase)ServicesLifeCycleUtil.createGuiceModuleInstance(serviceClientDef.getClientApiBootstrapModuleType());
+						clientModule.setContext(serviceClientDef.getApiAppAndModule(),
+										  		serviceClientDef.getClientApiType(),
+										  		serviceClientDef.getServicesProxiesAggregatorType(),
+										  		serviceClientDef.getServiceInterfacesToImplOrProxyMappings(),
+										  		serviceClientDef.getCoreAppAndModules());
+						
+						bootstrapModuleInstances.add(0,clientModule);	// insert first!
 						
 						// 3.2 - Add a private module for each appCode / module stack: service interface --> proxy --> impl (rest / bean / etc)
 						//		 this way, each appCode / module is independent (isolated)
@@ -358,12 +492,10 @@ public class ServicesMainGuiceBootstrap {
 								// a bit of log
 								if (!clientBindingLogged && module instanceof ServicesClientGuiceModule) {
 									clientBindingLogged = true;
-									log.warn("=============================");
-									log.warn("[Bind CLIENT Modules]");
+									log.warn("[Bind CLIENT Modules] {}");
 									log.warn("=============================");
 									clientBindingLogged = true;
 								} else if (!coreBindingLogged && module instanceof ServicesCoreForAppModulePrivateGuiceModule) {
-									log.warn("=============================");
 									log.warn("[Bind PRIVATE CORE Modules]");
 									log.warn("=============================");
 									coreBindingLogged = true;
@@ -374,21 +506,8 @@ public class ServicesMainGuiceBootstrap {
 						}
 					}
 				};
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Get all the core apps
-	 * @param appAndModules
-	 * @return
-	 */
-	private static Collection<AppCode> _coreServicesAppCodes(final Collection<AppAndComponent> appAndModules) {
-		Collection<AppCode> outCoreApps = Lists.newArrayList();
-		for (AppAndComponent appAndMod : appAndModules) {
-			if (!outCoreApps.contains(appAndMod.getAppCode())) outCoreApps.add(appAndMod.getAppCode());
-		}
-		return outCoreApps;
+		log.warn("[END] Creating CLIENT & CORE MODULES");
+		return outModule;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -404,17 +523,17 @@ public class ServicesMainGuiceBootstrap {
 	 */
 	@SuppressWarnings({ "unchecked","null" })
 	private static Collection<ServiceBootstrapDef> _coreBootstrapGuiceModuleDefsFrom(final ServiceClientDef serviceClientDef,
-																		  		 	 final Map<AppAndComponent,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> coreBootstrapModulesTypesByAppAndModule,
-																		  		 	 final Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceInterfacesToImplAndProxyByAppModule) {
-		Map<AppAndComponent,ServiceBootstrapDef> outSrvcBootstrapDefs = Maps.newHashMap();
+																		  		 	 final Map<CoreAppAndModule,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> coreBootstrapModulesTypesByAppAndModule,
+																		  		 	 final Map<CoreAppAndModule,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> serviceInterfacesToImplAndProxyByAppModule) {
+		Map<CoreAppAndModule,ServiceBootstrapDef> outSrvcBootstrapDefs = Maps.newHashMap();
 		
 		// [1]: Configure the definitions only with the default proxy
-		for(final AppAndComponent coreAppAndComponent : serviceClientDef.getCoreAppAndModules()) {
+		for (final CoreAppAndModule coreAppAndComponent : serviceClientDef.getCoreAppAndModules()) {
 			log.warn("/----------------------------------------------------------------------------------------------------------------------------\\");
 			ServiceBootstrapDef modDef = new ServiceBootstrapDef(serviceClientDef.getApiAppAndModule(),
 															     coreAppAndComponent,
 																 serviceClientDef.getCoreAppAndModulesDefProxies().get(coreAppAndComponent));
-			log.warn("API MODULE {} to CORE MODULE {} default proxy={}",
+			log.warn("API MODULE {} to CORE MODULE {} using proxy={}",
 					 modDef.getApiAppAndModule(),modDef.getCoreAppCodeAndModule(),
 					 modDef.getDefaultProxyImpl());
 			
@@ -449,7 +568,7 @@ public class ServicesMainGuiceBootstrap {
 				if (serviceInterfacesToImplAndProxyByAppModule.get(coreAppAndComponent) == null) {
 					log.warn("BEWARE!!!!! The core module {} is NOT accesible via a client-API service interface: " +
 							 "there's NO client API service interface to impl and/or proxy binding for {}; " +
-							 "check that the types implementing {} has the @{} annotation ant the appCode and module attributes match the coreAppCode & module " +
+							 "check that the types implementing {} has the @{} annotation and the appCode/module attributes match the coreAppCode/module " +
 							 "(they MUST match the ones in {}.client.properties.xml). " + 
 							 "This is usually an ERROR except on coreAppCode/modules that do NOT expose anything at client-api (ie the Servlet modules)",
 							   coreAppAndComponent,	

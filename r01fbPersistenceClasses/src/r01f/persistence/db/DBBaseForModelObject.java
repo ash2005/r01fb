@@ -10,14 +10,13 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.OID;
+import r01f.marshalling.Marshaller;
 import r01f.model.PersistableModelObject;
-import r01f.persistence.CRUDResult;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.CRUDResultBuilder;
 import r01f.persistence.db.entities.DBEntityForModelObject;
 import r01f.persistence.db.entities.primarykeys.DBPrimaryKeyForModelObject;
 import r01f.persistence.db.entities.primarykeys.DBPrimaryKeyForModelObjectImpl;
-import r01f.reflection.ReflectionUtils;
 import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
@@ -33,7 +32,8 @@ import r01f.xmlproperties.XMLPropertiesForAppComponent;
 @Slf4j
 public abstract class DBBaseForModelObject<O extends OID,M extends PersistableModelObject<O>,
 				      					   PK extends DBPrimaryKeyForModelObject,DB extends DBEntityForModelObject<PK>>
-			  extends DBBase {
+			  extends DBBase 
+		   implements TransformsDBEntityIntoModelObject<DB,M> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  NOT INJECTED STATUS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -41,6 +41,10 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 	 * The model object's type
 	 */
 	@Getter protected final Class<M> _modelObjectType;
+	/**
+	 * Transforms a db entity into a model object
+	 */
+	@Getter protected final TransformsDBEntityIntoModelObject<DB,M> _dbEntityIntoModelObjectTransformer;
 	/**
 	 * entity java type
 	 */
@@ -50,29 +54,64 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 /////////////////////////////////////////////////////////////////////////////////////////
 	public DBBaseForModelObject(final Class<M> modelObjectType,final Class<DB> dbEntityType,
 								final EntityManager entityManager,
+								final Marshaller marshaller,
 								final XMLPropertiesForAppComponent persistenceProps) {
 		super(entityManager,
+			  marshaller,
 			  persistenceProps);
 		_modelObjectType = modelObjectType;
 		_DBEntityType = dbEntityType;
+		// create a default transformer using the marshaller
+		_dbEntityIntoModelObjectTransformer = new TransformsDBEntityIntoModelObject<DB,M>() {
+													@Override
+													public M dbEntityToModelObject(final UserContext userContext,
+																				   final DB dbEntity) {														
+														M outObj = null;
+														if (dbEntity instanceof DBEntityHasModelObjectDescriptor) {
+															// use the marshaller 
+															DBEntityHasModelObjectDescriptor hasDescriptor = (DBEntityHasModelObjectDescriptor)dbEntity;
+															outObj = _modelObjectsMarshaller.<M>beanFromXml(hasDescriptor.getDescriptor());
+															outObj.setTrackingInfo(dbEntity.getTrackingInfo());
+															outObj.setEntityVersion(dbEntity.getEntityVersion());
+														} else {
+															log.warn("The db entity of type {} does NOT implements {} so the db entity MUST be manually translated bo model object",
+																	 dbEntity.getClass().getSimpleName(),DBEntityHasModelObjectDescriptor.class.getSimpleName());
+														}
+														return outObj;
+													}
+											  };
+	}
+	public DBBaseForModelObject(final Class<M> modelObjectType,final Class<DB> dbEntityType,
+								final TransformsDBEntityIntoModelObject<DB,M> dbEntityIntoModelObjectTransformer,
+								final EntityManager entityManager,
+								final Marshaller marshaller,
+								final XMLPropertiesForAppComponent persistenceProps) {
+		super(entityManager,
+			  marshaller,
+			  persistenceProps);
+		_modelObjectType = modelObjectType;
+		_DBEntityType = dbEntityType;
+		_dbEntityIntoModelObjectTransformer = dbEntityIntoModelObjectTransformer;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONVERTERS
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected DB _modelObjectToDBEntity(final UserContext userContext,
-										final M modelObj) {
-		DB outEntity = ReflectionUtils.<DB>createInstanceOf(_DBEntityType);
-		outEntity.fromModelObject(userContext,
-						     	  modelObj);
-		// do not forget!!
-		outEntity.setEntityVersion(modelObj.getEntityVersion());
-		return outEntity;
+	@Override
+	public M dbEntityToModelObject(final UserContext userContext, 
+								   final DB dbEntity) {
+		M out = _dbEntityIntoModelObjectTransformer.dbEntityToModelObject(userContext,
+																		  dbEntity);
+		// ensure the tracking info ant entity version are set
+		out.setTrackingInfo(dbEntity.getTrackingInfo());
+		out.setEntityVersion(dbEntity.getEntityVersion());
+		return out;
 	}
+	@Deprecated
 	protected M _dbEntityToModelObject(final UserContext userContext,
 									   final DB dbEntity) {		
 		// Convert to model object
-		Function<DB,M> transformer = DBEntityToModelObjectTransformerBuilder.<DB,M>createFor(userContext,
-									  													  	 _modelObjectType);
+		Function<DB,M> transformer = DBEntityToModelObjectTransformerBuilder.createFor(userContext,
+									  												   _dbEntityIntoModelObjectTransformer);
 		return transformer.apply(dbEntity);
 	}
 	/**
@@ -102,10 +141,10 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 								    final O oid,final PK pk) {
 		// check the oid
 		if (pk == null) return CRUDResultBuilder.using(userContext)
-														   .on(_modelObjectType)
-													  	   .notLoaded()
-													  	   .becauseClientBadRequest("The {} entity's oid cannot be null in order to be loaded",_modelObjectType)
-													  	   		.about(oid).build();
+											    .on(_modelObjectType)
+										  	    .notLoaded()
+										  	    .becauseClientBadRequest("The {} entity's oid cannot be null in order to be loaded",_modelObjectType)
+										  	   			.about(oid).build();
 		// Load the entity
 		DB dbEntity = _doLoadEntity(userContext,
 									pk);
@@ -113,18 +152,18 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 		// Compose the PersistenceOperationResult object
 		CRUDResult<M> outEntityLoadResult = null;
 		if (dbEntity != null) {
-			M modelObj = _dbEntityToModelObject(userContext,
-											    dbEntity);
+			M modelObj = this.dbEntityToModelObject(userContext,
+											    	dbEntity);
 			outEntityLoadResult = CRUDResultBuilder.using(userContext)
-															  .on(_modelObjectType)
-															  .loaded()
-															  .entity(modelObj);
+													  .on(_modelObjectType)
+													  .loaded()
+													  .entity(modelObj);
 		} else {
 			outEntityLoadResult = CRUDResultBuilder.using(userContext)
-															  .on(_modelObjectType)
-															  .notLoaded()
-															  .becauseClientRequestedEntityWasNOTFound()
-															  		.about(oid).build();
+													  .on(_modelObjectType)
+													  .notLoaded()
+													  .becauseClientRequestedEntityWasNOTFound()
+													  		.about(oid).build();
 			log.warn(outEntityLoadResult.getDetailedMessage());
 		}
 		return outEntityLoadResult;
@@ -184,7 +223,8 @@ public abstract class DBBaseForModelObject<O extends OID,M extends PersistableMo
 				outResult = CRUDResultBuilder.using(userContext)
 											 .on(_modelObjectType)
 											 .loaded()
-												.dbEntity(dbEntity);
+												.dbEntity(dbEntity)
+												.transformedToModelObjectUsing(_dbEntityIntoModelObjectTransformer);
 			}
 		} else {
 			// no results

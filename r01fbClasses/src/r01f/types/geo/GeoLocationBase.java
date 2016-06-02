@@ -21,16 +21,17 @@ import r01f.types.geo.GeoOIDs.GeoID;
 
 /**
  * Geo info base type
+ * <pre class='brush:java'>
  * R01MGeoLocationPart<R01MGeoCountry> country = new R01MGeoLocationPart<R01MGeoCountry>(34,
  * 																					    "Spain",
  * 																						GeoPosition2D.usingStandard(GOOGLE).setLocation(lat,long));
- * </code>
+ * </pre>
  * @param <GID>
  */
 @Accessors(prefix="_")
 @NoArgsConstructor @AllArgsConstructor
 public abstract class GeoLocationBase<GID extends GeoID,
-								   SELF_TYPE extends GeoLocationBase<GID,SELF_TYPE>> 
+								      SELF_TYPE extends GeoLocationBase<GID,SELF_TYPE>> 
            implements Serializable {
 
 	private static final long serialVersionUID = -1497083216318413697L;

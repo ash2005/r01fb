@@ -2,17 +2,16 @@ package r01f.types.contact;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.google.common.annotations.GwtIncompatible;
+
 import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
-import r01f.exceptions.Throwables;
-import r01f.guids.OIDBaseMutable;
 import r01f.types.annotations.Inmutable;
 
 @ConvertToDirtyStateTrackable
 @Inmutable
 @XmlRootElement(name="dni")
 public class NIFPersonID 
-     extends OIDBaseMutable<String> 	// normally this should extend OIDBaseInmutable BUT it MUST have a default no-args constructor to be serializable
-  implements PersonID {
+     extends AnyPersonID {
 	
 	private static final long serialVersionUID = -1411418440276118326L;
 	
@@ -25,7 +24,7 @@ public class NIFPersonID
 	public NIFPersonID(final String id,
 					   final boolean strict) {
 		super(_normalize(id));	// normalize!!
-		if (strict && !this.isValid()) throw new IllegalArgumentException(Throwables.message("{} is NOT a valid NIF",this.getId()));		
+		//if (strict && !this.isValid()) throw new IllegalArgumentException(Throwables.message("{} is NOT a valid NIF",this.getId()));		
 	}
 	public NIFPersonID(final String id) {
 		this(id,
@@ -34,7 +33,7 @@ public class NIFPersonID
 	public static NIFPersonID valueOf(final String s) {
 		return new NIFPersonID(s,false);
 	}
-// jackson mapper compaints about having two creators (valueOf & fromString)
+// jackson mapper complaints about having two creators (valueOf & fromString)
 //	public static NIFPersonID fromString(final String s) {
 //		return new NIFPersonID(s,false);
 //	}
@@ -48,7 +47,8 @@ public class NIFPersonID
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override
+	
+	@Override @GwtIncompatible(value = "Not Allowed for GWT")
 	public boolean isValid() {
 		return _validateNif(this.getId()) >= 0;
 	}
@@ -98,6 +98,7 @@ public class NIFPersonID
     private static final char CIFEXT_LETTERS[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'N', 'W'};
     private static final char NIFEXT_LETTERS[] = {'X', 'Y', 'Z'};
     
+    @GwtIncompatible(value = "Method Not Compatible for GWT")
     private static int _validateNif(final String nif) {
     	if (nif == null) return NIF_ERROR;
         int k1 = 0;

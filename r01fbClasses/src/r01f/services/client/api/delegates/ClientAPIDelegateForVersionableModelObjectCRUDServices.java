@@ -9,6 +9,7 @@ import r01f.exceptions.Throwables;
 import r01f.guids.OIDs;
 import r01f.guids.VersionIndependentOID;
 import r01f.guids.VersionOID;
+import r01f.marshalling.Marshaller;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
@@ -32,8 +33,10 @@ public abstract class ClientAPIDelegateForVersionableModelObjectCRUDServices<O e
 // 	CONSTRUCTOR 
 /////////////////////////////////////////////////////////////////////////////////////////
 	public ClientAPIDelegateForVersionableModelObjectCRUDServices(final UserContext userCtx,
-												       final CRUDServicesForVersionableModelObject<O,M> services) {
+																  final Marshaller modelObjectsMarshaller,
+																  final CRUDServicesForVersionableModelObject<O,M> services) {
 		super(userCtx,
+			  modelObjectsMarshaller,
 			  services);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

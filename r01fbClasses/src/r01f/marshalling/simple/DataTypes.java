@@ -65,6 +65,16 @@ public class DataTypes {
     		}
     		return outIs;
     	}
+    	public boolean isImplementingAnyOf(final Class<?>... types) {
+    		boolean outIs = false;
+    		for (Class<?> type : types) {
+    			if (ReflectionUtils.isImplementing(_type,type)) {
+    				outIs = true;
+    				break;
+    			}
+    		}
+    		return outIs;
+    	}
     	public boolean isCollectionOrMap() {
     		return _collection || _map;
     	}

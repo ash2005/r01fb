@@ -138,9 +138,17 @@ public abstract class LanguageTextsBase<SELF_TYPE extends LanguageTextsBase<SELF
 		return this.getFor(anyLang);
 	}
 	@Override
-	public boolean isTextDefinedFor(final Language lang) {
-		String text = this.getFor(lang);
-		return Strings.isNOTNullOrEmpty(text);
+	public boolean isTextDefinedFor(final Language... langs) {
+		if (CollectionUtils.isNullOrEmpty(langs)) return false;
+		boolean allLangsDefined = true;
+		for (Language lang : langs) {
+			String text = this.getFor(lang);
+			if (Strings.isNullOrEmpty(text)) {
+				allLangsDefined = false;
+				break;
+			}
+		}
+		return allLangsDefined;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  override

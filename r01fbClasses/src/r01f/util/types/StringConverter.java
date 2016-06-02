@@ -10,6 +10,7 @@ import java.util.Date;
 import com.google.common.annotations.GwtIncompatible;
 
 import lombok.RequiredArgsConstructor;
+import r01f.guids.OID;
 import r01f.locale.Language;
 import r01f.locale.Languages;
 import r01f.reflection.ReflectionUtils;
@@ -167,7 +168,7 @@ public class StringConverter {
      */
     public static double asDouble(final CharSequence value,final double defValue) {
     	if (value == null) return defValue;
-    	return Double.parseDouble(value.toString());
+    	return Double.parseDouble(value.toString());	// bear formated numbers
     }    
     /**
      * Returns the wrapped {@link CharSequence} as a double
@@ -482,6 +483,38 @@ public class StringConverter {
 	 */
 	public <T> T asType(final Class<T> type,final T defValue) {
 		return StringConverter.asType(_theString,type,defValue);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  OID
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Returns the given {@link CharSequence} as an instance of the given oid type
+	 * ...or the given default value if the wrapped {@link CharSequence} is null
+	 * @param value
+	 * @param oidType
+	 * @param defValue
+	 * @return
+	 */
+	public static <O extends OID> O asOid(final CharSequence value,final Class<O> oidType,final O defValue) {
+		return StringConverter.asType(value,oidType,defValue);
+	}
+	/**
+	 * Returns the given {@link CharSequence} as an instance of the given oid type
+	 * @param oidType
+	 * @return
+	 */
+	public <O extends OID> O asOid(final Class<O> oidType) {
+		return this.asOid(oidType,null);
+	}
+	/**
+	 * Returns the given {@link CharSequence} as an instance of the given oid type
+	 * ...or the given default value if the wrapped {@link CharSequence} is null
+	 * @param oidType
+	 * @param defValue
+	 * @return
+	 */
+	public <O extends OID> O asOid(final Class<O> oidType,final O defValue) {
+		return StringConverter.asOid(_theString,oidType,defValue);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  STRING BUILDER

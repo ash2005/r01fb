@@ -53,7 +53,7 @@ public abstract class SearchGuiceModuleBase
 	 */
 	protected SearchGuiceModuleBase(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapGuiceModuleType,
 								    final Set<SearchComponents> searchComponents) {
-		super(ServicesPackages.appCodeFromCoreBootstrapModuleType(coreBootstrapGuiceModuleType),
+		super(ServicesPackages.appCodeFromCoreBootstrapModuleType(coreBootstrapGuiceModuleType).asAppCode(),
 			  AppComponent.forId(ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrThrow(coreBootstrapGuiceModuleType).asString() + ".searchpersistence"));
 		_searchComponents = searchComponents;
 	}

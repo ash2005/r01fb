@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 import r01f.guids.CommonOIDs.UserCode;
-import r01f.model.ModelObject;
 import r01f.model.ModelObjectTracking;
 import r01f.model.facets.HasEntityVersion;
-import r01f.usercontext.UserContext;
 
 /**
  * Marker interface for JPA Entity
@@ -71,21 +69,4 @@ public interface DBEntity
 	 * @return the {@link ModelObjectTracking} info
 	 */
 	public ModelObjectTracking getTrackingInfo();
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Builds a {@link ModelObject} from this {@link DBEntity} data
-	 * @param userContext
-	 * @return a model object
-	 */
-	public <T> T toModelObject(final UserContext userContext);
-	
-	/**
-	 * Fills up the {@link DBEntity} object's data from the {@link ModelObject}
-	 * @param userContext
-	 * @param modelObj the model object
-	 */
-	public <T> void fromModelObject(final UserContext userContext,
-									final T modelObj);
 }

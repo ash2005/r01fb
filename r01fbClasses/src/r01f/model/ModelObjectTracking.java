@@ -1,12 +1,10 @@
 package r01f.model;
 
 import java.io.Serializable;
-
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,6 +48,20 @@ public class ModelObjectTracking
      */
 	@XmlAttribute(name="lastUpdaterUserCode")
     @Getter @Setter private UserCode _lastUpdatorUserCode;
+/////////////////////////////////////////////////////////////////////////////////////////
+//  CONSTRUCTOR
+/////////////////////////////////////////////////////////////////////////////////////////
+	public ModelObjectTracking(final UserCode creator,final Date createDate) {
+		this(creator,createDate,
+			 creator,createDate);
+	}
+	public ModelObjectTracking(final UserCode creator,final Date createDate,
+							   final UserCode lastUpdator,final Date lastUpdateDate) {
+		_createDate = createDate;
+		_lastUpdateDate = lastUpdateDate;
+		_creatorUserCode = creator;
+		_lastUpdatorUserCode = lastUpdator;
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METHODS
 /////////////////////////////////////////////////////////////////////////////////////////	

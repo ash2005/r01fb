@@ -58,7 +58,8 @@ public class ModelObjectTypeMetaDataBuilder {
 	 * @param apiAppAndModule
 	 */
 	public static void init(final AppAndComponent apiAppAndModule) {
-		log.info("Finding model objects for {} api at {}.model.*",apiAppAndModule.getAppCode(),apiAppAndModule.getAppCode());
+		log.info("Finding model objects for {} api at {}.model.*",
+				 apiAppAndModule.getAppCode(),apiAppAndModule.getAppCode());
 		
 		// Find every type annotated with ModelObjectData
 		final String modelObjPackage = Strings.customized("{}.model",

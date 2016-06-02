@@ -29,9 +29,41 @@ public class HttpRequestParamsWrapper {
 		_requestParams = req.getParameterMap();
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
+//  PARAMETER RETRIEVE
+/////////////////////////////////////////////////////////////////////////////////////////
+	public StringConverter getMandatoryParameter(final String name) {
+		this.checkParam(name);
+		return this.getParameter(name);
+	}
+	public StringConverter getParameter(final String name) {
+		String paramValue = _getParameterAsString(name);
+		return Strings.isNOTNullOrEmpty(paramValue) ? new StringConverter(paramValue)
+													: new StringConverter(null);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  PARAMETER CHECK
+/////////////////////////////////////////////////////////////////////////////////////////
+	public boolean existsParam(final String paramName) {
+		String paramStrValue = _getParameterAsString(paramName);
+		return Strings.isNOTNullOrEmpty(paramStrValue);
+	}
+	public void checkParam(final String paramName) {
+		this.checkParam(paramName,Strings.customized("The param with name={} was NOT received or it's null",paramName));
+	}
+	public void checkParam(final String paramName,final String msg) {
+		this.checkParam(paramName,msg,(Object[])null);
+	}
+	public void checkParam(final String paramName,final String msg,final Object... params) {
+		if (!this.existsParam(paramName)) {
+			String theMessage = Strings.customized(msg,params);
+			log.error(theMessage);
+			throw new IllegalStateException(theMessage);
+		}
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public StringConverter getParameter(final String name) {
+	private String _getParameterAsString(final String name) {
 		if (CollectionUtils.isNullOrEmpty(_requestParams)) return null;
 		
 		Object paramObjValue = _requestParams.get(name);
@@ -48,23 +80,6 @@ public class HttpRequestParamsWrapper {
 		} else {
 			paramValue = (String)paramObjValue;
 		}
-		return Strings.isNOTNullOrEmpty(paramValue) ? new StringConverter(paramValue)
-													: new StringConverter(null);
-	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  METHODS
-/////////////////////////////////////////////////////////////////////////////////////////
-	public void checkParam(final String paramName) {
-		this.checkParam(paramName,Strings.customized("The param with name={} was NOT received or it's null",paramName));
-	}
-	public void checkParam(final String paramName,final String msg) {
-		this.checkParam(paramName,msg,(Object[])null);
-	}
-	public void checkParam(final String paramName,final String msg,final Object... params) {
-		if (CollectionUtils.isNullOrEmpty(_requestParams) || !_requestParams.containsKey(paramName)) {
-			String theMessage = Strings.customized(msg,params);
-			log.error(theMessage);
-			throw new IllegalStateException(theMessage);
-		}
+		return paramValue;
 	}
 }

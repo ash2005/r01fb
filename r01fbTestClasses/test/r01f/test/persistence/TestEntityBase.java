@@ -30,9 +30,9 @@ public abstract class TestEntityBase<API extends ClientAPI,
 		_entityType = entityType;
 		_api = api;
 		_factory = TestPersistableModelObjectFactory.create(_entityType,
-																	   mockObjsFactory,
-																	   _clientCRUDApi(),
-																	   milisToWaitForBackgroundJobs);
+															mockObjsFactory,
+															_clientCRUDApi(),
+															milisToWaitForBackgroundJobs);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -43,11 +43,11 @@ public abstract class TestEntityBase<API extends ClientAPI,
 		System.out.println("===========================================================");
 		
 		// [1]: Test Persistence (create, update, load and delete)
-		_doCRUDTest();
+		this.doCRUDTest();
 		System.out.println("--------------------------------------------------------------------\n\n\n\n");
 		
 		// [2]: Test Find 
-		_doFindTest();
+		this.doFindTest();
 		System.out.println("--------------------------------------------------------------------\n\n\n\n");	
 		
 		// [3]: Test other methods
@@ -62,7 +62,7 @@ public abstract class TestEntityBase<API extends ClientAPI,
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CRUD
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected void _doCRUDTest() {
+	public void doCRUDTest() {
 		// [1]: Basic persistence tests
 		TestPersistableModelObjectCRUD<O,M> crudTest = TestPersistableModelObjectCRUD.create(// crud api
 																							 _clientCRUDApi(),
@@ -83,7 +83,7 @@ public abstract class TestEntityBase<API extends ClientAPI,
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIND
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected void _doFindTest() {
+	public void doFindTest() {
 		// [1]: Basic find tests
 		TestPersistableModelObjectFind<O,M> findTest = TestPersistableModelObjectFind.create(// find api
 																							 _clientFindApi(),

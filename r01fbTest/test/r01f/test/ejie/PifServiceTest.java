@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Test;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -30,8 +32,8 @@ public class PifServiceTest {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Check at: http://svc.integracion.jakina.ejiedes.net/y31dBoxWAR/appbox
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static void main(String[] args) {
-		
+	@Test
+	public void testPif() {		
 		try {
 			// Get a PIF service instance
 			Injector injector = Guice.createInjector(new XMLPropertiesGuiceModule(),

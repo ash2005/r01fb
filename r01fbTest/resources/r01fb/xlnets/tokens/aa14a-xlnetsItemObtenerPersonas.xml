@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<n38>
+	<elementos tipo="n38ItemObtenerPersonas">
+		<elemento subtipo="n38persona">
+			<parametro id="n38uidorgunit2">
+				<valor>10402</valor>
+			</parametro>
+			<parametro id="ou">
+				<valor />
+			</parametro>
+			<parametro id="mail">
+				<valor>mail@org.eus</valor>
+			</parametro>
+			<parametro id="n38coplanta">
+				<valor>TER</valor>
+			</parametro>
+			<parametro id="n38cozona">
+				<valor>DER</valor>
+			</parametro>
+			<parametro id="n38coedificio">
+				<valor>001973</valor>
+			</parametro>
+			<parametro id="telephonenumber">
+				<valor>5555555</valor>
+			</parametro>
+			<parametro id="uid">
+				<valor>theUserCode</valor>
+			</parametro>
+			<parametro id="n38puestouid">
+				<valor>theUserUID</valor>
+			</parametro>
+			<parametro id="n38login">
+				<valor>theUserUID</valor>
+			</parametro>
+			<parametro id="dni">
+				<valor>11111111H</valor>
+			</parametro>
+			<parametro id="n38dni">
+				<valor>11111111xxx</valor>
+			</parametro>
+			<parametro id="n38idioma">
+				<valor>1</valor>
+			</parametro>
+			<parametro id="businesscategory">
+				<valor />
+			</parametro>
+			<parametro id="displayname">
+				<valor>User Name and Surname</valor>
+			</parametro>
+			<parametro id="givenname">
+				<valor>User Name</valor>
+			</parametro>
+			<parametro id="cn">
+				<valor>User name and surname</valor>
+			</parametro>
+			<parametro id="sn">
+				<valor>surname</valor>
+			</parametro>
+			<parametro id="employeetype">
+				<valor>E</valor>
+			</parametro>
+			<parametro id="n38puestossecundarios">
+				<valor />
+			</parametro>
+			<parametro id="n38uidorgunitxx">
+				<valor />
+			</parametro>
+			<parametro id="n38estado">
+				<valor>T</valor>
+			</parametro>
+			<parametro id="userpassword">
+				<valor>{SSHA}xxxxx==</valor>
+			</parametro>
+			<parametro id="n38modificadosasu">
+				<valor />
+			</parametro>
+			<parametro id="n38puestosdelegados">
+				<valor />
+			</parametro>
+			<parametro id="n38centroexterno">
+				<valor />
+			</parametro>
+			<parametro id="employeenumber">
+				<valor>305</valor>
+			</parametro>
+			<parametro id="n38upexpiracion">
+				<valor>1274695346214</valor>
+			</parametro>
+			<parametro id="n38coedificioxx">
+				<valor />
+			</parametro>
+		</elemento>
+	</elementos>
+</n38>

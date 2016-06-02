@@ -42,7 +42,6 @@ import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.generics.ParameterizedTypeImpl;
@@ -771,15 +770,17 @@ public class ReflectionUtils {
      */
     public static boolean canBeCreatedFromString(final Class<?> type) {
     	try {
-	    	// [1] - Try to use the single String param constructor (if it exists)
-	    	Constructor<?> constructor = ReflectionUtils.getConstructor(type,new Class<?>[] {String.class});
-	    	if (constructor != null) return true;
-	    	
-	    	// [2] - Try to use a static valueOf method
-    		Method valueOfMethod = ReflectionUtils.staticMethodMatchingParamTypes(type,
-    									 										  "valueOf",
-    									 										  new Class<?>[] {String.class});
-    		if (valueOfMethod != null) return true;
+    		if (ReflectionUtils.isInstanciable(type)) {
+		    	// [1] - Try to use the single String param constructor (if it exists)
+		    	Constructor<?> constructor = ReflectionUtils.getConstructor(type,new Class<?>[] {String.class});
+		    	if (constructor != null) return true;
+		    	
+		    	// [2] - Try to use a static valueOf method
+	    		Method valueOfMethod = ReflectionUtils.staticMethodMatchingParamTypes(type,
+	    									 										  "valueOf",
+	    									 										  new Class<?>[] {String.class});
+	    		if (valueOfMethod != null) return true;
+    		} 
     	} catch(Throwable th) {
     		// ignored
     	}
@@ -1522,6 +1523,8 @@ public class ReflectionUtils {
 		    	if (!setted) throw ReflectionException.noFieldException(obj.getClass(),fieldName); 
 	        }
         } catch(Throwable th) {
+        	log.error("Error trying to set a {} object's {} field with a {} value",
+        			  obj.getClass(),fieldName,value.getClass());
         	throw ReflectionException.of(th);
         }
     }
@@ -1584,8 +1587,8 @@ public class ReflectionUtils {
         try {
         	if (outMethod == null && getter != null) outMethod = ReflectionUtils.method(type,getter,fieldType);        	
         } catch(ReflectionException nsmEx) {
-        	System.out.println("[R01F.ReflectionUtils WARN] ---->" + (fieldType != null ? fieldType.getName() : "unknown type") + " " + 
-        															  type.getName() + "." + getter + " NOT FOUND!!!");
+        	if (log.isTraceEnabled()) log.trace("[R01F.ReflectionUtils WARN] ---->" + (fieldType != null ? fieldType.getName() : "unknown type") + " " + 
+        															  				   type.getName() + "." + getter + " NOT FOUND!!!");
         	if (nsmEx.isNoFieldExcepton()) outMethod = null;
         }
         return outMethod;

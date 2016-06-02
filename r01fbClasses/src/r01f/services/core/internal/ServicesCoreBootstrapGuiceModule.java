@@ -1,7 +1,5 @@
 package r01f.services.core.internal;
 
-import java.util.Collection;
-
 import com.google.inject.Module;
 
 /**
@@ -11,14 +9,5 @@ import com.google.inject.Module;
  */
 public interface ServicesCoreBootstrapGuiceModule
 		 extends Module {
-	/**
-	 * @return a collection of the installed module types (ie dbmodule, search module, notification module, etc)
-	 */
-	public Collection<Class<? extends Module>> getInstalledModuleTypes();
-	/**
-	 * Returns true if a module of the given type or any subtype was installed
-	 * @param modType
-	 * @return
-	 */
-	public boolean isModuleInstalled(final Class<? extends Module> modType);
+	// just a marker interface
 }

@@ -75,7 +75,6 @@ public class JavaMailSenderProvider
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
-	private final AppCode _appCode;
 	private final XMLPropertiesForAppComponent _props;
 	private final String _propsRootNode;
 	
@@ -92,7 +91,7 @@ public class JavaMailSenderProvider
 		
 		// ==== MICROSOFT EXCHANGE 
 		if (impl == JavaMailSenderImpl.MICROSOFT_EXCHANGE) {
-			Host exchangeHost = JavaMailSenderProvider.microsoftExchangeHostFromProperties(_appCode,_props,_propsRootNode);	
+			Host exchangeHost = JavaMailSenderProvider.microsoftExchangeHostFromProperties(_props,_propsRootNode);	
 			outJavaMailSender = MicrosoftExchangeSMTPMailSender.create(exchangeHost);
 		} 
 		
@@ -103,18 +102,18 @@ public class JavaMailSenderProvider
 			// check if a proxy is needed
 			HttpClientProxySettings proxySettings = null;
 			try {
-				proxySettings = HttpClient.guessProxySettings(_appCode,_props,_propsRootNode);
+				proxySettings = HttpClient.guessProxySettings(_props,_propsRootNode);
 			} catch(Throwable th) {
 				log.error("Error while guessing the internet connection proxy settings to use GMail: {}",th.getMessage(),th);
 				disableMailSender = true;	// the mail sender cannot be used
 			}
 					
 			// Get the google api info from the properties file
-			GoogleAPIServiceAccountClientData serviceAccountClientData = JavaMailSenderProvider.googleAPIServiceAccountClientDataFromProperties(_appCode,_props,_propsRootNode);
+			GoogleAPIServiceAccountClientData serviceAccountClientData = JavaMailSenderProvider.googleAPIServiceAccountClientDataFromProperties(_props,_propsRootNode);
 			
 			// Create the GMail Service
 			JavaMailSenderGmailImpl gmailJavaMailSender = GMailAPIMailSender.create(serviceAccountClientData,	// service account data
-														   							proxySettings);			// proxy settings
+														   							proxySettings);				// proxy settings
 			if (disableMailSender) gmailJavaMailSender.setDisabled();
 			outJavaMailSender = gmailJavaMailSender;
 		} 
@@ -122,7 +121,7 @@ public class JavaMailSenderProvider
 		// ==== GOOGLE GMAIL SMTP
 		else if (impl == JavaMailSenderImpl.GOOGLE_SMTP) {
 			// Get the user & password from the properties file
-			UserAndPassword userAndPassword = JavaMailSenderProvider.googleSMTPServiceUserAndPassword(_appCode,_props,_propsRootNode);
+			UserAndPassword userAndPassword = JavaMailSenderProvider.googleSMTPServiceUserAndPassword(_props.getAppCode(),_props,_propsRootNode);
 					
 			// Create the GMail SMTP service
 			outJavaMailSender = GMailSMTPMailSender.create(userAndPassword.getUser(),
@@ -130,7 +129,7 @@ public class JavaMailSenderProvider
 		} 
 		else {
 			throw new IllegalStateException(Throwables.message("JavaMailSender implementation was NOT configured at {} in {} properties file",
-															   _propsRootNode + "/javaMailSenderImpls/@active",_appCode));
+															   _propsRootNode + "/javaMailSenderImpls/@active",_props.getAppCode()));
 		}
 		log.info("Created a {} instance",outJavaMailSender.getClass());
 		return outJavaMailSender;
@@ -149,15 +148,15 @@ public class JavaMailSenderProvider
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	static Host microsoftExchangeHostFromProperties(final AppCode appCode,final XMLPropertiesForAppComponent props,
+	static Host microsoftExchangeHostFromProperties(final XMLPropertiesForAppComponent props,
 											 		final String propsRootNode) {
 		Host host = props.propertyAt(propsRootNode + MICROSOFT_EXCHANGE_PROPS_XPATH + "/host")
 					  	 .asHost();
 		if (host == null) throw new IllegalStateException(Throwables.message("Cannot configure Microsoft Exchange SMTP: the properties file does NOT contains a the host at {} in {} properties file",
-														  propsRootNode + MICROSOFT_EXCHANGE_PROPS_XPATH,appCode));
+														  propsRootNode + MICROSOFT_EXCHANGE_PROPS_XPATH,props.getAppCode()));
 		return host;
 	}
-	static GoogleAPIServiceAccountClientData googleAPIServiceAccountClientDataFromProperties(final AppCode appCode,final XMLPropertiesForAppComponent props,
+	static GoogleAPIServiceAccountClientData googleAPIServiceAccountClientDataFromProperties(final XMLPropertiesForAppComponent props,
 											 												 final String propsRootNode)	{
 		String serviceAccountClientID = props.propertyAt(propsRootNode + GOOGLE_API_PROPS_XPATH + "/serviceAccountClientID")
 											 .asString();
@@ -174,9 +173,9 @@ public class JavaMailSenderProvider
 		// Check
 		if (serviceAccountClientID == null || serviceAccountEMail == null || p12KeyFilePath == null || googleAppsUser == null) {
 			throw new IllegalStateException(Throwables.message("Cannot configure Google API: the properties file does NOT contains a the serviceAccountClientID, serviceAccountEMail, p12KeyFilePath or googleAppsUser at {} in {} properties file",
-															   propsRootNode + GOOGLE_API_PROPS_XPATH,appCode));
+															   propsRootNode + GOOGLE_API_PROPS_XPATH,props.getAppCode()));
 		}
-		return new GoogleAPIServiceAccountClientData(appCode,
+		return new GoogleAPIServiceAccountClientData(props.getAppCode(),
 												     GoogleAPIClientID.of(serviceAccountClientID),
 												     GoogleAPIClientEMailAddress.of(serviceAccountEMail),
 												     p12KeyLoader == ResourcesLoaderType.CLASSPATH ? GoogleAPIClientIDP12KeyPath.loadedFromClassPath(p12KeyFilePath)

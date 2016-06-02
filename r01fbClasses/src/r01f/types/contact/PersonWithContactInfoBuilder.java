@@ -5,51 +5,52 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import r01f.patterns.IsBuilder;
 
-@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-public class PersonWithContactInfoBuilder 
-  implements IsBuilder {
-/////////////////////////////////////////////////////////////////////////////////////////
-//  FIELDS
-/////////////////////////////////////////////////////////////////////////////////////////
-	private final PersonWithContactInfo _modelObj;
-	
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
+public abstract class PersonWithContactInfoBuilder 
+           implements IsBuilder {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  BUILDER
 /////////////////////////////////////////////////////////////////////////////////////////
 	public static PersonWithContactInfoBuilderPersonStep create() {
-		return new PersonWithContactInfoBuilder(new PersonWithContactInfo())
-						.new PersonWithContactInfoBuilderPersonStep();
+		return new PersonWithContactInfoBuilder() { /* nothing */ }
+						.new PersonWithContactInfoBuilderPersonStep(new PersonWithContactInfo());
 	}
-	public static PersonWithContactInfo create(final Person person,
+	public static PersonWithContactInfo create(final Person<? extends PersonID> person,
 											   final ContactInfo contactInfo) {
 		return new PersonWithContactInfo(person,
-										 contactInfo);
+										 	 contactInfo);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@NoArgsConstructor(access=AccessLevel.PRIVATE)
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 	public class PersonWithContactInfoBuilderPersonStep {
+		private final PersonWithContactInfo _modelObj;
+		
 		public PersonWithContactInfoBuilderContactStep noPerson() {
-			return new PersonWithContactInfoBuilderContactStep();
+			return new PersonWithContactInfoBuilderContactStep(_modelObj);
 		}
-		public PersonWithContactInfoBuilderContactStep forPerson(final Person person) {
+		public PersonWithContactInfoBuilderContactStep forPerson(final Person<? extends PersonID> person) {
 			_modelObj.setPerson(person);
-			return new PersonWithContactInfoBuilderContactStep();
+			return new PersonWithContactInfoBuilderContactStep(_modelObj);
 		}
 	}
-	@NoArgsConstructor(access=AccessLevel.PRIVATE)
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 	public class PersonWithContactInfoBuilderContactStep {
+		private final PersonWithContactInfo _modelObj;
+		
 		public PersonWithContactInfoBuilderBuildStep noContactInfo() {
-			return new PersonWithContactInfoBuilderBuildStep();
+			return new PersonWithContactInfoBuilderBuildStep(_modelObj);
 		}
 		public PersonWithContactInfoBuilderBuildStep withContactInfo(final ContactInfo contactInfo) {
 			_modelObj.setContactInfo(contactInfo);
-			return new PersonWithContactInfoBuilderBuildStep();
+			return new PersonWithContactInfoBuilderBuildStep(_modelObj);
 		}
 	}
-	@NoArgsConstructor(access=AccessLevel.PRIVATE)
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 	public class PersonWithContactInfoBuilderBuildStep {
+		private final PersonWithContactInfo _modelObj;
+		
 		public PersonWithContactInfo build() {
 			return _modelObj;
 		}

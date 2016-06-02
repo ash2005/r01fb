@@ -13,6 +13,7 @@ import lombok.experimental.Accessors;
 import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
 import r01f.locale.LanguageTextsMapBacked;
 import r01f.types.GeoPosition2D;
+import r01f.types.geo.GeoOIDs.GeoZipCode;
 
 /**
  * Data about a geographical point
@@ -85,6 +86,11 @@ public class GeoPosition
 	@XmlElement(name="street")
 	@Getter @Setter private GeoStreet _street;
 	/**
+	 * Zip code
+	 */
+	@XmlElement(name="zipCode")
+	@Getter @Setter private GeoZipCode _zipCode;
+	/**
 	 * X,Y position
 	 */
 	@XmlElement(name="position2D")
@@ -134,6 +140,10 @@ public class GeoPosition
 	}
 	public GeoPosition at(final GeoStreet street) {
 		_street = street;
+		return this;
+	}
+	public GeoPosition withZipCode(final GeoZipCode zipCode) {
+		_zipCode = zipCode;
 		return this;
 	}
 	public GeoPosition withDirections(final LanguageTextsMapBacked directions) {

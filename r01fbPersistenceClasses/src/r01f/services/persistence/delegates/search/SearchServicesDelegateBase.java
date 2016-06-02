@@ -19,6 +19,7 @@ import r01f.persistence.search.SearchResultsLoaders.SearchResultsLoader;
 import r01f.persistence.search.Searcher;
 import r01f.usercontext.UserContext;
 import r01f.util.types.collections.CollectionUtils;
+import r01f.validation.ObjectValidationResult;
 import r01f.xmlproperties.XMLPropertiesForAppComponent;
 
 /**
@@ -62,6 +63,10 @@ public abstract class SearchServicesDelegateBase<F extends SearchFilter,I extend
 	 */
 	public int countRecords(final UserContext userContext,
 							final F filter) {
+		// Validate the filer
+		_validateSearchFilter(userContext,
+							  filter);
+		
 		int outCount = _searcher.countRecords(userContext,
     										  filter);
 		return outCount;
@@ -78,6 +83,10 @@ public abstract class SearchServicesDelegateBase<F extends SearchFilter,I extend
 	public SearchResults<F,I> filterRecords(final UserContext userContext, 
 							         	 	final F filter,
 							         	 	final int firstRowNum,final int numberOfRows) {
+		// Validate the filer
+		_validateSearchFilter(userContext,
+							  filter);
+		
 		// beware of this!!!!
     	int effFirstRowNum = firstRowNum < 0 ? 0 : firstRowNum;
     	int effNumberOfRows = numberOfRows <= 0 ? SearchResults.defaultPageSize() 
@@ -106,6 +115,10 @@ public abstract class SearchServicesDelegateBase<F extends SearchFilter,I extend
 	 */
 	public <O extends OID> Collection<O> filterRecordsOids(final UserContext userContext, 
 														   final F filter) {
+		// Validate the filer
+		_validateSearchFilter(userContext,
+							  filter);
+		
 		// Collect all results
 	 	SearchResultsProvider<F,I> resultsProvider = new SearchResultsProvider<F,I>(filter,10) {
 										 						@Override
@@ -132,5 +145,17 @@ public abstract class SearchServicesDelegateBase<F extends SearchFilter,I extend
 												});
 		}
 		return outRecords;
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	@SuppressWarnings("unchecked")
+	private void _validateSearchFilter(final UserContext userContext,
+									   final F filter) {
+		if (this instanceof ValidatesSearchFilter) {
+			ObjectValidationResult<F> validationResult = ((ValidatesSearchFilter<F>)this).validateSearchFilter(userContext,
+																  											   filter);
+			if (validationResult.isNOTValid()) throw new IllegalArgumentException("The provided search filter is NOT valid: " + validationResult.asNOKValidationResult().getReason());
+		}
 	}
 }

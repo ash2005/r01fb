@@ -19,10 +19,11 @@ import com.google.inject.name.Names;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
-import r01f.guids.AppAndComponent;
 import r01f.patterns.Memoized;
 import r01f.reflection.ReflectionUtils;
 import r01f.reflection.ReflectionUtils.FieldAnnotated;
+import r01f.services.ServiceIDs.ClientApiAppAndModule;
+import r01f.services.ServiceIDs.CoreAppAndModule;
 import r01f.services.ServicesImpl;
 import r01f.services.client.ServiceProxiesAggregator;
 import r01f.services.core.internal.ServicesCoreForAppModulePrivateGuiceModule;
@@ -32,7 +33,7 @@ import r01f.util.types.collections.CollectionUtils;
 
 /**
  * A GUICE {@link MethodInterceptor} that lazy loads the {@link ServiceProxiesAggregator}'s sub type that provides access to the
- * {@link SubServiceInterface} proxy implementation depending on the {@link ServicesImpl}
+ * proxy implementation depending on the {@link ServicesImpl}
  * 
  * This type contains a cache that maps the {@link SubServiceInterface} to it's concrete implementation depending on the {@link ServicesImpl}
  */
@@ -46,11 +47,11 @@ public class ServicesClientProxyLazyLoaderGuiceMethodInterceptor
 	/**
 	 * API app code
 	 */
-	private final AppAndComponent _apiAppAndModule;
+	private final ClientApiAppAndModule _apiAppAndModule;
 	/**
 	 * The core app and modules
 	 */
-	private final Collection<AppAndComponent> _coreAppAndModules;
+	private final Collection<CoreAppAndModule> _coreAppAndModules;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  INJECTED!
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -85,32 +86,32 @@ public class ServicesClientProxyLazyLoaderGuiceMethodInterceptor
 
 			   };
 	@SuppressWarnings({ "unchecked","unused" })
-	private static Map<Class<ServiceInterface>,ServiceInterface> _flatMapServiceInterfaceTypesToImplOrProxyMappings(final AppAndComponent apiAppAndModule,
-																													final Collection<AppAndComponent> coreAppAndModules,
+	private static Map<Class<ServiceInterface>,ServiceInterface> _flatMapServiceInterfaceTypesToImplOrProxyMappings(final ClientApiAppAndModule apiAppAndModule,
+																													final Collection<CoreAppAndModule> coreAppAndModules,
 																													final ServiceInterfaceTypesToImplOrProxyMappings serviceInterfaceTypesToImplOrProxyMappings) {
 		// Find all _serviceInterfaceTypesToImplOrProxyMappings's @Named annotated Map fields
 		FieldAnnotated<com.google.inject.name.Named>[] namedFields1 = ReflectionUtils.fieldsAnnotated(serviceInterfaceTypesToImplOrProxyMappings.getClass(),
 																		 							  com.google.inject.name.Named.class);
 		FieldAnnotated<javax.inject.Named>[] namedFields2 = ReflectionUtils.fieldsAnnotated(serviceInterfaceTypesToImplOrProxyMappings.getClass(),
 																		 				    javax.inject.Named.class);
-		Map<AppAndComponent,Field> fields = Maps.newHashMap();
+		Map<CoreAppAndModule,Field> fields = Maps.newHashMap();
 		if (CollectionUtils.hasData(namedFields1)) {
 			for (FieldAnnotated<com.google.inject.name.Named> namedField1 : namedFields1) {
-				fields.put(AppAndComponent.forId(namedField1.getAnnotation().value()),
-												 namedField1.getField());
+				fields.put(CoreAppAndModule.of(namedField1.getAnnotation().value()),
+											   namedField1.getField());
 			}
 		}
 		if (CollectionUtils.hasData(namedFields2)) {
 			for (FieldAnnotated<javax.inject.Named> namedField2 : namedFields2) {
-				fields.put(AppAndComponent.forId(namedField2.getAnnotation().value()),
-												 namedField2.getField());
+				fields.put(CoreAppAndModule.of(namedField2.getAnnotation().value()),
+											   namedField2.getField());
 			}
 		}
 		
 		// Check that there's a Map annotated for every appCode / module
 		if (CollectionUtils.isNullOrEmpty(fields)) throw new IllegalStateException(Throwables.message("{} instance does NOT have any @{} annotated Map<Class,ServiceInterface> fields for service interface type to bean impl or proxy bindings", 
 																									  serviceInterfaceTypesToImplOrProxyMappings.getClass(),Names.class.getSimpleName()));
-		for (AppAndComponent coreAppAndModule : coreAppAndModules) {
+		for (CoreAppAndModule coreAppAndModule : coreAppAndModules) {
 			Field f = fields.get(coreAppAndModule);
 //			if (f == null) throw new IllegalStateException(Throwables.message("{} instance does NOT have an injected Map<Class,ServiceInterface> annotated with {}",
 //																			  serviceInterfaceTypesToImplOrProxyMappings.getClass(),coreAppAndModule));

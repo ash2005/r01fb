@@ -223,6 +223,7 @@ final class ObjsFromXMLBuilder<T> {
 /**
  * Clase auxiliar que parsea el XML y que genera el objeto
  */
+@Accessors(prefix="_")
 @RequiredArgsConstructor	// Constructor con los miembros final
 private class ObjsFromXMLLoader 
       extends DefaultHandler 
@@ -232,7 +233,7 @@ private class ObjsFromXMLLoader
 	private final TextEncoder _textEncoder;
 	private final Logger _log;
 
-    @Getter private Object builtObj = null;
+    @Getter private Object _builtObj = null;
     		private Deque<BeanAndFieldWrapper> _beanAndFieldStack = new ArrayDeque<BeanAndFieldWrapper>();
     		private Deque<String> _beanElementTagNames = new ArrayDeque<String>();	// NO es estrictamente necesario (bastaría con el último tag)...   
     		private Deque<String> _rawXMLTags = new ArrayDeque<String>();   	// Si se está cargando un miembro que contiene XML "a pelo" (raw), el contenido
@@ -690,8 +691,8 @@ private class ObjsFromXMLLoader
 	        		&& beanAndField.getBeanInstance() != null            			
 	        		&& beanAndField.getBeanInstance().getEffectiveNodeName().equals(eName)) {
 	        	// se está finalizando un bean que es un miembro de otro bean (beanAndField tiene field = null)
-	        	beanAndField.getBeanInstance()
-	        				.build();				// <-- IMPORTANT!!! here the bean is built <-----------
+	        	Object builtObj = beanAndField.getBeanInstance()
+	        								  .build();				// <-- IMPORTANT!!! here the bean is built <-----------
 	        	_beanAndFieldStack.pop();
 	        	
 	        	if ( !_beanAndFieldStack.isEmpty() ) {
@@ -720,7 +721,7 @@ private class ObjsFromXMLLoader
 	    		//		- El objeto construido es un elemento del objeto raíz y este es una colección o mapa
 	    		
 	    		// El objeto raíz es un mapa
-	    		if (this.builtObj != null && CollectionUtils.isMap(this.builtObj.getClass())) {
+	    		if (this._builtObj != null && CollectionUtils.isMap(this._builtObj.getClass())) {
 	    			// Buscar la clave y valor para poner en el mapa
 	    			Object key = null;
 	    			Object value = lastBuiltObj;
@@ -729,22 +730,22 @@ private class ObjsFromXMLLoader
 	    			if (oidFieldMap != null) {
 	    				key = ReflectionUtils.fieldValue(lastBuiltObj,oidFieldMap.getName(),rootBeanMap.isUseAccessors());
 	    			} else {
-	    				throw new MarshallerException("NO se puede poner en el mapa " + this.builtObj.getClass().getName() + " un objeto de tipo " + lastBuiltObj.getClass().getName() + " si en este tipo NO se especifica cual es el miembro OID (ej anotar con @OidField)");
+	    				throw new MarshallerException("NO se puede poner en el mapa " + this._builtObj.getClass().getName() + " un objeto de tipo " + lastBuiltObj.getClass().getName() + " si en este tipo NO se especifica cual es el miembro OID (ej anotar con @OidField)");
 	    			}
 	    			// Poner el objeto en el mapa
 	    			@SuppressWarnings("rawtypes")
-					Map builtMap = (Map)this.builtObj;
+					Map builtMap = (Map)this._builtObj;
 	    			builtMap.put(key,value);
 	    		}
 	    		// El objeto raíz es una colección
-	    		else if (this.builtObj != null && CollectionUtils.isCollection(this.builtObj.getClass())) {
+	    		else if (this._builtObj != null && CollectionUtils.isCollection(this._builtObj.getClass())) {
 	    			@SuppressWarnings("rawtypes")
-	    			Collection builtCol = (Collection)this.builtObj;
+	    			Collection builtCol = (Collection)this._builtObj;
 	    			builtCol.add(lastBuiltObj);
 	    		}
 	    		// El objeto raíz está transformado java<->xml de forma customizada
 	    		else if (beanAndField.getBeanMap().isCustomXmlTransformed()) {
-	    			this.builtObj = beanAndField.getBeanInstance().get();
+	    			this._builtObj = beanAndField.getBeanInstance().get();
 //	    			String nodeName = beanAndField.getBeanMap().getXmlMap().getNodeName();
 //	    			StringBuilder xml = (StringBuilder)beanAndField.getBeanInstance().get();	// llega SIN el tag de apertura y cierre
 //	    			xml.insert(0,"<" + nodeName + ">")		// tag de apertura
@@ -754,7 +755,7 @@ private class ObjsFromXMLLoader
 	    		}
 	    		// Situación más habitual, el objeto raíz es un objeto "normal"
 	    		else {
-    				this.builtObj = lastBuiltObj;		// el objeto construido
+    				_builtObj = lastBuiltObj;		// el objeto construido
 	    		}
 	    	}     		
     	} catch(Exception ex) {
@@ -796,7 +797,7 @@ private class ObjsFromXMLLoader
     	
         if (rootBeanMap.isCustomXmlTransformed()) {
         	// [CASO 0] - El objeto principal está transformado de forma customizada
-        	this.builtObj = null;	// importante!!
+        	this._builtObj = null;	// importante!!
         	BeanInstance beanInstance = new BeanInstance(rootBeanMap,eName);
         	beanInstance.set(new StringBuilder());
         	BeanAndFieldWrapper beanAndField = new BeanAndFieldWrapper(beanInstance,null);
@@ -812,20 +813,20 @@ private class ObjsFromXMLLoader
             //			  completando en el método endElement()
             if (rootBeanMap.getDataType().isMap() || rootBeanMap.getDataType().isCollection()) {
             	_beanElementTagNames.pop();
-            	this.builtObj = rootBeanInstance.get();
+            	this._builtObj = rootBeanInstance.get();
             } 
             // [CASO 2,3]- El objeto principal es un mapa o colección y se está empezando un item de dicho mapa/colección
             //			   se trata como si se estubiera construyendo un bean "normal" que más tarde en endElement() se 
             //			   pasará al mapa / colección que está en this.builtObj
-            else if (this.builtObj != null && CollectionUtils.isMap(this.builtObj.getClass())) {
+            else if (this._builtObj != null && CollectionUtils.isMap(this._builtObj.getClass())) {
 	            _beanAndFieldStack.push( new BeanAndFieldWrapper(rootBeanInstance,null) );
             }
-            else if (this.builtObj != null && CollectionUtils.isCollection(this.builtObj.getClass())) {
+            else if (this._builtObj != null && CollectionUtils.isCollection(this._builtObj.getClass())) {
 	            _beanAndFieldStack.push( new BeanAndFieldWrapper(rootBeanInstance,null) );
             }
             // [CASO 4] - El objeto principal es un objeto normal (es el caso más habitual)
             else {
-            	this.builtObj = null;	// importante!!
+            	this._builtObj = null;	// importante!!
 	            _beanAndFieldStack.push( new BeanAndFieldWrapper(rootBeanInstance,null) );
             }
         }
@@ -1079,7 +1080,7 @@ private class ObjsFromXMLLoader
     	} else { 		
     		// 2.1 - See if the object's enclosing node is mapped to some type (the node's name must match some type's @XmlRootElement annotation value)
     		theBeanMap = _beanMappings.getBeanMapFromXmlTag(effectiveNodeName);
-    		
+
     		// 2.2 - If NOT 2.1: see if it's an XML attribute that gives some "clues" about the type to be created (the name of this XML attribute is set by the @XmlTypeDiscriminatorAttribute annotation)
     		if (theBeanMap == null) {
 	    		// The datatype is either:
@@ -1098,9 +1099,8 @@ private class ObjsFromXMLLoader
     				
     				//  i) try to see if the discriminator's value is the tag that encloses the concrete type
     				theBeanMap = _beanMappings.getBeanMapFromXmlTag(discriminator);
-    				
     				// ii) if not... the discriminator's value is the java datatype 
-    				if (theBeanMap == null) {
+    				if (theBeanMap == null) {    					
 		        		DataType dataType = DataType.create(discriminator);
 		        		if (dataType != null) {
 			        		theBeanMap = dataType.getBeanMap(); 	// simple types (long, String, etc) are NOT mapped so dataType.getBeanMap() = null
@@ -1108,7 +1108,7 @@ private class ObjsFromXMLLoader
 		        			throw new MarshallerException("El miembro '" + fieldMap.getName() + "' del tipo " + fieldMap.getDeclaringBeanMap().getTypeName() + " es de un tipo NO instanciable (" + actualDataType.getName() + "); para conocer el tipo concreto se ha intentado buscar el mapeo para el tipo indicado en el atributo " + fieldMap.getXmlMap().getDiscriminatorWhenNotInstanciable() + "=" + discriminator + " PERO NO se ha encontrado el mapeo de este tipo"); 
 		        		}
     				}
-    			}
+    			} 
     		}	
     	}
     	return theBeanMap;
@@ -1226,7 +1226,7 @@ private class ObjsFromXMLLoader
         if (CollectionUtils.hasData(attrsFromExpandedObjs)) {
         	
 	    	Collection<FieldMap> fieldMapsOfExpandedFields = beanMap.getXmlMap().getFieldsExpandedAsXmlAttributes();
-	    	if (!CollectionUtils.hasData(fieldMapsOfExpandedFields)) throw new MarshallerException("Some of the attributes " + attrsFromExpandedObjs.keySet() + " is NOT mapped at " + beanMap.getTypeName()); 
+	    	if (!CollectionUtils.hasData(fieldMapsOfExpandedFields)) throw new MarshallerException("Some of the attributes " + attrsFromExpandedObjs.keySet() + " are NOT mapped at " + beanMap.getTypeName()); 
 	    		
 	    	for (FieldMap expandedField : fieldMapsOfExpandedFields) {
 	    		BeanMap expandedBeanMap = expandedField.getDataType().getBeanMap();
@@ -1311,7 +1311,7 @@ private class ObjsFromXMLLoader
 	        	//		 built using a single-arg constructor
 	        	//		 (ej mutable oids which must have a no-arg constructor to be serializable to GWT)
 	        	if (fieldMap.getDataType().isObject()
-	        	 && fieldMap.getDataType().asObject().hasOnlyOneSimpleField()) {
+	        	 && fieldMap.getDataType().isCanBeCreatedFromString()) {	// fieldMap.getDataType().asObject().hasOnlyOneSimpleField())
 	        		Object fieldInstance = MappingReflectionUtils.simpleObjFromString(fieldMap.getDataType(),
 	        																  	 	  fieldValue);
 	        		beanInstance.getFieldInstance(fieldMap)

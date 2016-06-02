@@ -13,8 +13,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import r01f.marshalling.HasModelObjectsMarshaller;
 import r01f.marshalling.Marshaller;
 import r01f.persistence.PersistenceOperationResult;
 import r01f.reflection.ReflectionUtils;
@@ -210,9 +213,9 @@ public class RESTResponseTypeMappersForBasicTypes {
 	@SuppressWarnings("rawtypes")
 	public static abstract class CollectionResponseTypeMapperBase 
 		                 extends XMLMarshalledObjectResultTypeMapperBase<Collection> {
-		
-		public CollectionResponseTypeMapperBase() {
-			super(Collection.class);
+		public CollectionResponseTypeMapperBase(final Marshaller modelObjectsMarshaller) {
+			super(Map.class,
+				  modelObjectsMarshaller);
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -225,9 +228,9 @@ public class RESTResponseTypeMappersForBasicTypes {
 	@SuppressWarnings("rawtypes")
 	public static abstract class MapResponseTypeMapperBase 
 		                 extends XMLMarshalledObjectResultTypeMapperBase<Map> {
-		
-		public MapResponseTypeMapperBase() {
-			super(Map.class);
+		public MapResponseTypeMapperBase(final Marshaller modelObjectsMarshaller) {
+			super(Map.class,
+				  modelObjectsMarshaller);
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -237,10 +240,10 @@ public class RESTResponseTypeMappersForBasicTypes {
 	 * MessageBodyWriter for all {@link PersistenceOperationResult}
 	 */
 	public static abstract class PersistenceOperationResultTypeMapperBase 
-		                 extends XMLMarshalledObjectResultTypeMapperBase<PersistenceOperationResult> {
-		
-		public PersistenceOperationResultTypeMapperBase() {
-			super(PersistenceOperationResult.class);
+		                 extends XMLMarshalledObjectResultTypeMapperBase<PersistenceOperationResult> {		
+		public PersistenceOperationResultTypeMapperBase(final Marshaller modelObjectsMarshaller) {
+			super(PersistenceOperationResult.class,
+				  modelObjectsMarshaller);
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -249,13 +252,14 @@ public class RESTResponseTypeMappersForBasicTypes {
 	/**
 	 * MessageBodyWriter for all {@link PersistenceOperationResult}
 	 */
+	@Accessors(prefix="_")
 	@RequiredArgsConstructor
 	public static abstract class XMLMarshalledObjectResultTypeMapperBase<T> 
-		              implements MessageBodyWriter<T> {
+		              implements MessageBodyWriter<T>,
+		              			 HasModelObjectsMarshaller {
 		
-		private final Class<?> _mappedType;
-		
-		public abstract Marshaller getObjectsMarshaller();
+				private final Class<?> _mappedType;
+		@Getter private final Marshaller _modelObjectsMarshaller;
 		
 		@Override
 		public boolean isWriteable(final Class<?> type,final Type genericType,
@@ -289,7 +293,7 @@ public class RESTResponseTypeMappersForBasicTypes {
 			log.trace("writing {} type",type.getName());
 			
 			// Marshall using XMLMarshaller
-			String xml = obj != null ? this.getObjectsMarshaller().xmlFromBean(obj)	
+			String xml = obj != null ? this.getModelObjectsMarshaller().xmlFromBean(obj)	
 							  		 : null;
 			// write 
 			if (Strings.isNOTNullOrEmpty(xml)) entityStream.write(xml.getBytes());

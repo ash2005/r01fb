@@ -51,7 +51,7 @@ public class HttpRequestFluentStatementForPOSTFormURLEncodedMethod
 	 * Sets a POSTed params
 	 * @param params the params
 	 */
-	public HttpRequestFluentStatementForPOSTFormURLEncodedMethod withPOSTFormParameter(final HttpRequestFormParameter... params) {
+	public HttpRequestFluentStatementForPOSTFormURLEncodedMethod withPOSTFormParameters(final HttpRequestFormParameter... params) {
 		if (_formParameters == null) _formParameters = new ArrayList<HttpRequestFormParameter>();
 		if (CollectionUtils.hasData(params)) {
 			_formParameters = new ArrayList<HttpRequestFormParameter>(params.length);

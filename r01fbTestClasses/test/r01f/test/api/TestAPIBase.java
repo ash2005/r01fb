@@ -1,24 +1,25 @@
 package r01f.test.api;
 
 import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
+import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Key;
+import com.google.inject.Module;
 
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.concurrent.Threads;
-import r01f.inject.ServiceHandler;
+import r01f.services.ServicesInitData;
+import r01f.services.ServicesLifeCycleUtil;
 import r01f.services.client.ClientAPI;
 import r01f.types.TimeLapse;
 import r01f.util.types.Strings;
-import r01f.util.types.collections.CollectionUtils;
 
 /**
  * JVM arguments:
@@ -27,66 +28,53 @@ import r01f.util.types.collections.CollectionUtils;
 @Slf4j
 @Accessors(prefix="_")
 @RequiredArgsConstructor
-public abstract class TestAPIBase<A extends ClientAPI> {
+public abstract class TestAPIBase {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  STATIC FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected static Injector GUICE_INJECTOR;
-	protected static ClientAPI CLIENT_API;
-	protected static Collection<Key<? extends ServiceHandler>> HAS_SERVICE_HANDLER_TYPES;
+	private static Collection<ServicesInitData> SERVICES_INIT_DATA;
+	private static Injector GUICE_INJECTOR;
 	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	@SuppressWarnings("unchecked")
-	public A getClientApi() {
-		return (A)CLIENT_API;
-	}
-	@SuppressWarnings("static-method")
-	public Injector getGuiceInjector() {
+	public static Injector getGuiceInjector() {
 		return GUICE_INJECTOR;
+	}
+	public static <A extends ClientAPI> A getClientApi(final Class<A> apiType) {
+		return GUICE_INJECTOR.getInstance(apiType);
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////	
 //  RUN EXACTLY ONCE AT THE VERY BEGINNING OF THE TEST AS A WHOLE
 //  (in fact they're run even before the type is constructed -that's why they're static)
 ///////////////////////////////////////////////////////////////////////////////////////////
-	protected static void _setUpBeforeClass(final Injector guiceInjector,
-											final Class<? extends ClientAPI> apiType,
-										    final Key<? extends ServiceHandler>... hasServiceHandlerTypes) throws Exception {
-		// Store the guice injector
-		GUICE_INJECTOR = guiceInjector;
+	protected static void _setUpBeforeClass(final ServicesInitData	servicesInitData,
+											final Module... commonClientModules) {
+		if (servicesInitData == null) throw new IllegalArgumentException();
+		_setUpBeforeClass(Lists.newArrayList(servicesInitData),
+						  commonClientModules);
+	}
+	protected static void _setUpBeforeClass(final Collection<ServicesInitData>	servicesInitData,
+											final Module... commonClientModules) {
+		SERVICES_INIT_DATA = servicesInitData;
 		
-		// Store the service handler types
-		HAS_SERVICE_HANDLER_TYPES = CollectionUtils.hasData(hasServiceHandlerTypes) ? Arrays.asList(hasServiceHandlerTypes) 
-																					: null;
-		
-		// Create the API
-		CLIENT_API = GUICE_INJECTOR.getInstance(apiType);
+		GUICE_INJECTOR = Guice.createInjector(ServicesLifeCycleUtil.getBootstrapGuiceModules(SERVICES_INIT_DATA)
+																				.withCommonBindingModules(commonClientModules));
 		
 		// If stand-alone (no app-server is used), init the JPA service or any service that needs to be started
 		// like the search engine index
 		// 		If the core is available at client classpath, start it
 		// 		This is the case where there's no app-server
 		// 		(usually the JPA's ServiceHandler is binded at the Guice module extending DBGuiceModuleBase at core side)
-		if (CollectionUtils.hasData(HAS_SERVICE_HANDLER_TYPES)) {
-			for (Key<? extends ServiceHandler> hasServiceHandlerType : HAS_SERVICE_HANDLER_TYPES) {
-				ServiceHandler serviceHandler = GUICE_INJECTOR.getInstance(hasServiceHandlerType);
-				log.warn("\t--START SERVICE using {} type: {}",ServiceHandler.class.getSimpleName(),hasServiceHandlerType);
-				serviceHandler.start();
-			}
+		for (ServicesInitData srvc : SERVICES_INIT_DATA) {
+			ServicesLifeCycleUtil.startServices(GUICE_INJECTOR);
 		}
 	}
-	protected static void _tearDownAfterClass() throws Exception {
-		// If stand-alone (no app-server is used), close the JPA service or any service that needs to be started
-		// like the search engine index
-		if (CollectionUtils.hasData(HAS_SERVICE_HANDLER_TYPES)) {
-			for (Key<? extends ServiceHandler> hasServiceHandlerType : HAS_SERVICE_HANDLER_TYPES) {
-				ServiceHandler serviceHandler = GUICE_INJECTOR.getInstance(hasServiceHandlerType);
-				if (serviceHandler != null) {
-					log.warn("\t--END SERVICE {} type: {}",ServiceHandler.class.getSimpleName(),hasServiceHandlerType);
-					serviceHandler.stop();
-				}
-			}
+	protected static void _tearDownAfterClass() {
+		// Close JPA's Persistence Service, Lucene indexes and everything that has to be closed
+		// (see https://github.com/google/guice/wiki/ModulesShouldBeFastAndSideEffectFree)
+		for (ServicesInitData srvc : SERVICES_INIT_DATA) {
+			ServicesLifeCycleUtil.stopServices(GUICE_INJECTOR);
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

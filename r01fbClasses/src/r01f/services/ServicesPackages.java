@@ -4,6 +4,8 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -17,10 +19,14 @@ import com.google.common.collect.Lists;
 
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
-import r01f.guids.AppAndComponent;
-import r01f.guids.CommonOIDs.AppCode;
-import r01f.guids.CommonOIDs.AppComponent;
 import r01f.reflection.ReflectionUtils;
+import r01f.services.ServiceIDs.ClientApiAppAndModule;
+import r01f.services.ServiceIDs.ClientApiAppCode;
+import r01f.services.ServiceIDs.ClientApiModule;
+import r01f.services.ServiceIDs.CoreAppAndModule;
+import r01f.services.ServiceIDs.CoreAppCode;
+import r01f.services.ServiceIDs.CoreModule;
+import r01f.services.client.internal.ServicesClientAPIBootstrapGuiceModuleBase;
 import r01f.services.client.internal.ServicesClientAPIFinder;
 import r01f.services.client.internal.ServicesClientBootstrapModulesFinder;
 import r01f.services.client.internal.ServicesClientInterfaceToImplAndProxyFinder;
@@ -157,41 +163,40 @@ public class ServicesPackages {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static String clientGuiceModulePackage(final AppAndComponent apiAppAndComponent) {
-		return DEF_CLIENT_APP_COMPPONENT.equals(apiAppAndComponent.getAppComponent()) ? Strings.customized("{}.client.internal",
-																										   apiAppAndComponent.getAppCode())
-																					  : Strings.customized("{}.client.{}.internal",
-																							  			   apiAppAndComponent.getAppCode(),apiAppAndComponent.getAppComponent());
+	public static String serviceInterfacePackage(final ClientApiAppAndModule apiAppAndComponent) {
+		return ClientApiModule.DEFAULT.is(apiAppAndComponent.getModule()) ? Strings.customized("{}.api.interfaces",
+																							   apiAppAndComponent.getAppCode())
+		  																  : Strings.customized("{}.api.{}.interfaces",
+		  																		  			   apiAppAndComponent.getAppCode(),apiAppAndComponent.getModule());
+	}
+	public static String clientBootstrapGuiceModulePackage(final ClientApiAppAndModule apiAppAndComponent) {
+		return ClientApiModule.DEFAULT.is(apiAppAndComponent.getModule()) ? Strings.customized("{}.client.internal",
+																							   apiAppAndComponent.getAppCode())
+																		  : Strings.customized("{}.client.{}.internal",
+																				  			   apiAppAndComponent.getAppCode(),apiAppAndComponent.getModule());
 																					  		
 	}
-	public static String serviceInterfacePackage(final AppAndComponent apiAppAndComponent) {
-		return DEF_CLIENT_APP_COMPPONENT.equals(apiAppAndComponent.getAppComponent()) ? Strings.customized("{}.api.interfaces",
-																								   		   apiAppAndComponent.getAppCode())
-					  																  : Strings.customized("{}.api.{}.interfaces",
-					  																		  			   apiAppAndComponent.getAppCode(),apiAppAndComponent.getAppComponent());
+	public static String apiAggregatorPackage(final ClientApiAppAndModule apiAppAndComponent) {
+		return ClientApiModule.DEFAULT.is(apiAppAndComponent.getModule()) ? Strings.customized("{}.client.api",
+		  																					   apiAppAndComponent.getAppCode())
+																		  : Strings.customized("{}.client.{}.api",
+		  																					   apiAppAndComponent.getAppCode(),apiAppAndComponent.getModule());
 	}
-	public static String serviceProxyPackage(final AppAndComponent apiAppAndComponent) {
-		return DEF_CLIENT_APP_COMPPONENT.equals(apiAppAndComponent.getAppComponent()) ? Strings.customized("{}.client.servicesproxy",
-					  																					   apiAppAndComponent.getAppCode())
-					  																  : Strings.customized("{}.client.{}.servicesproxy",
-					  																					   apiAppAndComponent.getAppCode(),apiAppAndComponent.getAppComponent());
+	public static String serviceProxyPackage(final ClientApiAppAndModule apiAppAndComponent) {
+		return ClientApiModule.DEFAULT.is(apiAppAndComponent.getModule()) ? Strings.customized("{}.client.servicesproxy",
+		  																					   apiAppAndComponent.getAppCode())
+		  																  : Strings.customized("{}.client.{}.servicesproxy",
+		  																					   apiAppAndComponent.getAppCode(),apiAppAndComponent.getModule());
 	}
-	public static String apiAggregatorPackage(final AppAndComponent apiAppAndComponent) {
-		return DEF_CLIENT_APP_COMPPONENT.equals(apiAppAndComponent.getAppComponent()) ? Strings.customized("{}.client.api",
-					  																					   apiAppAndComponent.getAppCode())
-																					  : Strings.customized("{}.client.{}.api",
-					  																					   apiAppAndComponent.getAppCode(),apiAppAndComponent.getAppComponent());
-	}
-	public static AppComponent DEF_CLIENT_APP_COMPPONENT = AppComponent.forId("client");
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static String coreGuiceModulePackage(final AppCode coreAppCode) {
+	public static String coreGuiceModulePackage(final CoreAppCode coreAppCode) {
 		return Strings.of("{}.internal")
 					  .customizeWith(coreAppCode.getId())
 					  .asString();
 	}	
-	public static String servicesCorePackage(final AppCode coreAppCode) {
+	public static String servicesCorePackage(final CoreAppCode coreAppCode) {
 		return Strings.of("{}.services")
 					  .customizeWith(coreAppCode)
 					  .asString();
@@ -199,10 +204,48 @@ public class ServicesPackages {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
-	public static <S extends ServiceInterface> AppAndComponent appAndModuleFromServiceInterfaceType(final Class<S> serviceInterface) {
+	private static final Pattern STANDARD_CLIENT_BOOTSTRAP_MODULE_PACKAGE_PATTERN1 = Pattern.compile("^([^.]+)\\.client\\.internal$");
+	private static final Pattern STANDARD_CLIENT_BOOTSTRAP_MODULE_PACKAGE_PATTERN2 = Pattern.compile("^([^.]+)\\.client\\.([^.]+)\\.internal$");
+	
+	/**
+	 * Guess the client api appCode/module from the client api bootstrap module 
+	 * Note that the client api bootstrap module MUST be located at an standard location:
+	 * <ul>
+	 * 		<li>if the client module is the default one: 		{clientApiAppCode}.client.internal</li>
+	 * 		<li>if the client module is NOT the default one: 	{clientApiAppCode}.client.{clientApiModule}.internal</li>
+	 * </ul>
+	 * @param clientBootstrapModule
+	 * @return
+	 */
+	public static <S extends ServicesClientAPIBootstrapGuiceModuleBase> ClientApiAppAndModule appAndModuleFromClientBootstrapModule(final Class<S> clientBootstrapModule) {
+		// client bootstrap modules at standard locations have a package like:
+		//		- if the client module is the default one: 		{clientApiAppCode}.client.internal
+		//		- if the client module is NOT the default one: 	{clientApiAppCode}.client.{clientApiModule}.internal
+		// so the client api appCode/module can be extracted from the package name (if it's an standard one)
+		ClientApiAppAndModule outClientApiAppAndModule = null;
+		
+		String pckgName = clientBootstrapModule.getPackage().getName();
+		Matcher m = STANDARD_CLIENT_BOOTSTRAP_MODULE_PACKAGE_PATTERN1.matcher(pckgName);
+		if (m.find()) {
+			outClientApiAppAndModule = ClientApiAppAndModule.of(ClientApiAppCode.forId(m.group(1)),
+																ClientApiModule.DEFAULT);
+		} else {
+			m = STANDARD_CLIENT_BOOTSTRAP_MODULE_PACKAGE_PATTERN2.matcher(pckgName);
+			if (m.find()) {
+				outClientApiAppAndModule = ClientApiAppAndModule.of(ClientApiAppCode.forId(m.group(1)),
+																	ClientApiModule.forId(m.group(2)));
+			}
+		}
+		if (outClientApiAppAndModule == null) throw new IllegalArgumentException("The client bootstrap module " + clientBootstrapModule + " is NOT at an standard package location so the client api appCode/module cannot be guessed");
+		return outClientApiAppAndModule;
+	}
+	/**
+	 * Gyess the core appCode/module from the service interface type
+	 * Note that the service interface type MUST be annotated with the @{@link ServiceInterfaceFor} annotation that sets the appCode / module
+	 * @param serviceInterface
+	 * @return
+	 */
+	public static <S extends ServiceInterface> CoreAppAndModule appAndModuleFromServiceInterfaceType(final Class<S> serviceInterface) {
 		ServiceInterfaceFor serviceIfaceForAnnot = ReflectionUtils.typeAnnotation(serviceInterface,ServiceInterfaceFor.class);
 		if (serviceIfaceForAnnot == null
 		 || Strings.isNullOrEmpty(serviceIfaceForAnnot.appCode())
@@ -210,24 +253,24 @@ public class ServicesPackages {
 			throw new IllegalStateException(Throwables.message("Service interface {} is NOT annotated with @{} or the appCode / module annotation's attributes are NOT set",
 															    serviceInterface,ServiceInterfaceFor.class));
 		}
-		AppCode coreAppCode = AppCode.forId(serviceIfaceForAnnot.appCode());
-		AppComponent module = AppComponent.forId(serviceIfaceForAnnot.module());
-		return AppAndComponent.composedBy(coreAppCode,module);
+		CoreAppCode coreAppCode = CoreAppCode.forId(serviceIfaceForAnnot.appCode());
+		CoreModule module = CoreModule.forId(serviceIfaceForAnnot.module());
+		return CoreAppAndModule.of(coreAppCode,module);
 	}
 	/**
 	 * Returns the appCode from the services core bootstrap type
 	 * @param coreBootstrapType
 	 * @return
 	 */
-	public static AppCode appCodeFromCoreBootstrapModuleType(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
-		return AppCode.forId(coreBootstrapType.getPackage().getName().split("\\.")[0]);		// the appCode is extracted from the package
+	public static CoreAppCode appCodeFromCoreBootstrapModuleType(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
+		return CoreAppCode.forId(coreBootstrapType.getPackage().getName().split("\\.")[0]);		// the appCode is extracted from the package
 	}
 	/**
 	 * Returns the appComponent from the services core bootstrap type
 	 * @param coreBootstrapType
 	 * @return
 	 */
-	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrNull(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
+	public static CoreModule appComponentFromCoreBootstrapModuleTypeOrNull(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
 		return _appComponentFromCoreBootstrapModuleType(coreBootstrapType,
 														null,
 														false);
@@ -238,7 +281,7 @@ public class ServicesPackages {
 	 * @param suffix
 	 * @return
 	 */
-	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrNull(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
+	public static CoreModule appComponentFromCoreBootstrapModuleTypeOrNull(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
 																			 final String suffix) {
 		return _appComponentFromCoreBootstrapModuleType(coreBootstrapType,
 														suffix,
@@ -249,7 +292,7 @@ public class ServicesPackages {
 	 * @param coreBootstrapType
 	 * @return
 	 */
-	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrThrow(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
+	public static CoreModule appComponentFromCoreBootstrapModuleTypeOrThrow(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType) {
 		return _appComponentFromCoreBootstrapModuleType(coreBootstrapType,
 														null,
 														true);
@@ -260,7 +303,7 @@ public class ServicesPackages {
 	 * @param suffix
 	 * @return
 	 */
-	public static AppComponent appComponentFromCoreBootstrapModuleTypeOrThrow(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
+	public static CoreModule appComponentFromCoreBootstrapModuleTypeOrThrow(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
 																			  final String suffix) {
 		return _appComponentFromCoreBootstrapModuleType(coreBootstrapType,
 														suffix,
@@ -271,9 +314,9 @@ public class ServicesPackages {
 	 * @param coreBootstrapType
 	 * @return
 	 */
-	private static AppComponent _appComponentFromCoreBootstrapModuleType(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
-																		 final String suffix,
-																		 final boolean strict) {
+	private static CoreModule _appComponentFromCoreBootstrapModuleType(final Class<? extends ServicesCoreBootstrapGuiceModule> coreBootstrapType,
+																	   final String suffix,
+																	   final boolean strict) {
 		ServicesCore serviceCoreAnnot = ReflectionUtils.typeAnnotation(coreBootstrapType,
 																	   ServicesCore.class);
 		String modId = serviceCoreAnnot != null ? serviceCoreAnnot.moduleId()
@@ -282,8 +325,8 @@ public class ServicesPackages {
 																					 		 		   coreBootstrapType,ServicesCore.class.getName()));
 		if (modId == null) return null;
 		
-		return suffix != null ? AppComponent.forId(modId + "." + suffix)
-							  : AppComponent.forId(modId);
+		return suffix != null ? CoreModule.forId(modId + "." + suffix)
+							  : CoreModule.forId(modId);
 		
 	}
 }

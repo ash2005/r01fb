@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlElement;
 
+import com.google.common.annotations.GwtIncompatible;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,6 +36,7 @@ public abstract class ValidatedContactID
 	/**
 	 * Validates the id 
 	 */
+	@GwtIncompatible(value = "Not Compatible for GWT")
 	public abstract boolean isValid();
 /////////////////////////////////////////////////////////////////////////////////////////
 //  METHODS

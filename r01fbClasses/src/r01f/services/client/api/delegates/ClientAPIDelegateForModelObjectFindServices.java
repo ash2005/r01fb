@@ -6,6 +6,7 @@ import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.CommonOIDs.UserCode;
 import r01f.guids.OID;
+import r01f.marshalling.Marshaller;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable;
 import r01f.persistence.FindOIDsResult;
@@ -27,8 +28,10 @@ public abstract class ClientAPIDelegateForModelObjectFindServices<O extends OID,
 //  CONSTRUCTOR & BUILDER
 /////////////////////////////////////////////////////////////////////////////////////////
 	public ClientAPIDelegateForModelObjectFindServices(final UserContext userContext,
+													   final Marshaller modelObjectsMarshaller,
 												   	   final FindServicesForModelObject<O,M> services) {
 		super(userContext,
+			  modelObjectsMarshaller,
 			  services);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -9,19 +9,20 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import r01f.exceptions.Throwables;
-import r01f.generics.TypeRef;
-import r01f.patterns.CommandOn;
-import r01f.reflection.ReflectionUtils;
-import r01f.util.types.collections.CollectionWrappers.WrappedCollection;
-import r01f.util.types.collections.CollectionWrappers.WrappedSortableCollection;
-import r01f.util.types.collections.MapsWrappers.WrappedMap;
-
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+
+import r01f.exceptions.Throwables;
+import r01f.generics.TypeRef;
+import r01f.patterns.CommandOn;
+import r01f.reflection.ReflectionUtils;
+import r01f.types.CanBeRepresentedAsString;
+import r01f.util.types.collections.CollectionWrappers.WrappedCollection;
+import r01f.util.types.collections.CollectionWrappers.WrappedSortableCollection;
+import r01f.util.types.collections.MapsWrappers.WrappedMap;
 
 
 /**
@@ -469,6 +470,50 @@ public class CollectionUtils {
     	T[] outArray = CollectionUtils.hasData(col) ? col.toArray((T[])Array.newInstance(typeRef.rawType(),col.size()))
     												: null;
     	return outArray;
+    }
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Returns the {@link Collection} elements as a comma-separated {@link String}
+     * @param col
+     * @return
+     */
+    public static String toStringCommaSeparated(final Collection<?> col) {
+    	return CollectionUtils.toStringSeparatedWith(col,',');
+    }
+    /**
+     * Returns the {@link Collection} elements as a char-separated {@link String}
+     * @param col
+     * @param ch
+     * @return 
+     */
+    public static String toStringSeparatedWith(final Collection<?> col,final char ch) {
+    	return CollectionUtils.toStringSeparatedWith(col,Character.toString(ch));
+    }
+    /**
+     * Returns the {@link Collection} elements as a {@link String}-separated {@link String}
+     * @param col
+     * @param joiner
+     * @return
+     */
+    public static String toStringSeparatedWith(final Collection<?> col,final String joiner) {
+    	if (CollectionUtils.isNullOrEmpty(col)) return "";
+    	StringBuilder sb = new StringBuilder();
+    	for (Iterator<?> it = col.iterator(); it.hasNext(); ) {
+    		Object el = it.next();
+    		if (el == null) {
+    			sb.append("null");
+    		} else {
+    			if (el instanceof CanBeRepresentedAsString) {
+    				sb.append(((CanBeRepresentedAsString)el).asString());
+    			} else {
+    				sb.append(el.toString());
+    			}
+    		}
+    		if (it.hasNext()) sb.append(joiner);
+    	}
+    	return sb.toString();	    	
     }
 /////////////////////////////////////////////////////////////////////////////////////////
 //  

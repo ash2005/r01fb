@@ -32,7 +32,7 @@ public class PersonWithContactInfo
 	 * Person data: name, surname, etc
 	 */
 	@XmlElement(name="person")
-	@Getter @Setter private Person _person;
+	@Getter @Setter private Person<? extends PersonID> _person;
 	/**
 	 * Contact Info
 	 */

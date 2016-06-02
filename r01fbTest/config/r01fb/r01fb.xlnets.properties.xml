@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xlnets token='httpProvided' loginAppCode='X42T'>	<!-- token=user/file/httpProvided/loginApp -->
+	<!--
+	if token=loginApp		...not used
+	if token=user			...not used
+	if token=file: 			...path to a mock xlnets token file (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate one)
+	if token=httpProvided:  ...url to the url that provides the token (ie: http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet?login_app=appId) 
+	-->
+	<!--
+	<sessionToken>http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet</sessionToken>	// set attribute loginAppCode='X42T'
+	-->
+	<!--
+	<sessionToken>r01fb/xlnets/tokens/x42tTestXLNetsSessionToken_des.xml</sessionToken>	// set attribute token='file'  
+	-->
+	
+	<loginUrl>https://xlnets.servicios.jakina.ejgvdns/n38a/N38LoginInicioServlet</loginUrl>
+	
+	<authCfg useSession='true' override='false'>
+	 		<target id='trafikoa' kind='restrict'>
+	 			<uri>/aa14aUIWar/trafikoa/.*</uri>
+	 			<resources>
+	 				<resource type='function' mandatory='true' oid='AA14A-PF-0001'>
+	 					<es>Cita Previa</es>
+	 					<eu>[eu] Cita Previa</eu>
+	 				</resource>
+	 			</resources>
+	 		</target>
+	 		<target id='other' kind='allow'>
+	 			<uri>.*</uri>
+	 		</target>
+	 </authCfg>
+</xlnets>

@@ -18,10 +18,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.debug.Debuggable;
-import r01f.guids.AppAndComponent;
-import r01f.guids.CommonOIDs.AppCode;
-import r01f.guids.CommonOIDs.AppComponent;
+import r01f.internal.R01F;
 import r01f.reflection.ReflectionUtils;
+import r01f.services.ServiceIDs.CoreAppAndModule;
+import r01f.services.ServiceIDs.CoreAppCode;
+import r01f.services.ServiceIDs.CoreModule;
 import r01f.services.ServicesImpl;
 import r01f.services.ServicesPackages;
 import r01f.services.core.ServicesCore;
@@ -40,19 +41,13 @@ public class ServicesCoreBootstrapModulesFinder {
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Api app code
-	 */
-	private final AppAndComponent _apiAppAndModule;
-	/**
 	 * The core app and modules
 	 */
-	private final Collection<AppAndComponent> _coreAppAndModules;
+	private final Collection<CoreAppAndModule> _coreAppAndModules;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	public ServicesCoreBootstrapModulesFinder(final AppAndComponent apiAppAndComponent,
-											  final Collection<AppAndComponent> coreAppAndModules) {
-		_apiAppAndModule = apiAppAndComponent;
+	public ServicesCoreBootstrapModulesFinder(final Collection<CoreAppAndModule> coreAppAndModules) {
 		_coreAppAndModules = coreAppAndModules;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -67,10 +62,10 @@ public class ServicesCoreBootstrapModulesFinder {
 	 * is where the real services logic resides. 
      * @return
      */
-    public Map<AppAndComponent,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> findBootstrapGuiceModuleTypes() {
+    public Map<CoreAppAndModule,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> findBootstrapGuiceModuleTypes() {
     	if (_coreAppAndModules == null) return Maps.newHashMap();	// do not return a null config    	
     	
-    	Map<AppAndComponent,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> outModuleTypes = Maps.newHashMap();
+    	Map<CoreAppAndModule,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> outModuleTypes = Maps.newHashMap();
     	
 		// Iterate over all the app/module collection (each app/module can have many ServicesCoreGuiceModules, ie: REST, Bean, etc.. one of them is the DEFAULT one)
 		// NOTE: If more than one implementation is found, the BEAN has the highest priority followed by the REST implementation
@@ -83,13 +78,13 @@ public class ServicesCoreBootstrapModulesFinder {
 		//		    ... the checking of the presence of needed modules MUST be done AFTER all modules are processed
 		
 		// Find guice modules implementing ServicesCoreGuiceModule either BeanImplementedServicesGuiceModuleBase, RESTImplementedServicesGuiceModuleBase, EJBImplementedServicesGuiceModuleBase, etc)
-		Map<AppAndComponent,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> coreBootstrapModuleTypesByApp = _findCoreBootstrapGuiceModuleTypesByAppModule(_coreAppAndModules);
+		Map<CoreAppAndModule,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> coreBootstrapModuleTypesByApp = _findCoreBootstrapGuiceModuleTypesByAppModule(_coreAppAndModules);
 		
 		Collection<BootstrapModuleDependency> dependencies = Lists.newArrayList();
-		for (AppAndComponent coreAppModule : _coreAppAndModules) {
+		for (CoreAppAndModule coreAppModule : _coreAppAndModules) {
 			
-			AppCode coreAppCode = coreAppModule.getAppCode();
-			AppComponent module = coreAppModule.getAppComponent();
+			CoreAppCode coreAppCode = coreAppModule.getAppCode();
+			CoreModule module = coreAppModule.getModule();
 			
 			// [1] - Get the modules for the appCode
 			Collection<Class<? extends ServicesCoreBootstrapGuiceModule>> appModuleCoreBootstrapModuleTypes = coreBootstrapModuleTypesByApp.get(coreAppModule);
@@ -116,8 +111,8 @@ public class ServicesCoreBootstrapModulesFinder {
 				// (sometimes a service impl requires of another service impl, for example, REST services USES Bean services)
 				if (!CollectionUtils.of(servicesCoreAnnot.dependsOn())
 							   		.contains(ServicesImpl.NULL)) {
-					AppAndComponent ac = Strings.isNullOrEmpty(servicesCoreAnnot.fromOtherCoreAppCodeAndModule()) ? coreAppModule 		// by default dependencies are at the same coreAppCode/module									
-																												  : AppAndComponent.forId(servicesCoreAnnot.fromOtherCoreAppCodeAndModule());
+					CoreAppAndModule ac = Strings.isNullOrEmpty(servicesCoreAnnot.fromOtherCoreAppCodeAndModule()) ? coreAppModule 		// by default dependencies are at the same coreAppCode/module									
+																												   : CoreAppAndModule.of(servicesCoreAnnot.fromOtherCoreAppCodeAndModule());
 					Collection<ServicesImpl> impls = Arrays.asList(servicesCoreAnnot.dependsOn());
 					BootstrapModuleDependency dependency = new BootstrapModuleDependency(coreAppModule,foundModuleType,
 																						 ac,impls);
@@ -170,9 +165,9 @@ public class ServicesCoreBootstrapModulesFinder {
     @RequiredArgsConstructor
     private class BootstrapModuleDependency 
        implements Debuggable {
-    	@Getter private final AppAndComponent _appAndComponent;
+    	@Getter private final CoreAppAndModule _appAndComponent;
     	@Getter private final Class<? extends ServicesCoreBootstrapGuiceModule> _module;
-    	@Getter private final AppAndComponent _otherAppAndComponent;
+    	@Getter private final CoreAppAndModule _otherAppAndComponent;
     	@Getter private final Collection<ServicesImpl> _dependencies;
     	
 		@Override
@@ -191,47 +186,44 @@ public class ServicesCoreBootstrapModulesFinder {
      * @param coreModule
      * @return
      */
-	private Map<AppAndComponent,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> _findCoreBootstrapGuiceModuleTypesByAppModule(final Collection<AppAndComponent> coreAppAndComponents) {
+	private Map<CoreAppAndModule,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> _findCoreBootstrapGuiceModuleTypesByAppModule(final Collection<CoreAppAndModule> coreAppAndComponents) {
 		// get the core appcodes from the collection of core appCode/module
-		Collection<AppCode> coreAppCodes = FluentIterable.from(coreAppAndComponents)
-														 .transform(new Function<AppAndComponent,AppCode>() {
-																			@Override
-																			public AppCode apply(final AppAndComponent appAndComponent) {
-																				return appAndComponent.getAppCode();
-																			}
-														 			})
-														 .toSet();
+		Collection<CoreAppCode> coreAppCodes = FluentIterable.from(coreAppAndComponents)
+															 .transform(new Function<CoreAppAndModule,CoreAppCode>() {
+																				@Override
+																				public CoreAppCode apply(final CoreAppAndModule appAndComponent) {
+																					return appAndComponent.getAppCode();
+																				}
+															 			})
+															 .toSet();
 		
 		// Find the types implementing ServicesCoreGuiceModule at all the core appcodes (ie: r01t, aa14b, aa81b, etc)
 		Set<Class<? extends ServicesCoreBootstrapGuiceModule>> foundBootstrapModuleTypes = _findCoreGuiceModulesOrNull(coreAppCodes,
 																											 	       ServicesCoreBootstrapGuiceModule.class);
 		
 		// Group the found core bootstrap module types by appCode/module
-		Map<AppAndComponent,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> outCoreModules = null;
+		Map<CoreAppAndModule,Collection<Class<? extends ServicesCoreBootstrapGuiceModule>>> outCoreModules = null;
 		if (CollectionUtils.hasData(foundBootstrapModuleTypes)) {
 			
 			outCoreModules = Maps.newHashMapWithExpectedSize(coreAppCodes.size());
 			for (Class<? extends ServicesCoreBootstrapGuiceModule> bootstrapModuleType : foundBootstrapModuleTypes) {
 				
 				// get type appCode from the bootstrap module type's package (ie: r01t.internal.XXX) and it's @ServiceCore annotation 
-				AppCode appCode = ServicesPackages.appCodeFromCoreBootstrapModuleType(bootstrapModuleType);							// use the service's core bootstrap type's package to get the appCode
-				AppComponent appComponent = ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrThrow(bootstrapModuleType);	// use the service's @ServicesCore annotation to get the module
-				AppAndComponent appAndComponent = AppAndComponent.composedBy(appCode,appComponent);
+				CoreAppCode appCode = ServicesPackages.appCodeFromCoreBootstrapModuleType(bootstrapModuleType);							// use the service's core bootstrap type's package to get the appCode
+				CoreModule coreModule = ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrThrow(bootstrapModuleType);	// use the service's @ServicesCore annotation to get the module
+				CoreAppAndModule coreAppAndModule = CoreAppAndModule.of(appCode,coreModule);
 				
-				Collection<Class<? extends ServicesCoreBootstrapGuiceModule>> appModuleTypes = outCoreModules.get(appAndComponent);
+				Collection<Class<? extends ServicesCoreBootstrapGuiceModule>> appModuleTypes = outCoreModules.get(coreAppAndModule);
 				if (appModuleTypes == null) {
 					appModuleTypes = Sets.newHashSet();
-					outCoreModules.put(appAndComponent,appModuleTypes);
+					outCoreModules.put(coreAppAndModule,appModuleTypes);
 				}
 				appModuleTypes.add(bootstrapModuleType);
 			}
 		} else {
-			log.warn("There's NO type implementing {} in the classpath! For the CORE app codes {}, there MUST be AT LEAST a guice binding module extending {} in the classpath: " +
-					 "please review that the modules specified at /client/module section of {}.client.properties.xml are correct and that exists any guice module " + 
-					 "at packages {} implementing {}", 
+			log.warn("There's NO type implementing {} in the classpath! For the CORE app codes {}, there MUST be AT LEAST a guice binding module extending {} at package {}", 
 					 ServicesCoreBootstrapGuiceModule.class.getSimpleName(),coreAppCodes,ServicesCoreBootstrapGuiceModule.class,
-					 _apiAppAndModule,
-					 ServicesPackages.coreGuiceModulePackage(AppCode.forId(coreAppCodes.toString())),
+					 ServicesPackages.coreGuiceModulePackage(CoreAppCode.forId("[coreAppCode]")),
 					 ServicesCoreBootstrapGuiceModule.class);
 			outCoreModules = Maps.newHashMap();
 		}
@@ -245,12 +237,12 @@ public class ServicesCoreBootstrapModulesFinder {
      * @return
      */
     @SuppressWarnings("unchecked")
-    private Set<Class<? extends ServicesCoreBootstrapGuiceModule>> _findCoreGuiceModulesOrNull(final Collection<AppCode> coreAppCodes,
+    private Set<Class<? extends ServicesCoreBootstrapGuiceModule>> _findCoreGuiceModulesOrNull(final Collection<CoreAppCode> coreAppCodes,
     																		   		  		   final Class<? extends ServicesCoreBootstrapGuiceModule> coreGuiceModuleType) {
 		List<String> pckgs = Lists.newLinkedList();
 		pckgs.add(ServicesCoreBootstrapGuiceModule.class.getPackage().getName());
-		pckgs.add("r01f.internal");										 
-		for (AppCode coreAppCode : coreAppCodes) {
+		pckgs.add(R01F.class.getPackage().getName());	// r01f.internal										 
+		for (CoreAppCode coreAppCode : coreAppCodes) {
 			pckgs.add(ServicesPackages.coreGuiceModulePackage(coreAppCode));
 		}
 		Set<?> foundBootstrapModuleTypes = ServicesPackages.findSubTypesAt(coreGuiceModuleType,

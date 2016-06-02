@@ -23,15 +23,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
-
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import com.google.common.collect.Sets;
+import com.googlecode.gentyref.GenericTypeReflector;
+
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
+import r01f.guids.OID;
 import r01f.locale.Language;
 import r01f.locale.LanguageTexts;
 import r01f.locale.LanguageTextsI18NBundleBacked;
@@ -50,9 +53,6 @@ import r01f.reflection.ReflectionUtils;
 import r01f.reflection.ReflectionUtils.FieldAnnotated;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
-
-import com.google.common.collect.Sets;
-import com.googlecode.gentyref.GenericTypeReflector;
 
 /**
  * Clase que se encarga de obtener los mapeos de un bean a partir de anotaciones java
@@ -715,9 +715,9 @@ public class SimpleMarshallerMappingsFromAnnotationsLoader {
 					// TODO this IF is NOT totally tested! and it's related with a change at XMLFromObjsBuilder (line 427)
 					// If the XmlElement annotation do not set an explicit node name AND the field data type is NOT instanciable AND NO type discriminator was set, 
 					// set the node name null 
-					if (!fieldMap.getXmlMap().isExplicitNodeName() && !fieldMap.getDataType().isInstanciable() && fieldMap.getXmlMap().getDiscriminatorWhenNotInstanciable() == null) {
-						fieldNodeName = null;
-					}
+//					if (!fieldMap.getXmlMap().isExplicitNodeName() && !fieldMap.getDataType().isInstanciable() && fieldMap.getXmlMap().getDiscriminatorWhenNotInstanciable() == null) {
+//						fieldNodeName = null;
+//					}
 					fieldMap.getXmlMap().setNodeName(fieldNodeName);
 					if (xmlElAnnot != null) fieldMap.getXmlMap().setExplicitNodeName(!_isXmlElementAnnotationDefaultValue(xmlElAnnot));		// true si el nombre del nodo xml se ha dado explicitamente con una anotación, false si se ha calculado como el nombre del miembro
 				}
@@ -870,7 +870,15 @@ public class SimpleMarshallerMappingsFromAnnotationsLoader {
 				// B.- El campo se anota con @XmlElement(name=xxx) INDICANDO el nombre del tag, con lo que dado que todos los posibles tipos que 
 				//	   implementan la interfaz o extienden de la clase abstracta van a llegar con mismo tag, es necesario "algo" para discriminar
 				//	   el tipo concreto. Se utiliza un atributo del tag indicado en la anotación @XmlTypeDiscriminatorAttribute
-	        	if (isAttribute) throw new MarshallerException("El miembro " + field.getType().getName() + " " + field.getName() + " de la clase " + type.getName() + " es un interfaz o una clase abstracta y está definido como ATRIBUTO. SOLO es posible definir miembros con interfaces o clases abstractas en ELEMENTOS del XML");
+	        	if (isAttribute) {
+	        		// if the type can be built from a string
+	        		if (dataType.isImplementingAnyOf(OID.class)) {
+	        			// although the concrete type is not known it's sure that it's an oid that can be created using 
+	        			// an static valueOf(String) method
+	        		} else {
+	        			throw new MarshallerException("El miembro " + field.getType().getName() + " " + field.getName() + " de la clase " + type.getName() + " es un interfaz o una clase abstracta y está definido como ATRIBUTO. SOLO es posible definir miembros con interfaces o clases abstractas en ELEMENTOS del XML");
+	        		}
+	        	}
 	        	// Caso B: la anotación @XmlElement lleva el atributo name y además se indica la anotación @XmlTypeDiscriminatorAttribute
 	        	XmlElement xmlElAnnot = field.getAnnotation(XmlElement.class);
 	        	if (xmlElAnnot != null && !_isXmlElementAnnotationDefaultValue(xmlElAnnot)		// NO se indica el atributo name de la anotacion @XmlElement

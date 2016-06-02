@@ -2,6 +2,8 @@ package r01f.types.contact;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.google.common.annotations.GwtIncompatible;
+
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import r01f.types.annotations.Inmutable;
@@ -34,6 +36,7 @@ public class EMail
 	public static EMail create(final String mail) {
 		return EMail.of(mail);
 	}
+	@GwtIncompatible(value = "Not Compatible for GWT")
 	public static EMail createValidating(final String mail) {
 		if (EMail.validate(mail)) throw new IllegalArgumentException("Not a valid email address!!");
 		return EMail.of(mail);
@@ -42,6 +45,7 @@ public class EMail
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	@GwtIncompatible(value = "Not Compatible for GWT")
 	public boolean isValid() {
 		return EMail.validate(this.asString());
 	}

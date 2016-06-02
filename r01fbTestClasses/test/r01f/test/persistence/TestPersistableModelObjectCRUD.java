@@ -10,11 +10,13 @@ import com.google.common.base.Stopwatch;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import r01f.guids.OID;
 import r01f.model.PersistableModelObject;
 import r01f.patterns.CommandOn;
 import r01f.services.client.api.delegates.ClientAPIDelegateForModelObjectCRUDServices;
 
+@Slf4j
 @RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 public class TestPersistableModelObjectCRUD<O extends OID,M extends PersistableModelObject<O>> {
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -39,50 +41,82 @@ public class TestPersistableModelObjectCRUD<O extends OID,M extends PersistableM
 	 * @param modelObject
 	 */
 	public void testPersistence(final CommandOn<M> modelObjectStateUpdateCommand) {		
-		System.out.println("[init][TEST BASIC PERSISTENCE]-----------------------------------------------------------------------");
+		log.warn("[init][TEST BASIC PERSISTENCE {}]-----------------------------------------------------------------------",
+				 _modelObjFactory.getModelObjType());
 		
 		Stopwatch stopWatch = Stopwatch.createStarted();
 		
-		// [1] Create an entity
-		System.out.println("CREATE AN ENTITY OF TYPE " + _modelObjFactory.getModelObjType() + "_________________________________");
+		// [1] Test create
+		M createdModelObj = this.testCreate();
+		
+		// [2] Test update
+		M updatedModelObj = this.testUpdate(createdModelObj,
+											modelObjectStateUpdateCommand);
+		
+		// [3] Delete the entity
+		this.testDelete(updatedModelObj);
+		
+		// WARNING!!! There's NO need to call _modelObjFactory.tearDownCreatedMockModelObjs() because all created model objs 
+		//			  have been removed
+		// _modelObjFactory.tearDownCreatedMockModelObjs();
+		
+		log.warn("[end ][TEST BASIC PERSISTENCE {}] (elapsed time: {} milis) -------------------------",
+				 _modelObjFactory.getModelObjType(),
+				 NumberFormat.getNumberInstance(Locale.getDefault()).format(stopWatch.elapsed(TimeUnit.MILLISECONDS)));
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	public M testCreate() {
+		// Create an entity
+		log.warn("\tCREATE AN ENTITY OF TYPE {}",
+				 _modelObjFactory.getModelObjType());
 		_modelObjFactory.setUpMockModelObjs(1);
+		
 		O createdModelObjOid = _modelObjFactory.getAnyCreatedModelObjectOid();
 		M createdModelObj = _crudAPI.load(createdModelObjOid);	// load the created obj
-
-		System.out.println("---->Version id=" + createdModelObj.getEntityVersion());
+		
+		log.debug("\t...created entity version id={}",createdModelObj.getEntityVersion());
 		
 		Assert.assertNotNull(createdModelObj);
-		long initialDBVersion = createdModelObj.getEntityVersion();
 		
-		// [2] Try to update the entity not having modified it: This should not do anything since nothing was modified
-		System.out.println("SAVE WITHOUT MODIFY THE ENTITY OF TYPE " + _modelObjFactory.getModelObjType() + " ___________________");
-		M notUpdatedModelObj = _crudAPI.save(createdModelObj);
+		return createdModelObj;
+	}
+	public M testUpdate(final M modelObjToUpdate,
+						final CommandOn<M> modelObjectStateUpdateCommand) {
+		long initialDBVersion = modelObjToUpdate.getEntityVersion();
+		
+		// [a] Try to update the entity not having modified it: This should not do anything since nothing was modified
+		log.warn("\tSAVE WITHOUT MODIFY THE ENTITY OF TYPE {} with oid={}",
+				 _modelObjFactory.getModelObjType(),modelObjToUpdate.getOid());
+		M notUpdatedModelObj = _crudAPI.save(modelObjToUpdate);
 		
 		Assert.assertNotNull(notUpdatedModelObj);
 		long notUpdatedDBVersion = notUpdatedModelObj.getEntityVersion();
 		Assert.assertEquals(initialDBVersion,notUpdatedDBVersion);		// the DB version MUST remain (NO CRUD operation was issued)
 		
 		
-		// [3]  Update the entity
-		System.out.println("SAVE MODIFYING THE ENTITY OF TYPE " + _modelObjFactory.getModelObjType() + " ________________________");
-		modelObjectStateUpdateCommand.executeOn(createdModelObj);
-		M updatedModelObj = _crudAPI.save(createdModelObj);
+		// [b]  Update the entity
+		log.warn("\tSAVE MODIFYING THE ENTITY OF TYPE {} with oid={}",
+				 _modelObjFactory.getModelObjType(),modelObjToUpdate.getOid());
+		modelObjectStateUpdateCommand.executeOn(modelObjToUpdate);
+		M updatedModelObj = _crudAPI.save(modelObjToUpdate);
 				
 		Assert.assertNotNull(updatedModelObj);
 		long updatedDBVersion = updatedModelObj.getEntityVersion();
-		Assert.assertNotEquals(initialDBVersion,updatedDBVersion);		// the DB version MUST NOT be the same (an UPDATE was issued)
+		if (updatedDBVersion > 0) Assert.assertNotEquals(initialDBVersion,updatedDBVersion);		// the DB version MUST NOT be the same (an UPDATE was issued)
 		
-		// [4] Load the modified creation request
-		System.out.println("LOAD THE ENTITY OF TYPE " + _modelObjFactory.getModelObjType() + " WITH oid=" + createdModelObj.getOid() + " _________");
-		M loadedModelObj = _crudAPI.load(createdModelObjOid);		
-		System.out.println(">>>" + createdModelObjOid + " version=" + loadedModelObj.getEntityVersion());
+		// [c] Load the modified model object
+		log.warn("\tLOAD THE ENTITY OF TYPE {} WITH oid={}",_modelObjFactory.getModelObjType(),modelObjToUpdate.getOid());
+		M loadedModelObj = _crudAPI.load(modelObjToUpdate.getOid());		
+		log.debug("\t...updated entity with oid={} and version={}",modelObjToUpdate.getOid(),loadedModelObj.getEntityVersion());
 		
 		Assert.assertNotNull(loadedModelObj);
 		long loadDBVersion = updatedModelObj.getEntityVersion();
-		Assert.assertEquals(updatedDBVersion,loadDBVersion);		
+		if (loadDBVersion > 0) Assert.assertEquals(updatedDBVersion,loadDBVersion);
 		
-//		// [5] Test Optimistic locking
-//		System.out.println("[Optimistic Locking (this should fail)]");
+//		// [d] Test Optimistic locking
+//		log.info("[Optimistic Locking (this should fail)]");
 //		loadedModelObj.setEntityVersion(100);		// setting the entityVersion at the client would BREAK the persisted version sequence so an exception should be raised
 //		try {
 //			_crudAPI.save(loadedModelObj);
@@ -90,20 +124,17 @@ public class TestPersistableModelObjectCRUD<O extends OID,M extends PersistableM
 //			System.out.println("\tFAILED!! the db's version is NOT the same as the client-provided one!");
 //		}
 		
-		// [6] Delete the entity
+		return loadedModelObj;
+	}
+	public void testDelete(final M modelObjectToDelete) {
 		// wait for background jobs to complete (if there's any background job that depends on DB data -like lucene indexing-
 		// 										 if the DB data is deleted BEFORE the background job finish, it'll fail)
-		System.out.println("DELETE THE ENTITY OF TYPE " + _modelObjFactory.getModelObjType() + " WITH oid=" + createdModelObj.getOid() + " _______");
+		log.warn("\tDELETE THE ENTITY OF TYPE {} WITH oid={}",
+				 _modelObjFactory.getModelObjType(),modelObjectToDelete.getOid());
 		_modelObjFactory.tearDownCreatedMockModelObjs();
 		
 		// try to load the deleted object... it must NOT exist
-		loadedModelObj = _crudAPI.loadOrNull(createdModelObjOid);
-		Assert.assertNull(loadedModelObj);
-		
-		// WARNING!!! There's NO need to call _modelObjFactory.tearDownCreatedMockModelObjs() because all created model objs 
-		//			  have been removed
-		// _modelObjFactory.tearDownCreatedMockModelObjs();
-		
-		System.out.println("[end ][TEST BASIC PERSISTENCE] (elapsed time: " + NumberFormat.getNumberInstance(Locale.getDefault()).format(stopWatch.elapsed(TimeUnit.MILLISECONDS)) + " milis) -------------------------");
+		M shouldNotExists = _crudAPI.loadOrNull(modelObjectToDelete.getOid());
+		Assert.assertNull(shouldNotExists);
 	}
 }

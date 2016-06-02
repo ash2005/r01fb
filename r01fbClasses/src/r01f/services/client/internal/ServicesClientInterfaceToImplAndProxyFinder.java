@@ -17,10 +17,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import r01f.guids.AppAndComponent;
-import r01f.guids.CommonOIDs.AppCode;
 import r01f.patterns.Memoized;
 import r01f.reflection.ReflectionUtils;
+import r01f.services.ServiceIDs.CoreAppAndModule;
+import r01f.services.ServiceIDs.CoreAppCode;
 import r01f.services.ServicesImpl;
 import r01f.services.ServicesPackages;
 import r01f.services.interfaces.ServiceInterface;
@@ -35,14 +35,18 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * The api app code
+	 * The package where the service interface are being looked for
 	 */
-	private final AppAndComponent _apiAppAndModule;
+	private final String _packageToLookForServiceInterfaces;
+	/**
+	 * The package where the service proxy types are being looked for
+	 */
+	private final String _packageToLookForServiceProxyTypes;
 	/**
 	 * The core app codes and modules and the default service proxy impl 
-	 * (it's loaded from {apiAppCode}.client.properties.xml
+	 * (it's loaded from {apiAppCode}.{apiAppComponent}.properties.xml
 	 */
-	private final Map<AppAndComponent,ServicesImpl> _coreAppAndModulesDefaultProxy;
+	private final Map<CoreAppAndModule,ServicesImpl> _coreAppAndModulesDefaultProxy;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  SERVICES
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -57,7 +61,7 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 	 * @param coreAppCode
 	 * @return
 	 */
-	public Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> findServiceInterfacesToImplAndProxiesBindings(final AppCode coreAppCode) {
+	public Map<CoreAppAndModule,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> findServiceInterfacesToImplAndProxiesBindings(final CoreAppCode coreAppCode) {
 		return this.findServiceInterfacesToImplAndProxiesBindings(Sets.newHashSet(coreAppCode));
 	}
 	/**
@@ -72,12 +76,13 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 	 * @param coreAppCodes
 	 * @return
 	 */
-	public Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> findServiceInterfacesToImplAndProxiesBindings(final Collection<AppCode> coreAppCodes) {
-		log.warn("\t\tFinding {}-implementing types at [{}] client app code and {} core app codes",
-				 ServiceInterface.class.getSimpleName(),_apiAppAndModule,coreAppCodes);
+	public Map<CoreAppAndModule,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> findServiceInterfacesToImplAndProxiesBindings(final Collection<CoreAppCode> coreAppCodes) {
+		log.warn("\t\tFinding {}-implementing types at [{}] for {} core app codes",
+				 ServiceInterface.class.getSimpleName(),_packageToLookForServiceInterfaces,coreAppCodes);
 		
 		// Find all the ServiceInterface implementing types
-		ServiceInterfaceImplementingTypes serviceInterfaceImplementingTypes = new ServiceInterfaceImplementingTypes(_apiAppAndModule,
+		ServiceInterfaceImplementingTypes serviceInterfaceImplementingTypes = new ServiceInterfaceImplementingTypes(_packageToLookForServiceInterfaces,
+																													_packageToLookForServiceProxyTypes,
 																													coreAppCodes);
 		
 		// ... within all filter all service interfaces
@@ -91,19 +96,19 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 		Collection<Class<? extends ServiceInterface>> implTypes = serviceInterfaceImplementingTypes.getImplementationTypes().get();
 		
 		// Correlate the service interface with it's proxies and implementation (where available)
-		Map<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> outServiceInterfacesToImpls = Maps.newHashMapWithExpectedSize(coreAppCodes.size());
+		Map<CoreAppAndModule,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> outServiceInterfacesToImpls = Maps.newHashMapWithExpectedSize(coreAppCodes.size());
 		for (final Class<? extends ServiceInterface> interfaceType : interfaceTypes) {
 			// Create the definition type
-			AppAndComponent appAndModule = ServicesPackages.appAndModuleFromServiceInterfaceType(interfaceType);
-			ServicesImpl configuredDefaultProxy = _coreAppAndModulesDefaultProxy.get(appAndModule);
+			CoreAppAndModule coreAppAndModule = ServicesPackages.appAndModuleFromServiceInterfaceType(interfaceType);
+			ServicesImpl configuredDefaultProxy = _coreAppAndModulesDefaultProxy.get(coreAppAndModule);
 //			if (configuredDefaultProxy == null) {
 //				log.error("Cannot bind {}: NO proxy config defined for {}. Please check that {}.client.properties.xml and {}.client.properties.xml files are properly configured for {}",
 //						  interfaceType,appAndModule,_apiAppCode,_apiAppCode,appAndModule);
 //				continue;
 //			}
-			ServiceToImplAndProxyDef<? extends ServiceInterface> serviceToImplDef = ServiceToImplAndProxyDef.createFor(appAndModule,
-																									   interfaceType,
-																									   configuredDefaultProxy);
+			ServiceToImplAndProxyDef<? extends ServiceInterface> serviceToImplDef = ServiceToImplAndProxyDef.createFor(coreAppAndModule,
+																									   				   interfaceType,
+																									   				   configuredDefaultProxy);
 			
 			// Filter the proxies and get the ones suitables for the service interface (many proxy impls might be suitable)
 			Collection<Class<? extends ServiceProxyImpl>> proxyTypeForServiceInterface = FluentIterable.from(proxyTypes)
@@ -159,7 +164,7 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 		
 		// A bit of debug
 		if (CollectionUtils.hasData(outServiceInterfacesToImpls)) {
-			for (Map.Entry<AppAndComponent,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> me : outServiceInterfacesToImpls.entrySet()) {
+			for (Map.Entry<CoreAppAndModule,Set<ServiceToImplAndProxyDef<? extends ServiceInterface>>> me : outServiceInterfacesToImpls.entrySet()) {
 				log.warn("\t\t-{}: {} matchings",
 						 me.getKey(),
 						 (me.getValue() != null ? me.getValue().size() : 0));
@@ -176,31 +181,33 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 		  		 extends HashSet<Class<? extends ServiceInterface>> {
 		private static final long serialVersionUID = 1764833596552304436L;
 		
-		@Getter private final AppAndComponent _apiAppAndModule;
-		@Getter private final Collection<AppCode> _coreAppCodes;
+				private final String _packageToLookForServiceInterfaces;
+				private final String _packageToLookForServiceProxyTypes;
+				
+		@Getter private final Collection<CoreAppCode> _coreAppCodes;
 		
 		@Getter private final Memoized<Set<Class<? extends ServiceInterface>>> _interfaceTypes = new Memoized<Set<Class<? extends ServiceInterface>>>() {
-																									@Override
-																									protected Set<Class<? extends ServiceInterface>> supply() {
-																										return _getInterfaceTypes();
-																									}
-																				   		  };
+																										@Override
+																										protected Set<Class<? extends ServiceInterface>> supply() {
+																											return _getInterfaceTypes();
+																										}
+																				   		  		 };
 		@Getter private final Memoized<Set<Class<? extends ServiceProxyImpl>>> _proxyTypes = new Memoized<Set<Class<? extends ServiceProxyImpl>>>() {
 																									@Override
 																									protected Set<Class<? extends ServiceProxyImpl>> supply() {
 																										return _getProxyTypes();
 																									}
-																				   		  };
-		@Getter private final Memoized<Map<AppCode,Set<Class<? extends ServiceInterface>>>> _implementationTypesByCoreAppCode = new Memoized<Map<AppCode,Set<Class<? extends ServiceInterface>>>>() {
-																																		@Override
-																																		protected Map<AppCode,Set<Class<? extends ServiceInterface>>> supply() {
-																																			return _getImplementationTypesByCoreAppCode();
-																																		}
-																				   		  	  									};
+																				   		  	 };
+		@Getter private final Memoized<Map<CoreAppCode,Set<Class<? extends ServiceInterface>>>> _implementationTypesByCoreAppCode = new Memoized<Map<CoreAppCode,Set<Class<? extends ServiceInterface>>>>() {
+																																			@Override
+																																			protected Map<CoreAppCode,Set<Class<? extends ServiceInterface>>> supply() {
+																																				return _getImplementationTypesByCoreAppCode();
+																																			}
+																				   		  	  										};
 		@Getter private final Memoized<Set<Class<? extends ServiceInterface>>> _implementationTypes = new Memoized<Set<Class<? extends ServiceInterface>>>() {
 																											@Override
 																											protected Set<Class<? extends ServiceInterface>> supply() {
-																												Map<AppCode,Set<Class<? extends ServiceInterface>>> byAppCode = _getImplementationTypesByCoreAppCode();
+																												Map<CoreAppCode,Set<Class<? extends ServiceInterface>>> byAppCode = _getImplementationTypesByCoreAppCode();
 																												Set<Class<? extends ServiceInterface>> outImpls = Sets.newHashSet();
 																												if (CollectionUtils.hasData(byAppCode)) {
 																													for (Set<Class<? extends ServiceInterface>> appImpls : byAppCode.values()) {
@@ -211,25 +218,27 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 																											}
 																				   		  	  		  };
 						
-		public ServiceInterfaceImplementingTypes(final AppAndComponent apiAppAndModule,
-												 final Collection<AppCode> coreAppCodes) {
-			_apiAppAndModule = apiAppAndModule;
+		public ServiceInterfaceImplementingTypes(final String packageToLookForServiceInterfaces,
+												 final String packageToLookForServiceProxyTypes,
+												 final Collection<CoreAppCode> coreAppCodes) {
+			_packageToLookForServiceInterfaces = packageToLookForServiceInterfaces;
+			_packageToLookForServiceProxyTypes = packageToLookForServiceProxyTypes;
 			_coreAppCodes = coreAppCodes;
 			
 			// Find all service interface implementations...
 			List<String> pckgs = Lists.newLinkedList();		
 			
 			// Service interfaces
-			pckgs.add(ServiceInterface.class.getPackage().getName());				// service interfaces
-			pckgs.add(ServicesPackages.serviceInterfacePackage(_apiAppAndModule));	// xx.api.interfaces...
+			pckgs.add(ServiceInterface.class.getPackage().getName());		// service interfaces
+			pckgs.add(_packageToLookForServiceInterfaces);					// xx.api.interfaces...
 			
 			// Proxies
 			pckgs.add(ServiceProxyImpl.class.getPackage().getName());
-			pckgs.add(ServicesPackages.serviceProxyPackage(_apiAppAndModule));		// xxx.client.servicesproxy.(bean|rest|ejb...)
+			pckgs.add(_packageToLookForServiceProxyTypes);					// xxx.client.servicesproxy.(bean|rest|ejb...)
 			
 			// Core implementations
 			if (CollectionUtils.hasData(coreAppCodes)) {
-				for (AppCode coreAppCode : coreAppCodes) {
+				for (CoreAppCode coreAppCode : coreAppCodes) {
 					pckgs.add(ServicesPackages.servicesCorePackage(coreAppCode));	// impls
 				}
 			}
@@ -255,10 +264,10 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 													//		b) is annotated with @ServiceInterfaceFor													
 													
 													// a) check that is an interface at service interfaces package
-													boolean canBeServiceInterface = type.getPackage().getName().startsWith(ServicesPackages.serviceInterfacePackage(_apiAppAndModule))	// it's a service interface
-																				&&  ReflectionUtils.isInterface(type);																	// it's NOT instanciable
+													boolean canBeServiceInterface = type.getPackage().getName().startsWith(_packageToLookForServiceInterfaces)	// it's a service interface
+																				&&  ReflectionUtils.isInterface(type);											// it's NOT instanciable
 													if (!canBeServiceInterface) log.debug("{} cannot be a service interface because it's NOT in package {}",
-																						  type.getPackage().getName(),ServicesPackages.serviceInterfacePackage(_apiAppAndModule));
+																						  type.getPackage().getName(),_packageToLookForServiceInterfaces);
 													
 													// b) check that directly extends ServiceInterface
 													boolean isAnnotated = ReflectionUtils.typeAnnotation(type,ServiceInterfaceFor.class) != null;
@@ -276,9 +285,9 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 								 .filter(new Predicate<Class<? extends ServiceInterface>>() {
 												@Override
 												public boolean apply(final Class<? extends ServiceInterface> type) {
-													return type.getPackage().getName().startsWith(ServicesPackages.serviceProxyPackage(_apiAppAndModule))		// it's a service proxy
-													    && ReflectionUtils.isImplementing(type,ServiceProxyImpl.class)											// it's a service proxy impl
-													    && ReflectionUtils.isInstanciable(type);																// it's instanciable
+													return type.getPackage().getName().startsWith(_packageToLookForServiceProxyTypes)		// it's a service proxy
+													    && ReflectionUtils.isImplementing(type,ServiceProxyImpl.class)						// it's a service proxy impl
+													    && ReflectionUtils.isInstanciable(type);											// it's instanciable
 												}
 								 		 })
 								 .transform(new Function<Class<? extends ServiceInterface>,Class<? extends ServiceProxyImpl>>() {
@@ -289,9 +298,9 @@ public class ServicesClientInterfaceToImplAndProxyFinder {
 								 			})
 								 .toSet();
 		}
-		private Map<AppCode,Set<Class<? extends ServiceInterface>>> _getImplementationTypesByCoreAppCode() {
-			Map<AppCode,Set<Class<? extends ServiceInterface>>> outImplsByCore = Maps.newHashMapWithExpectedSize(_coreAppCodes.size());
-			for (final AppCode coreAppCode : _coreAppCodes) {
+		private Map<CoreAppCode,Set<Class<? extends ServiceInterface>>> _getImplementationTypesByCoreAppCode() {
+			Map<CoreAppCode,Set<Class<? extends ServiceInterface>>> outImplsByCore = Maps.newHashMapWithExpectedSize(_coreAppCodes.size());
+			for (final CoreAppCode coreAppCode : _coreAppCodes) {
 				Set<Class<? extends ServiceInterface>> impls = null;
 				impls = FluentIterable.from(this)
 									  .filter(new Predicate<Class<? extends ServiceInterface>>() {

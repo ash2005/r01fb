@@ -10,6 +10,8 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 
+import com.google.appengine.api.search.query.QueryParser.sep_return;
+
 @Slf4j
 public class StringEncodeUtils {
 

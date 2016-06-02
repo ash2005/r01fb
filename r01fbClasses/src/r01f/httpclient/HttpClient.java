@@ -142,7 +142,7 @@ public static enum RequestMethod
 	 * @param propsRootNode
 	 * @return
 	 */
-	public static HttpClientProxySettings guessProxySettings(final AppCode appCode,final XMLPropertiesForAppComponent props,
+	public static HttpClientProxySettings guessProxySettings(final XMLPropertiesForAppComponent props,
 											 		  		 final String propsRootNode) {
 		// Test proxy connection to see if proxy is needed
 		boolean directInetConx = HttpClient.testDirectInternetConnection();
@@ -155,19 +155,19 @@ public static enum RequestMethod
 		HttpClientProxySettings proxySettings = HttpClientProxySettings.loadFromProperties(props,propsRootNode + "/proxy");
 		if (proxySettings == null) {
 			throw new IllegalStateException(Throwables.message("It seems that there's NO direct internet connection; tried using a proxy BUT no config found at {} in {} properties file",
-															   propsRootNode + "/proxy",appCode));
+															   propsRootNode + "/proxy",props.getAppCode()));
 		} 
 		
 		// Try proxy
 		if (proxySettings.getProxyUrl() == null || proxySettings.getUserCode() == null || proxySettings.getPassword() == null) throw new IllegalStateException(Throwables.message("Cannot try internet connection through proxy since there's NO enough info at {} in {} properties file",
-																																												  propsRootNode + "/proxy",appCode));
+																																												  propsRootNode + "/proxy",props.getAppCode()));
 		boolean inetConxThroughProxy = HttpClient.testProxyInternetConnection(proxySettings,
 																		 	  true);		// ignore proxySettings enabled state
 		if (inetConxThroughProxy && !proxySettings.isEnabled()) {
 			UrlComponents proxyUrlComp = proxySettings.getProxyUrl().getComponents();
 			log.warn("A proxy ({}:{}) is configured BUT not enabled at {} in {} properties file and it seems there's internet connection through it... overriding the enabled state of the config",
 					 proxyUrlComp.getHost(),proxyUrlComp.getPort(),
-					 propsRootNode + "/proxy",appCode);
+					 propsRootNode + "/proxy",props.getAppCode());
 			proxySettings.setEnabled(true);
 		}
 		if (!inetConxThroughProxy) {	

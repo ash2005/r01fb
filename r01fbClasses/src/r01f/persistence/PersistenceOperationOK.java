@@ -5,5 +5,8 @@ package r01f.persistence;
  */
 public interface PersistenceOperationOK 
 		 extends PersistenceOperationResult {
-	// marker interface
+	public boolean isCRUDOK();
+	public boolean isCRUDOnMultipleOK();
+	public boolean isFindOK();
+	public boolean isFindSummariesOK();
 }

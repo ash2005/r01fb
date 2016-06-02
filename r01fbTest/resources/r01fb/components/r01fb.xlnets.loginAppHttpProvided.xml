@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<componentDef>
+	<numberOfPropertiesEstimation>100</numberOfPropertiesEstimation>
+	<resourcesLoader type='CLASSPATH'/>
+	<propertiesFileURI>r01fb/r01fb.xlnets.loginAppHttpProvided.properties.xml</propertiesFileURI>	<!-- BEWARE with ClassPathLoader: USE relative paths -->
+</componentDef>

@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -27,6 +28,8 @@ import com.google.common.collect.Sets;
 
 import r01f.debug.Debuggable;
 import r01f.encoding.TextEncoder;
+import r01f.locale.Language;
+import r01f.locale.Languages;
 import r01f.marshalling.Marshaller;
 import r01f.resources.ResourcesLoader;
 import r01f.resources.ResourcesLoaderBuilder;
@@ -1747,5 +1750,16 @@ public class Strings {
 										final String defaultValue) {
 		return s != null ? s 
 						 : defaultValue;
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  COMPARATOR
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Returns a {@link String} compartor that takes the language (Locale) into account
+	 * @param lang
+	 * @return
+	 */
+	public static Comparator<String> comparatorIn(final Language lang) {
+		return Languages.stringComparatorFor(lang);
 	}
 }

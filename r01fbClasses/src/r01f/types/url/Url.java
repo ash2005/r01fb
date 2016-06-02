@@ -285,7 +285,7 @@ public class Url
 			  .append("-       Site: ").append(this.getHost()).append("\r\n")
 			  .append("-       Port: ").append(this.getPort()).append("\r\n")
 			  .append("-       Path: ").append(this.getUrlPath()).append("\r\n")
-			  .append("Query String: ").append(this.getQueryString().asStringNotEncodingParamValues()).append("\r\n")
+			  .append("Query String: ").append(this.getQueryString() != null ? this.getQueryString().asStringNotEncodingParamValues() : "").append("\r\n")
 			  .append("-     Anchor: ").append(this.getAnchor());
 			return sb.toString();
 		}

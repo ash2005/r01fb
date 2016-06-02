@@ -1,6 +1,8 @@
 package r01f.types.datetime;
 
 import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
@@ -12,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.types.CanBeRepresentedAsString;
+import r01f.util.types.Dates;
 
 @XmlRootElement(name="year")
 @Accessors(prefix="_")
@@ -40,6 +43,9 @@ public class Year
 	}
 	public static Year of(final String year) {
 		return new Year(year);
+	}
+	public static Year of(final Date date) {
+		return new Year(Dates.asCalendar(date).get(Calendar.YEAR));
 	}
 	public static Year of(final int year) {
 		return new Year(year);

@@ -256,6 +256,11 @@ public class ContactInfo
 		_phones.add(phone);
 		return this;
 	}
+	public ContactInfo addPhones(final Collection<ContactPhone> phones) {
+		if (_phones == null) _phones = Lists.newArrayList();
+		if (CollectionUtils.hasData(phones)) _phones.addAll(phones);
+		return this;
+	}
 	public ContactPhone removePhone(final ContactInfoUsage usage) {
 		ContactPhone outPhone = _find(_phones,usage);
 		if (outPhone != null) _socialNetworks.remove(outPhone);
@@ -264,6 +269,11 @@ public class ContactInfo
 	public ContactInfo addSocialNetwork(final ContactSocialNetwork net) {
 		if (_socialNetworks == null) _socialNetworks = Lists.newArrayList();
 		_socialNetworks.add(net);
+		return this;
+	}
+	public ContactInfo addSocialNetworks(final Collection<ContactSocialNetwork> nets) {
+		if (_socialNetworks == null) _socialNetworks = Lists.newArrayList();
+		if (CollectionUtils.hasData(nets)) _socialNetworks.addAll(nets);
 		return this;
 	}
 	public ContactSocialNetwork removeSocialNetwork(final ContactInfoUsage id) {
@@ -276,6 +286,11 @@ public class ContactInfo
 		_mailAddresses.add(mail);
 		return this;
 	}
+	public ContactInfo addMailAddress(final Collection<ContactMail> mails) {
+		if (_mailAddresses == null) _mailAddresses = Lists.newArrayList();
+		if (CollectionUtils.hasData(mails)) _mailAddresses.addAll(mails);
+		return this;
+	}
 	public ContactMail removeMailAddress(final ContactInfoUsage usage) {
 		ContactMail outMail = _find(_mailAddresses,usage);
 		if (outMail != null) _mailAddresses.remove(outMail);
@@ -284,6 +299,11 @@ public class ContactInfo
 	public ContactInfo addWebSite(final ContactWeb web) {
 		if (_webSites == null) _webSites = Lists.newArrayList();
 		_webSites.add(web);
+		return this;
+	}
+	public ContactInfo addWebSites(final Collection<ContactWeb> webs) {
+		if (_webSites == null) _webSites = Lists.newArrayList();
+		if (CollectionUtils.hasData(webs)) _webSites.addAll(webs);
 		return this;
 	}
 	public ContactWeb removeWebSite(final ContactInfoUsage usage) {

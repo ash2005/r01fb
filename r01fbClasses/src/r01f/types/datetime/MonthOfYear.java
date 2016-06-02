@@ -1,6 +1,8 @@
 package r01f.types.datetime;
 
 import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
@@ -11,6 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import r01f.types.CanBeRepresentedAsString;
+import r01f.util.types.Dates;
 
 @XmlRootElement(name="monthOfYear")
 @Accessors(prefix="_")
@@ -36,6 +39,9 @@ public class MonthOfYear
 	}
 	public static MonthOfYear of(final String monthOfYear) {
 		return new MonthOfYear(monthOfYear);
+	}
+	public static MonthOfYear of(final Date date) {
+		return new MonthOfYear(Dates.asCalendar(date).get(Calendar.MONTH));
 	}
 	public static MonthOfYear of(final int monthOfYear) {
 		return new MonthOfYear(monthOfYear);

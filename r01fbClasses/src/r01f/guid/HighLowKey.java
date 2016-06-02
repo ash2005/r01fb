@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 
 /**
- * Modela una clave (HIGH o LOW)
+ * A guid key (HIGH or LOW)
  */
      class HighLowKey 
 implements Serializable {    
@@ -12,43 +12,43 @@ implements Serializable {
     private static final long serialVersionUID = 2379521800350045150L;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CONSTANTES
+//  CONSTANTS
 ///////////////////////////////////////////////////////////////////////////////////////////
-    // Rango de valores entre los que se aumenta un byte: -127....-1,0,1....128
-    // podría ser desde -127 (Byte.MIN_VALUE) a 128 (Byte.MAX_VALUE), pero los 
-    // primeros oids que salen son muy feos...
+    // Value range within a byte is increased: -127....-1,0,1....128
+    // ... it could have been from -127 (Byte.MIN_VALUE) to 128 (Byte.MAX_VALUE), 
+    //	   BUT the first oid are ugly...
     private static byte MAX_VALUE = -1;
     private static byte MIN_VALUE = 0;
     
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  ESTADO
+//  FIELDS
 ///////////////////////////////////////////////////////////////////////////////////////////
-    private byte[] _value = null;       // El valor de la clave en forma array de bytes
+    private byte[] _value = null;       // the key value as byte array
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  CONSTRUCTORES
+//  CONSTRUCTOR
 ///////////////////////////////////////////////////////////////////////////////////////////        
     /**
-     * ConStruye una clave con el tamaño que se pasa
-     * (que equivala a dicho tamaño por 8 en bytes)
+     * Builds a key with the provided lengthConStruye una clave con el tamaño que se pasa
+     * (the real length in bytes is the given length multiplied by 8)
      */
     public HighLowKey(final int newLength) {
         _value = new byte[newLength];
         this.setToZero();
     }
     /**
-     * Construye una clave a partir de su representacion en forma de String
-     * @param inStr la representacion en cadena de la clave
+     * Builds a key from its String representation
+     * @param inStr 
      */
     public HighLowKey(final String inStr) {
         _value = _fromStringOfHexToByteArray(inStr);
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS
+//  METHODS
 ///////////////////////////////////////////////////////////////////////////////////////////    
     /** 
-     * Reinicializa la clave al valor minimo
+     * Sets the key to zero
      */ 
     public void setToZero() {
         for (int i = 0; i < _value.length; i++){
@@ -56,79 +56,77 @@ implements Serializable {
         }
     }    
     /** 
-     * Incrementa el valor de la clave en una unidad.
+     * Increments the key in a unit
      */ 
     public void increment() throws HighLowMaxForKeyReachedException {
         _value = _increment(_value);
     }
     @Override
     public String toString() { 
-		// NOTA:
-		// Cuano un array de bytes se pasa a cadena, cada byte ocupa 2 caracteres
-		// de la cadena ya que se pasa a la cadena su representacion exadecimal
+		// BEWARE:
+		// When a byte array is converted to a String, every byte uses 2 chars of the String
+		// since the byte is converted to it's hex representation
 		// (0=00 .... 255=FF)
         StringBuffer sb = new StringBuffer();
 
-        String hex; // Representacion hex del byte
+        String hex; // hex byte representation
         String end;
         for (int i=0; i < _value.length; i++) { 
-            hex = "0" + Integer.toHexString(_value[i]);     // Añade un cero a la representacion hex del byte
-            end = hex.substring(hex.length()-2);            // Los dos ultimos caracteres de la cadena hex  
+            hex = "0" + Integer.toHexString(_value[i]);     // Pad with zeros
+            end = hex.substring(hex.length()-2);            // Last two chars  
             //System.out.print(_value[i] + ":" + Integer.toHexString(_value[i]) + ":" + hex + ":" + end);
-            sb.append(end.toUpperCase());   // La representacion HEX del byte (2 caracteres)
+            sb.append(end.toUpperCase());   // HEX byte repr (2 chars)
         }
         return sb.toString();
     }
     
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS PRIVADOS
+//  PRIVATE METHODS
 ///////////////////////////////////////////////////////////////////////////////////////////
     /** 
-     * Incrementa el valor del array de bytes en uno pero en orden inverso.
-     * Esto se hace para evitar el efecto HotSpot en los indices debido a que
-     * hay muchos valores del indice consecutivos con el mismo principio
-     * Lo que se hace es:
-     *     Si el array de bytes en formato binario tiene la forma:
+     * Increments the byte array value in a unit but using an inverse order
+     * This is done to avoid the HotSpot effect at DB indexes avoiding a lot of
+     * consecutive values with the same beginning  
+     * What it's done:
+     *     If the byte array in it's binary format is like
      *            00000000|00000000.....00000000|00000000
-     *     Lo normal a la hora de aumentar en una unidad seria:
+     *     When increasing a unit, the usual thing to do will be:
      *            00000000|00000000.....00000000|00000001
-     *     Sin embargo, lo que se hace es aumentar al reves (primero el
-     *     entero que esta en primer lugar)
+     *     But in order to avoid the hot-sport effect at DB indexes, the first integer is increased
      *            00000000|00000001.....00000000|00000000
-     *     De esta forma dos llamadas consecutivas a aumentar la clave, darán
-     *     como resultado series de numeros muy diferentes.
+     *     this way two consecutive calls to increase the key will result in very different numbers
      */ 
     private byte[] _increment(byte[] array) throws HighLowMaxForKeyReachedException {
         return _incrementElement(array,0);
     }
     /** 
-     * Método recursivo para aumentar un array de bytes en uno pero en orden inverso
+     * Recursive method to increase a byte array in a unit
      */ 
     private byte[] _incrementElement(byte[] array,int index) throws HighLowMaxForKeyReachedException {
         if (array[index] == MAX_VALUE) { 
             if (index == (array.length-1)) throw new HighLowMaxForKeyReachedException();
             _incrementElement(array,index + 1);
-            array[index] = MIN_VALUE;  // Se pone el byte al valor minimo
+            array[index] = MIN_VALUE;  // min value
         } else {
-            array[index]++; // Se aumenta en uno el valor del byte
+            array[index]++; // increment
         }
         return array;
     } 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS ESTATICOS
+//  STATIC METHODS
 ///////////////////////////////////////////////////////////////////////////////////////////
     /** 
-     * Devuelve una representacion en formato array de bytes de una cadena
-     * Cada byte se representa en la cadena como dos caracteres debido a la 
-     * representacion Hexadecimal del byte 0=00 .... 255=FF
+     * Return a byte array representation of a String
+     * Every byte at the String is two chars length due to the hex byte representation 
+     * (ie: 0=00 .... 255=FF)
      */
     private static byte[] _fromStringOfHexToByteArray(String str) { 
-        int size = str.length()/2;      // La longitud en bytes es la mitad
+        int size = str.length()/2;      // The length in bytes is half the String length
         byte[] b = new byte[size];
 
         for (int i = 0; i < size; i++) { 
-            String chunk = str.substring(i*2,i*2+2);    // Coje dos caracteres (representacion hex de un byte)
-            b[i] = (byte)Integer.parseInt(chunk, 16);   // Los mete al array de bytes como un byte
+            String chunk = str.substring(i*2,i*2+2);    // Pick two chars (a byte hex representation is two chars length)
+            b[i] = (byte)Integer.parseInt(chunk,16);   // put the two chars at the array as an int
         }
         return b; 
     }    

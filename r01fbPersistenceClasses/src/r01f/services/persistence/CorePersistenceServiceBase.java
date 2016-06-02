@@ -7,6 +7,9 @@ import javax.persistence.FlushModeType;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import r01f.marshalling.HasModelObjectsMarshaller;
+import r01f.marshalling.Marshaller;
+import r01f.model.annotations.ModelObjectsMarshaller;
 import r01f.persistence.db.HasEntityManagerProvider;
 import r01f.xmlproperties.XMLProperties;
 import r01f.xmlproperties.XMLPropertiesComponent;
@@ -16,7 +19,8 @@ import r01f.xmlproperties.XMLPropertiesForAppComponent;
 @Accessors(prefix="_")
 public abstract class CorePersistenceServiceBase
  	   		  extends CoreServiceBase 
- 	   	   implements HasEntityManagerProvider {
+ 	   	   implements HasEntityManagerProvider,
+ 	   	   			  HasModelObjectsMarshaller {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -25,6 +29,11 @@ public abstract class CorePersistenceServiceBase
 	 */
 	@Inject
 	@Getter protected Provider<EntityManager> _entityManagerProvider;	
+	/**
+	 * Marshaller used to serialize / de-serialize java objects
+	 */
+	@Inject @ModelObjectsMarshaller
+	@Getter protected Marshaller _modelObjectsMarshaller;
 	/**
 	 * The {@link XMLProperties} for the db layer
 	 * (this properties are set at BeanImplementedPersistenceServicesCoreBootstrapGuiceModuleBase type)

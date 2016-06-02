@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import r01f.marshalling.Marshaller;
 import r01f.model.search.SearchFilter;
 import r01f.model.search.SearchResultItem;
 import r01f.model.search.SearchResults;
@@ -35,9 +36,11 @@ public abstract class ClientAPIDelegateForModelObjectSearchServices<F extends Se
 //  CONSTRUCTORS
 /////////////////////////////////////////////////////////////////////////////////////////
 	public ClientAPIDelegateForModelObjectSearchServices(final UserContext userContext,
+														 final Marshaller modelObjectsMarshaller,
 														 final SearchServices<F,I> services,
 														 final Class<F> filterType,final Class<I> resultItemType) {
 		super(userContext,
+			  modelObjectsMarshaller,
 			  services);
 		_filterType = filterType;
 		_resultItemType = resultItemType;

@@ -46,10 +46,10 @@ import com.google.common.collect.Lists;
  *	    EntityManagerFactory emf = Persistence.createEntityManagerFactory("persistenceUnit.xxx",props);
  *	    EntityManager em = emf.createEntityManager();
  *	    DBSearchQuery qry = DBSearchQuery.of(em)
- *	    								 .forEntity("R01EDBEntityForStructure")		// the name of the JPA entity class
+ *	    								 .forEntity("MyDBEntity")		// the name of the JPA entity class
  *	    								 .withPredicates(BooleanQueryClause.create()
- *	    										 				.field("oid").must().beWithin(R01MStructureOID.forId("r01mlc814593391b1d721a3067bdde926665c5e952"),
- *	    										 											  R01MStructureOID.forId("r01mlc9145932d760a241b21e51fc9b298602689bd"))
+ *	    										 				.field("oid").must().beWithin(MyEntityOID.forId("xxxlc814593391b1d721a3067bdde926665c5e952"),
+ *	    										 											  MyEntityOID.forId("xxxlc9145932d760a241b21e51fc9b298602689bd"))
  *	    										 				.field("createDate").must().beInsideDateRange(Range.atMost(new Date()))
  *	    										 				.build());
  *	    Query jpaQry = qry.getCountQuery();

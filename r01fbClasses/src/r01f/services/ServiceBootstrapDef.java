@@ -9,7 +9,8 @@ import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import r01f.guids.AppAndComponent;
+import r01f.services.ServiceIDs.ClientApiAppAndModule;
+import r01f.services.ServiceIDs.CoreAppAndModule;
 import r01f.services.client.internal.ServiceToImplAndProxyDef;
 import r01f.services.core.internal.BeanImplementedServicesCoreBootstrapGuiceModuleBase;
 import r01f.services.core.internal.EJBImplementedServicesCoreGuiceModuleBase;
@@ -28,11 +29,11 @@ public class ServiceBootstrapDef {
 	/**
 	 * API app code
 	 */
-	@Getter private final AppAndComponent _apiAppAndModule;
+	@Getter private final ClientApiAppAndModule _apiAppAndModule;
 	/**
 	 * Core app code and module
 	 */
-	@Getter private final AppAndComponent _coreAppCodeAndModule;
+	@Getter private final CoreAppAndModule _coreAppCodeAndModule;
 	/**
 	 * Default proxy impl (REST, EJB, etc)
 	 */
@@ -138,7 +139,7 @@ public class ServiceBootstrapDef {
 							 .transform(new Function<Class<ServicesCoreBootstrapGuiceModule>,ServicesCoreBootstrapGuiceModule>() {
 												@Override 
 												public ServicesCoreBootstrapGuiceModule apply(final Class<ServicesCoreBootstrapGuiceModule> type) {
-													return (ServicesCoreBootstrapGuiceModule)ServiceBootstrapGuiceModuleUtils.createGuiceModuleInstance(type);
+													return (ServicesCoreBootstrapGuiceModule)ServicesLifeCycleUtil.createGuiceModuleInstance(type);
 												}
 							 			})
 							 .toList();

@@ -13,11 +13,19 @@
  	</signatureService>
  	
  	<!-- XLNets -->
-	<xlnets loginAppCode='X42T' token='httpProvided'>	<!-- token=file/httpProvided/loginApp -->
+	<xlnets loginAppCode='X42T' token='loginAppHttpProvided'>	
 		<!--
-		if token=file: 			...path to a mock xlnets token (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate one)
-		if token=httpProvided:  ...url to the url that provides the token (ie: http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet?login_app=appId)
-		if token=loginApp		...not used 
+		Token types:
+			loginUser			: user login using the http request cookies
+			loginUserFileStored : user login using a classpath-stored file with the xlnets session 
+										> the [sessionToken] element contains the token's path (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate a token)
+			loginApp			: app login
+										> the [loginAppCode] attribute is mandatory
+			loginAppHttpProvided: app login using a service that provides xlnets session tokens
+										> the [loginAppCode] attribute is mandatory
+										> the [sessionToken] element contains the url of the service that provides tokens (ie: http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet?login_app=appId)
+			loginAppFileStored	: user login using a classpath-stored file with the xlnets session
+										> the [sessionToken] element contains the token's path (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate a token)
 		-->
 		<sessionToken>http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet</sessionToken>
 	</xlnets>

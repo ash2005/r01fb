@@ -90,10 +90,14 @@ public class TestPersistableModelObjectSearch<F extends SearchFilterForModelObje
 		Threads.safeSleep(10000);
 		
 		// [3]: Ensure that there're 10 indexed objects
+		//		BEWARE!!	If this test FAILS, maybe the search engine index should be reset
+		//					since it contains zoombie data
+		System.out.println("...check if the previously created objects are indexed");
 		F emptyFilter = ReflectionUtils.createInstanceOf(_searchAPI.getFilterType());		// empty filter
 		totalItems = _searchAPI.search(emptyFilter)		// an empty filter
 							   .firstPage()
 							   .getTotalItemsCount();
+		System.out.println("> There're " + totalItems + " indexed");
 		Assert.assertTrue(totalItems == 10);
 		
 		// [4]: Wipe previously created objects

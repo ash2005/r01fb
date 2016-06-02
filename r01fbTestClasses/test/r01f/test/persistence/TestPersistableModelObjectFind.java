@@ -6,12 +6,14 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-
 import org.joda.time.DateTime;
 import org.junit.Assert;
 
+import com.google.common.base.Stopwatch;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import r01f.guids.CommonOIDs.UserCode;
 import r01f.guids.OID;
 import r01f.model.PersistableModelObject;
@@ -19,8 +21,7 @@ import r01f.services.client.api.delegates.ClientAPIDelegateForModelObjectFindSer
 import r01f.types.Range;
 import r01f.util.types.collections.CollectionUtils;
 
-import com.google.common.base.Stopwatch;
-
+@Slf4j
 @RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 public class TestPersistableModelObjectFind<O extends OID,M extends PersistableModelObject<O>> {
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +46,8 @@ public class TestPersistableModelObjectFind<O extends OID,M extends PersistableM
 	 * @param modelObject
 	 */
 	public void testFind() {		
-		System.out.println("[init][TEST BASIC FIND]-----------------------------------------------------------------------");
+		log.warn("[init][TEST BASIC FIND {}]-----------------------------------------------------------------------",
+				 _modelObjFactory.getModelObjType());
 		
 		Stopwatch stopWatch = Stopwatch.createStarted();
 		
@@ -53,38 +55,41 @@ public class TestPersistableModelObjectFind<O extends OID,M extends PersistableM
 		_modelObjFactory.setUpMockModelObjs(5);
 		
 		// [1] - All entities
-		System.out.println("FIND ALL ENTITY's OIDS_____________________________");
+		log.warn("\tFIND ALL ENTITY's OIDS");
 		Collection<O> allOids = _findAPI.findAll();
-		System.out.println(">> " + allOids);
+		log.warn("\t\t>> {}",allOids);
 		Assert.assertTrue(CollectionUtils.hasData(allOids));
 
 		// [2] - By create / last update date		
 		Range<Date> dateRange = Range.open(DateTime.now().minusDays(1).toDate(),
 										   DateTime.now().plusDays(1).toDate());
 		
-		System.out.println("FIND ENTITY's OIDs BY CREATE DATE: " + dateRange.asString() + " __________________");
+		log.warn("\tFIND ENTITY's OIDs BY CREATE DATE: {}",dateRange.asString());
 		Collection<O> oidsByCreateDate = _findAPI.findByCreateDate(dateRange);
-		System.out.println(">> " + oidsByCreateDate);
+		log.warn("\t\t>> {}",oidsByCreateDate);
 		Assert.assertTrue(CollectionUtils.hasData(oidsByCreateDate));
 		
-		System.out.println("FIND ENTITY's OIDs BY LAST UPDATE DATE: " + dateRange.asString() + " ______________");
+		log.warn("\tFIND ENTITY's OIDs BY LAST UPDATE DATE: {}",dateRange.asString());
 		Collection<O> oidsByLastUpdatedDate = _findAPI.findByCreateDate(dateRange);
-		System.out.println(">> " + oidsByLastUpdatedDate);
+		log.warn("\t\t>> {}",oidsByLastUpdatedDate);
 		Assert.assertTrue(CollectionUtils.hasData(oidsByLastUpdatedDate));
 		
 		// [3] - By creator / last updator
-		UserCode user = UserCode.forId("myNameIsGOD");
+		UserCode user = UserCode.forId("testUser");
 		
-		System.out.println("FIND ENTITY's OIDs BY CREATOR: " + user + " ________________________");
+		log.warn("\tFIND ENTITY's OIDs BY CREATOR: {}",user);
 		Collection<O> oidsByCreator = _findAPI.findByCreator(user);
-		System.out.println(">> " + oidsByCreator);
+		log.warn("\t\t>> {}",oidsByCreator);
+		Assert.assertTrue(CollectionUtils.hasData(oidsByCreator));
 
-		System.out.println("FIND ENTITY's OIDs BY LAST UPDATOR: " + user + " ___________________");
+		log.warn("\tFIND ENTITY's OIDs BY LAST UPDATOR: {}",user);
 		Collection<O> oidsByLastUpdator = _findAPI.findByLastUpdator(user);
-		System.out.println(">> " + oidsByLastUpdator);
+		log.warn("\t\t>> {}",oidsByLastUpdator);
+		Assert.assertTrue(CollectionUtils.hasData(oidsByLastUpdator));
 		
 		
-		System.out.println("[end ][TEST BASIC FIND] (elapsed time: " + NumberFormat.getNumberInstance(Locale.getDefault()).format(stopWatch.elapsed(TimeUnit.MILLISECONDS)) + " milis) -------------------------");
+		log.warn("[end ][TEST BASIC FIND {}] (elapsed time: {} milis)-------------------------",
+				 _modelObjFactory.getModelObjType(),NumberFormat.getNumberInstance(Locale.getDefault()).format(stopWatch.elapsed(TimeUnit.MILLISECONDS)));
 		
 		// [99]: Delete previously created test objects to restore DB state
 		_modelObjFactory.tearDownCreatedMockModelObjs();

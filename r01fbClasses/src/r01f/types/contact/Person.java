@@ -29,7 +29,7 @@ import r01f.util.types.Strings;
 @XmlRootElement(name="person")
 @Accessors(prefix="_")
 @NoArgsConstructor
-public class Person 
+public class Person<PERSONID extends PersonID > 
   implements Serializable,
   			 HasSummaryFacet,
   			 HasFullTextSummaryFacet {
@@ -42,7 +42,7 @@ public class Person
 	 * Person id (ie dni number)
 	 */
 	@XmlElement(name="id") @XmlTypeDiscriminatorAttribute(name="type")
-	@Getter @Setter private PersonID _id;
+	@Getter @Setter private PERSONID  _id;
 	/**
 	 * Name
 	 */
@@ -68,6 +68,11 @@ public class Person
 	 */
 	@XmlElement(name="preferredLang") 
 	@Getter @Setter private Language _preferredLang;	
+	/**
+	 * The person gender
+	 */
+	@XmlElement(name="gender")
+	@Getter @Setter private PersonGender _gender;
 	/**
 	 * Details about the person
 	 */

@@ -6,14 +6,15 @@ import java.util.Collection;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import com.google.inject.Key;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.servlet.GuiceServletContextListener;
 
 import lombok.extern.slf4j.Slf4j;
-import r01f.concurrent.ExecutorServiceManager;
-import r01f.guids.CommonOIDs.AppCode;
-import r01f.inject.ServiceHandler;
+import r01f.services.ServicesInitData;
+import r01f.services.ServicesLifeCycleUtil;
 import r01f.util.types.collections.CollectionUtils;
+import r01f.util.types.collections.Lists;
 
 /**
  * Extends {@link GuiceServletContextListener} (that in turn extends {@link ServletContextListener})
@@ -43,93 +44,74 @@ public abstract class ServletContextListenerBase
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	private final Collection<Key<? extends ServiceHandler>> _hasServiceHandlerTypes;
+	private final Collection<ServicesInitData> _servicesInitData;
+	private final Collection<Module> _commonClientBindingModules;
 	
-	private boolean _injectorCreated = false;
+	private Injector _injector;
 /////////////////////////////////////////////////////////////////////////////////////////
 // 	CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected ServletContextListenerBase() {
-		_hasServiceHandlerTypes = null;
+	protected ServletContextListenerBase(final ServicesInitData initData,
+										 final Module... commonClientBindingModules ) {
+		this(Lists.newArrayList(initData),
+			 commonClientBindingModules);
 	}
-	protected ServletContextListenerBase(final Key<? extends ServiceHandler>... hasServiceHandlerTypes) {
-		_hasServiceHandlerTypes = CollectionUtils.hasData(hasServiceHandlerTypes) ? Arrays.asList(hasServiceHandlerTypes) 
-																				  : null;
+	protected ServletContextListenerBase(final Collection<ServicesInitData> initData,
+										 final Module... commonClientBindingModules ) {
+		this(initData,
+			 CollectionUtils.hasData(commonClientBindingModules) ? Arrays.asList(commonClientBindingModules) : null);
+	}
+	protected ServletContextListenerBase(final Collection<ServicesInitData> initData,
+										 final Collection<Module> commonClientBindingModules ) {
+		if (CollectionUtils.isNullOrEmpty(initData)) throw new IllegalArgumentException();
+		_servicesInitData = initData;
+		_commonClientBindingModules = commonClientBindingModules;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Overridden methods of GuiceServletContextListener
 /////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected Injector getInjector() {
+		if (_injector == null) {
+			_injector = ServicesLifeCycleUtil.createGuiceInjector(_servicesInitData)
+											 .withCommonBindingModules(_commonClientBindingModules);
+		} else {
+			log.warn("The Guice Injector is already created!!!");
+		}
+		return _injector;
+	}
+	@Override
 	public void contextInitialized(final ServletContextEvent servletContextEvent) {
-		log.warn("\n\n\n");
 		log.warn("============================================="); 
 		log.warn("Loading {} Servlet Context with {}...",
-				 servletContextEvent.getServletContext().getContextPath(),this.getClass().getSimpleName());
+				 servletContextEvent.getServletContext().getContextPath(),
+				 this.getClass().getSimpleName());
 		log.warn("=============================================");
 				 
 		super.contextInitialized(servletContextEvent);
 		
 		// Init JPA's Persistence Service, Lucene indexes and everything that has to be started
 		// (see https://github.com/google/guice/wiki/ModulesShouldBeFastAndSideEffectFree)
-		if (CollectionUtils.hasData(_hasServiceHandlerTypes)) {
-			for (Key<? extends ServiceHandler> hasServiceHandlerType : _hasServiceHandlerTypes) {
-				ServiceHandler serviceHandler = this.getInjector()
-													.getInstance(hasServiceHandlerType);
-				log.warn("\t--START SERVICE using {} type: {}",ServiceHandler.class.getSimpleName(),hasServiceHandlerType);
-				serviceHandler.start();
-			}
-		}
+		ServicesLifeCycleUtil.startServices(_injector);
 	}
 	@Override
 	public void contextDestroyed(final ServletContextEvent servletContextEvent) {
-		log.warn("\n\n\n");
 		log.warn("=============================================");
 		log.warn("DESTROYING {} Servlet Context with {} > closing search engine indexes if they are in use, release background jobs threads and so on...",
-				 servletContextEvent.getServletContext().getContextPath(),this.getClass().getSimpleName());
+				 servletContextEvent.getServletContext().getContextPath(),
+				 this.getClass().getSimpleName());
 		log.warn("=============================================");
 		
 		// Close JPA's Persistence Service, Lucene indexes and everything that has to be closed
 		// (see https://github.com/google/guice/wiki/ModulesShouldBeFastAndSideEffectFree)
-		if (CollectionUtils.hasData(_hasServiceHandlerTypes)) {
-			for (Key<? extends ServiceHandler> hasServiceHandlerType : _hasServiceHandlerTypes) {
-				ServiceHandler serviceHandler = this.getInjector()
-													.getInstance(hasServiceHandlerType);
-				if (serviceHandler != null) {
-					log.warn("\t--END SERVICE {} type: {}",ServiceHandler.class.getSimpleName(),hasServiceHandlerType);
-					serviceHandler.stop();
-				}
-			}
-		}
-		
-		// Stop background jobs
-		log.warn("\t--Release background threads");
-		if (this.getInjector().getExistingBinding(Key.get(ExecutorServiceManager.class)) != null) {
-			ServiceHandler execSrvMgr = this.getInjector().getInstance(ExecutorServiceManager.class);	// binded at BeanServicesBootstrapGuiceModuleBase
-			execSrvMgr.stop();	
-		} else {
-			log.warn("\t--NO executor services to close!!");
-		}
+		ServicesLifeCycleUtil.stopServices(_injector);
 		
 		// finalize
 		super.contextDestroyed(servletContextEvent); 
 		
-		log.warn("\n");
 		log.warn("============================================="); 
 		log.warn("{} Servlet Context DESTROYED!!...",
 				 servletContextEvent.getServletContext().getContextPath());
 		log.warn("=============================================");
-		log.warn("\n\n\n\n");
-	}
-	/**
-	 * Simply logs the injector creation
-	 * @param appCode
-	 */
-	protected void _logIfInjectorDidntExist(final AppCode apiAppCode,
-											final AppCode coreAppCode) {
-		if (!_injectorCreated) {
-			log.warn("Init Guice Injector for [API={}, CORE={} from {}",
-					 apiAppCode,coreAppCode,this.getClass());
-			_injectorCreated = true;
-		}
 	}
 }

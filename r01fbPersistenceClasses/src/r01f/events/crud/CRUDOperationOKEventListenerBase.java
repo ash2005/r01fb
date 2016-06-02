@@ -6,11 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import r01f.events.PersistenceOperationEventListeners.PersistenceOperationOKEventListener;
 import r01f.events.PersistenceOperationEvents.PersistenceOperationOKEvent;
-import r01f.model.IndexableModelObject;
+import r01f.model.ModelObject;
 import r01f.model.metadata.ModelObjectTypeMetaData;
 import r01f.model.metadata.ModelObjectTypeMetaDataBuilder;
 import r01f.persistence.CRUDOK;
 import r01f.persistence.CRUDResult;
+import r01f.persistence.PersistenceOperationOK;
 
 /**
  * Listener to {@link PersistenceOperationOKEvent}s thrown by the persistence layer through the {@link EventBus}
@@ -35,17 +36,36 @@ public abstract class CRUDOperationOKEventListenerBase
 	 * In order for the event handler (listener) to discriminate events to handle, the model object's type
 	 * is used (see {@link #_hasToBeHandled(CRUDOperationEvent)} method)
 	 */
-	protected final Class<? extends IndexableModelObject> _type;
+	protected final Class<? extends ModelObject> _type;
 	/**
 	 * MetaData about the model object type
 	 */
 	protected final transient ModelObjectTypeMetaData _modelObjectMetaData;
+	/**
+	 * Filters the events using the afected model object
+	 */
+	protected final transient CRUDOperationOKEventFilter _crudOperationOKEventFilter;
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
-	public CRUDOperationOKEventListenerBase(final Class<? extends IndexableModelObject> type) {
+	public CRUDOperationOKEventListenerBase(final Class<? extends ModelObject> type) {
 		_type = type;
 		_modelObjectMetaData = ModelObjectTypeMetaDataBuilder.createFor(_type);
+		_crudOperationOKEventFilter = new CRUDOperationOKEventFilter() {
+												@Override
+												public boolean hasTobeHandled(final PersistenceOperationOKEvent opEvent) {
+													CRUDResult<? extends ModelObject> opResult = opEvent.getOperationResult()
+																				    					.as(CRUDResult.class);
+													// the event refers to the same model object type THIS event handler handles;
+													return opResult.as(CRUDOK.class).getObjectType() == _type;
+												}
+									  };
+	}
+	public CRUDOperationOKEventListenerBase(final Class<? extends ModelObject> type,
+											final CRUDOperationOKEventFilter crudOperationOKEventFilter) {
+		_type = type;
+		_modelObjectMetaData = ModelObjectTypeMetaDataBuilder.createFor(_type);
+		_crudOperationOKEventFilter = crudOperationOKEventFilter;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
@@ -57,13 +77,28 @@ public abstract class CRUDOperationOKEventListenerBase
 	 * @param opEvent
 	 * @return
 	 */
-	protected boolean _isEventForSuccessfulCreateOrUpdate(final PersistenceOperationOKEvent opEvent) {
-		CRUDResult<? extends IndexableModelObject> opResult = opEvent.getOperationResult()
-									    						     .as(CRUDResult.class);
-		boolean outHasToBeHandled = opResult.hasSucceeded()																		// the persistence operation has succeeded
-							     && opResult.as(CRUDOK.class).getObjectType() == _type											// the event refers to the same model object type THIS event handler handles
-								 && (opResult.as(CRUDOK.class).hasBeenCreated() || opResult.as(CRUDOK.class).hasBeenUpdated());	// it's a create or update event
-		return outHasToBeHandled;
+	protected boolean _isEventForSuccessfulCreateUpdateOrDelete(final PersistenceOperationOKEvent opEvent) {	
+		PersistenceOperationOK opResult = opEvent.getResultAsOperationOK();
+		boolean handle = _crudOperationOKEventFilter.hasTobeHandled(opEvent);
+		if (!handle) return false;
+		
+		return ((opResult.isCRUDOK()) 
+			 && (opResult.as(CRUDOK.class).hasBeenCreated() || opResult.as(CRUDOK.class).hasBeenUpdated() || opResult.as(CRUDOK.class).hasBeenDeleted()));	// it's a create, update or delete event
+	}
+	/**
+	 * Returns true if:
+	 * 	1.- the event refers to an object of the type handled by this listener
+	 *  2.- the event refers to a successful create or update operation 
+	 * @param opEvent
+	 * @return
+	 */
+	protected boolean _isEventForSuccessfulCreateOrUpdate(final PersistenceOperationOKEvent opEvent) {	
+		PersistenceOperationOK opResult = opEvent.getResultAsOperationOK();
+		boolean handle = _crudOperationOKEventFilter.hasTobeHandled(opEvent);
+		if (!handle) return false;
+		
+		return ((opResult.isCRUDOK()) 
+			 && (opResult.as(CRUDOK.class).hasBeenCreated() || opResult.as(CRUDOK.class).hasBeenUpdated()));	// it's a create or update event
 	}
 	/**
 	 * Returns true if:
@@ -73,12 +108,12 @@ public abstract class CRUDOperationOKEventListenerBase
 	 * @return
 	 */
 	protected boolean _isEventForSuccessfulCreate(final PersistenceOperationOKEvent opEvent) {
-		CRUDResult<? extends IndexableModelObject> opResult = opEvent.getOperationResult()
-									    							 .as(CRUDResult.class);
-		boolean outHasToBeHandled = opResult.hasSucceeded()														// the persistence operation has succeeded
-							     && opResult.as(CRUDOK.class).getObjectType() == _type							// the event refers to the same model object type THIS event handler handles
-								 && (opResult.as(CRUDOK.class).hasBeenCreated());								// it's a create event
-		return outHasToBeHandled;
+		PersistenceOperationOK opResult = opEvent.getResultAsOperationOK();
+		boolean handle = _crudOperationOKEventFilter.hasTobeHandled(opEvent);
+		if (!handle) return false;
+	
+		return ((opResult.isCRUDOK()) 
+			 && (opResult.as(CRUDOK.class).hasBeenCreated()));												// it's a create event
 	}
 	/**
 	 * Returns true if:
@@ -88,11 +123,26 @@ public abstract class CRUDOperationOKEventListenerBase
 	 * @return
 	 */
 	protected boolean _isEventForSuccessfulUpdate(final PersistenceOperationOKEvent opEvent) {
-		CRUDResult<? extends IndexableModelObject> opResult = opEvent.getOperationResult()
-									    							 .as(CRUDResult.class);
-		boolean outHasToBeHandled = opResult.hasSucceeded()														// the persistence operation has succeeded
-							     && opResult.as(CRUDOK.class).getObjectType() == _type							// the event refers to the same model object type THIS event handler handles
-								 && (opResult.as(CRUDOK.class).hasBeenUpdated());								// it's an update event
-		return outHasToBeHandled;
+		PersistenceOperationOK opResult = opEvent.getResultAsOperationOK();
+		boolean handle = _crudOperationOKEventFilter.hasTobeHandled(opEvent);
+		if (!handle) return false;
+		
+		return ((opResult.isCRUDOK()) 
+			 && (opResult.as(CRUDOK.class).hasBeenUpdated()));								// it's an update event
+	}
+	/**
+	 * Returns true if:
+	 * 	1.- the event refers to an object of the type handled by this listener
+	 *  2.- the event refers to a successful delete operation 
+	 * @param opEvent
+	 * @return
+	 */
+	protected boolean _isEventForSuccessfulDelete(final PersistenceOperationOKEvent opEvent) {
+		PersistenceOperationOK opResult = opEvent.getResultAsOperationOK();
+		boolean handle = _crudOperationOKEventFilter.hasTobeHandled(opEvent);
+		if (!handle) return false;
+		
+		return ((opResult.isCRUDOK()) 
+			 && (opResult.as(CRUDOK.class).hasBeenDeleted()));								// it's a delete event
 	}
 }

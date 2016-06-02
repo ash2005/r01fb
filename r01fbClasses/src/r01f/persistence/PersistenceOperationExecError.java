@@ -86,6 +86,25 @@ public class PersistenceOperationExecError<T>
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public boolean isCRUDError() {
+		return this instanceof CRUDError;
+	}
+	@Override
+	public boolean isCRUDOnMultipleError() {
+		return this instanceof CRUDOnMultipleError;
+	}
+	@Override
+	public boolean isFindError() {
+		return this instanceof FindError;
+	}
+	@Override
+	public boolean isFindSummariesError() {
+		return this instanceof FindSummariesError;
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
 	@Override @SuppressWarnings("unchecked")
 	public <E extends Throwable> E getErrorAs(final Class<E> errorType) {
 		return (E)_error;

@@ -2,24 +2,22 @@ package r01f.guid;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+
+import com.google.inject.Inject;
 
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.CommonOIDs.AppCode;
-import r01f.util.types.Strings;
 import r01f.xmlproperties.XMLProperties;
-import r01f.xmlproperties.XMLPropertiesForApp;
-
-import com.google.inject.Inject;
 
 /**
- * Acceso a las factorías de generación de GUIDs
- * El uso habitual es:
- * [OPCION 1]: Inyectar el GUIDDispenserManager como servicio utilizando GUICE:
+ * GUID generation type factories
+ * The normal usage is:
+ * [OPTION 1]: Use guice to inject the {@link GUIDDispenserManager}:
  * 			   <pre class='brush:java'>
  * 					pubic class MyClass {
- * 						@Inject GUIDDispenserManager _guidDispenserManager;
+ * 						@Inject 
+ * 						private GUIDDispenserManager _guidDispenserManager;
  * 
  * 						...
  * 						public void someMethod(...) {
@@ -28,7 +26,7 @@ import com.google.inject.Inject;
  * 					}
  * 			   </pre>
  * 
- * [OPCION 2]: (no recomendada) - Utilizar el inyector de Guice
+ * [OPTION 2]: (not recommended) - Use the guice injector directly
  * 			   <pre class='brush:java'>
  * 					GUIDDispenserManager guidDispenserManager = Guice.createInjector(new R01FBootstrapGuiceModule())
  *            												 		 .getInstance(GUIDDispenserManager.class);
@@ -43,28 +41,28 @@ public class GUIDDispenserManager {
 //  INJECT
 ///////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Acceso a XMLProperties
+	 * XMLProperties
 	 */
-	@Inject private XMLProperties _xmlProperties;			// Acceso a XMLProperties
+	@Inject 
+	private XMLProperties _xmlProperties;			
 	/**
-	 * Mapa de factorías de objetos GUIDDispenser que relaciona el ID del GUIDDispenser con
-	 * su factoría
-	 * IMPORTANTE!!	El mapa de factorías se "cablea" en el módulo GUIDDispenserGuiceModule, 
-	 * 				así que cuando aparece una nueva implementación de un GUIDDispenser, 
-	 * 				hay que incluirlo en la clase GUIDDispenserGuiceModule
+	 * Factories of GUIDDispenser types indexed by their id
+	 * BEWARE!!		This Map is built at {@link GUIDDispenserGuiceModule} so when a new {@link GUIDDispenser} implementation 
+	 * 				is available, it MUST be included at {@link GUIDDispenserGuiceModule}
 	 */
-	@Inject private Map<String,GUIDDispenserFlavourFactory> _dispensersFactories;	// Factorías de GUIDDispensers
+	@Inject 
+	private Map<String,GUIDDispenserFlavourFactory> _dispensersFactories;	
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  ESTADO
+//  FIELDS
 ///////////////////////////////////////////////////////////////////////////////////////////
     /** 
-     * CACHE que contiene los dispensers creados asociados por appCode.sequenceId
-     * (por eso es importante que esta clase sea un Singleton en el módulo Guice)  
+     * CACHE for the dispensers indexed by appCode.sequenceId
+     * (this cache forces this factory to be a singleton managed by guice)  
      */
     private Map<String,GUIDDispenser> _dispensers; 	// Tabla de _dispensers para cada secuencia
     
 ///////////////////////////////////////////////////////////////////////////////////////////
-//  METODOS
+//  METHODS
 ///////////////////////////////////////////////////////////////////////////////////////////
     public GUIDDispenser instanceFor(final String appCode) {
     	return this.instanceFor(AppCode.forId(appCode),"default");
@@ -76,104 +74,54 @@ public class GUIDDispenserManager {
     	return this.instanceFor(AppCode.forId(appCode),sequenceId);
     }
     public GUIDDispenser instanceFor(final AppCode appCode,final String sequenceId) {
-    	// El GUIDDispenser de la cache...
-    	// NOTA: aunqe la cache de dispensers se comprueba en el metodo instanceFor(GUIDDispenserDef),
-    	//		 aqui también se comprueba para evitar tener que cargar la definición del GUIDDispenser
-    	//		 simplemente para llamar al método instanceFor(GUIDDispenserDef)
+    	// Try to get a cached GUIDDispenser
+    	// BEWARE:  The cache is checked at instanceFor(GUIDDispenserDef) method BUT it's also checked here,
+    	//		 	just to avoid loading the GUIDDispenser definition to call instanceFor(GUIDDispenserDef)
     	GUIDDispenser outDispenser = _dispensers != null ? _dispensers.get(appCode + "." + sequenceId)
         											  	 : null;
-        if (outDispenser == null) {	// El dispenser NO estaba creado... habrá que crearlo utilizando la factoría
-        	GUIDDispenserDef def = _loadDispenserDefFor(_xmlProperties,
+        if (outDispenser == null) {	// The dispenser was NOT created...
+        	GUIDDispenserDef def = new GUIDDispenserDef(_xmlProperties,
         												appCode,sequenceId);	
         	outDispenser = this.instanceFor(def);
         }
         return outDispenser;
     }
-    public GUIDDispenser instanceFor(GUIDDispenserDef dispDef) {
+    public GUIDDispenser instanceFor(final GUIDDispenserDef dispDef) {
     	GUIDDispenser outDispenser = null; 
     	
-		// Obtener un descriptor de dispenser de GUIDs
+		// Create a GUIDDispenser from the definition
 		if (dispDef == null) {
-			log.error("La definicion del dispenser de GUIDs es nula; NO se puede crear el dispenser");
+			log.error("The GUIDs dispenser definition is null!");
 		} else {
-			// Obtener la clave del dispenser 
+			// compose the dispenser key 
 			String dispenserKey = dispDef.getAppCode() + "." + dispDef.getSequenceName();
 			    
-			// Verificar que no se ha creado anteriormente, si ya se había creado retornarlo
+			// Check that the dispenser was NOT previously created
 			outDispenser = _dispensers != null ? _dispensers.get(dispenserKey)
 											   : null;
 	
-			// No existe dispenser con esa clave, por tanto crearlo
+			// ... if the dispenser was NOT previously created, crete it
 			if (outDispenser == null) {
-	            log.trace("El GUIDDispenser {} de la aplicacion {} NO estaba creado...se crea ahora!",
+	            log.trace("The GUIDDispenser {} for appCode={} was NOT previously created...create it now!",
 	            		  dispDef.getSequenceName(),dispDef.getAppCode());
 	            
-	            // Utilizar el GUIDDispenserFlavourFactory que inyecta guice y que da acceso a cada
-	            // una de las factorías de GUIDs en función del tipo
+	            // Use the injected GUIDDispenserFlavourFactory that provides access to the GUIDs factories by type
 	            outDispenser = _dispensersFactories.get(dispDef.getFactoryBindingId())
 	            								   .factoryFor(dispDef);
 				
-	            // Poner el dispenser en el mapa de dispenser disponibles...
+	            // Cache the dispenser
 		        if (outDispenser != null) {
 		        	if (_dispensers == null) _dispensers = new HashMap<String,GUIDDispenser>(10,0.5F);
-		            _dispensers.put(dispenserKey,outDispenser);
-		            log.trace("GUIDDispenser created: >\r\n{}",dispDef.debugInfo());	// Resumen de la configuracion
+		            _dispensers.put(dispenserKey,
+		            				outDispenser);
+		            log.trace("GUIDDispenser created: >\r\n{}",dispDef.debugInfo());	// config summary
 		        } else {
-		        	log.error("No se puede crear el dispenser de guids: {}/{}",
+		        	log.error("The guid dispenser for {}/{} could NOT be created!",
 		        			  dispDef.getAppCode(),dispDef.getSequenceName());
 		        }
 			}
 		}
-		// Devolver el dispenser recien creado
+		// return the dispenser
 		return outDispenser;
-    }
-///////////////////////////////////////////////////////////////////////////////////////////
-//  CARGA DE LA DEFINICIÓN DEL DISPENSER
-///////////////////////////////////////////////////////////////////////////////////////////
-    /**
-     * Obtiene la ruta xPath base donde se encuentran las propiedades del guidGenerator
-     * @return la ruta xPath (guidGenerator/sequence[@name='" + _sequenceName + "']/)
-     */
-    private static String _xPathBase(String sequenceName) {
-    	return "guidGenerator/sequence[@name='" + sequenceName + "']/";
-    }
-    /**
-     * Carga la configuracion del fichero de propiedades de la aplicacion
-     * @param appCode Codigo de aplicacion
-     * @param sequenceName Nombre de la secuencia
-     */
-    private static GUIDDispenserDef _loadDispenserDefFor(final XMLProperties xmlProperties,
-    											  		 final AppCode appCode,final String sequenceName) {
-        log.trace("Loading the config for dispenser {} in app {}",sequenceName,appCode);
-        
-        if (appCode == null || sequenceName == null) {
-        	String err = Strings.customize("No se puede cargar la configuracion del GUIDDispenser ya que el codigo de aplicacion o el nombre de secuencia es null: appCode={} / sequenceId={}",appCode,sequenceName).toString();
-            throw new IllegalArgumentException(err);
-        }
-        
-        // La información de los dispensers se cargan de un fichero de propiedades de la aplicación
- 		XMLPropertiesForApp props = xmlProperties.forApp(appCode);
- 		
- 		// - Tamaño de la secuencia
- 		int length = props.of("guids").getInteger(_xPathBase(sequenceName) + "length",GUIDDispenserDef.GUID_DEFAULT_LENGTH);
- 		
-        // - Identificador unico de la secuencia
-        String uniqueID = props.of("guids").getString(_xPathBase(sequenceName) + "uniqueId","0-unknown");
-        if (uniqueID == null) log.warn("No se ha definido la propiedad {}/uniqueId en el fichero de properties de la aplicacion {}. Se toma un valor '0-unknown'",
-            		 					_xPathBase(sequenceName),sequenceName,appCode.asString());
-        // - Identificador de la clase que genera los guids (se inyecta utilizando GUICE en el GUIDDispenserManager)
-        String factoryBindingId = props.of("guids").getString(_xPathBase(sequenceName) + "factoryBindingId","simpleGUIDDispenser");
-        if (factoryBindingId == null) log.warn("No se ha definido la propiedad {}/factoryBindingId en el fichero de properties de definición de guids de la aplicacion {}. Se toma un valor 'simpleGUIDDispenser'",
-            		 					 	   _xPathBase(sequenceName),sequenceName,appCode.asString());
-        // - Propiedades de la clase generadora...
-        Properties properties = props.of("guids").getProperties(_xPathBase(sequenceName) + "properties");
-        
-        // - Construir el guidDispenser
-        GUIDDispenserDef outDispDef = new GUIDDispenserDef(appCode,sequenceName,
-        												   length,
-        												   uniqueID,
-        												   factoryBindingId,
-        												   properties);
-        return outDispDef;
     }
 }

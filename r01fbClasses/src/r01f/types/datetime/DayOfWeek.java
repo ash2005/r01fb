@@ -1,6 +1,8 @@
 package r01f.types.datetime;
 
 import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
@@ -10,6 +12,7 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import r01f.types.CanBeRepresentedAsString;
+import r01f.util.types.Dates;
 
 @XmlRootElement(name="dayOfWeek")
 @Accessors(prefix="_")
@@ -38,6 +41,9 @@ public class DayOfWeek
 	}
 	public static DayOfWeek of(final String dayOfWeek) {
 		return new DayOfWeek(dayOfWeek);
+	}
+	public static DayOfWeek of(final Date date) {
+		return new DayOfWeek(Dates.asCalendar(date).get(Calendar.DAY_OF_WEEK));
 	}
 	public static DayOfWeek of(final int dayOfWeek) {
 		return new DayOfWeek(dayOfWeek);

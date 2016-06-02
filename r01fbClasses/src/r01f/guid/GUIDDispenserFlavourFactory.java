@@ -4,7 +4,7 @@ package r01f.guid;
 
 /**
  * Interface to be implemented by a {@link GUIDDispenser}
- * This interface is normally EXTENDED in the implementation (see {@link SimpleGUIDDispenser})
+ * This interface is normally EXTENDED in the implementation 
  * or {@link HighLowGUIDDispenser}) 
  *   	static interface SimpleGUIDDispenserFactory 
  *               extends GUIDDispenserFlavourFactory {

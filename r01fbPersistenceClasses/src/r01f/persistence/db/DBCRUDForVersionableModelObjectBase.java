@@ -11,6 +11,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import r01f.exceptions.Throwables;
 import r01f.guids.VersionIndependentOID;
+import r01f.marshalling.Marshaller;
 import r01f.model.OIDForVersionableModelObject;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.Versionable.HasVersionableFacet;
@@ -46,9 +47,22 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 /////////////////////////////////////////////////////////////////////////////////////////
 	public DBCRUDForVersionableModelObjectBase(final Class<M> modelObjType,final Class<DB> dbEntityType,
 											   final EntityManager entityManager,
+											   final Marshaller marshaller,
 											   final XMLPropertiesForAppComponent persistenceProperties) {
 		super(modelObjType,dbEntityType,
 			  entityManager,
+			  marshaller,
+			  persistenceProperties);
+	}
+	public DBCRUDForVersionableModelObjectBase(final Class<M> modelObjType,final Class<DB> dbEntityType,
+											   final TransformsDBEntityIntoModelObject<DB,M> dbEntityIntoModelObjectTransformer,
+											   final EntityManager entityManager,
+											   final Marshaller marshaller,
+											   final XMLPropertiesForAppComponent persistenceProperties) {
+		super(modelObjType,dbEntityType,
+			  dbEntityIntoModelObjectTransformer,
+			  entityManager,
+			  marshaller,
 			  persistenceProperties);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +80,7 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 								  final M entityToBeActivated) { 
 		throw new IllegalStateException(Throwables.message("Implemented at service level (see {}",CRUDServicesForVersionableModelObjectDelegateBase.class));
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> loadActiveVersionAt(final UserContext userContext,
 						   			   		 final VersionIndependentOID oid,final Date date) {
 		
@@ -83,8 +97,8 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 			DB activeVersionDBEntity = CollectionUtils.of(activeVersionEntities)
 													  .pickOneAndOnlyElement("The DB is NOT consistent: there's more than a single version of {} active at {}",
 																			 oid,date);
-			activeVersion = _dbEntityToModelObject(userContext,
-												   activeVersionDBEntity);
+			activeVersion = this.dbEntityToModelObject(userContext,
+												   	   activeVersionDBEntity);
 		}
 		// [2] - Compose the persistence operation result
 		CRUDResult<M> outLoadResult = null;
@@ -104,7 +118,7 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 		return outLoadResult;
 	}
 	
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDResult<M> loadWorkVersion(final UserContext userContext,
 							 			 final VersionIndependentOID oid) {		
 		log.debug("> loading a {} entity with oid={} work version",_DBEntityType,oid);
@@ -119,8 +133,8 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 			DB activeVersionEntity = CollectionUtils.of(workVersionEntities)
 												    .pickOneAndOnlyElement("The DB is NOT consistent: there's more than a single work version of {}",
 																		   oid);
-			activeVersion = _dbEntityToModelObject(userContext,
-												   activeVersionEntity);
+			activeVersion = this.dbEntityToModelObject(userContext,
+												   	   activeVersionEntity);
 		}
 		
 		// [2] - Compose the RecordPersistenceOperationResult
@@ -140,9 +154,9 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 		}
 		return outLoadResult;
 	}
-	@Override @SuppressWarnings("unchecked")
+	@Override 
 	public CRUDOnMultipleResult<M> deleteAllVersions(final UserContext userContext,
-													  	   	 final VersionIndependentOID oid) {
+													 final VersionIndependentOID oid) {
 		log.debug("> deleting all versions for a {} entity with oid={}",_DBEntityType,oid);
 		
 		// [1] - Load all version entities
@@ -158,8 +172,8 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 				if (dbEntity != null) {
 					this.getEntityManager()
 						.remove(this.getEntityManager().merge(dbEntity));	// TODO revisar			
-					M deletedModelObj =  _dbEntityToModelObject(userContext,
-														  	  dbEntity);
+					M deletedModelObj =  this.dbEntityToModelObject(userContext,
+														  	  		dbEntity);
 					if (deletedEntities == null) deletedEntities = Lists.newArrayList();
 					deletedEntities.add(deletedModelObj);
 				}
@@ -172,7 +186,8 @@ public abstract class DBCRUDForVersionableModelObjectBase<O extends OIDForVersio
 		CRUDOnMultipleResult<M> outDeleteResults = CRUDResultBuilder.using(userContext)
 																			.on(_modelObjectType)
 																			.<M>versionable()
-																				.deletedDBEntities(allVersionEntities);
+																				.deletedDBEntities(allVersionEntities)
+																				.transformedToModelObjectUsing(_dbEntityIntoModelObjectTransformer);
 		return outDeleteResults;
 	}
 }

@@ -7,7 +7,6 @@ import java.util.Collection;
 import com.google.inject.Module;
 
 import lombok.experimental.Accessors;
-import r01f.guids.CommonOIDs.AppCode;
 import r01f.services.interfaces.ServiceInterface;
 
 /**
@@ -28,40 +27,30 @@ public abstract class BeanImplementedServicesCoreBootstrapGuiceModuleBase
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	public BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode) {
-		super(apiAppCode);
+	public BeanImplementedServicesCoreBootstrapGuiceModuleBase() {
+		super();
 	}
-	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   				  final Collection<? extends Module> modulesToInstall) {
-		super(apiAppCode,
-			  modulesToInstall);
+	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final Collection<? extends Module> modulesToInstall) {
+		super(modulesToInstall);
 	}
-	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-																  final Module m1,
+	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final Module m1,
 																  final Collection<? extends Module> otherModules) {
-		super(apiAppCode,
-			  m1,
+		super(m1,
 			  otherModules);
 	}
-	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   				  final Module m1,final Module m2,
+	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final Module m1,final Module m2,
 												   				  final Collection<? extends Module> otherModules) {
-		super(apiAppCode,
-			  m1,m2,
+		super(m1,m2,
 			  otherModules);
 	}
-	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   				  final Module m1,final Module m2,final Module m3,
+	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final Module m1,final Module m2,final Module m3,
 												   				  final Collection<? extends Module> otherModules) {
-		super(apiAppCode,
-			  m1,m2,m3,
+		super(m1,m2,m3,
 			  otherModules);
 	}
-	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   				  final Module m1,final Module m2,final Module m3,final Module m4,
+	protected BeanImplementedServicesCoreBootstrapGuiceModuleBase(final Module m1,final Module m2,final Module m3,final Module m4,
 												   				  final Collection<? extends Module> otherModules) {
-		super(apiAppCode,
-			  m1,m2,m3,m4,
+		super(m1,m2,m3,m4,
 			  otherModules);
 	}
 }

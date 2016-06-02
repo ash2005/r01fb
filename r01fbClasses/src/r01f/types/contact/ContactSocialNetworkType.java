@@ -9,6 +9,7 @@ public enum ContactSocialNetworkType {
 	YOUTUBE,
 	GOOGLE,
 	WHATSAPP,
+	TELEGRAM,
 	LINE,
 	PINTEREST;
 }

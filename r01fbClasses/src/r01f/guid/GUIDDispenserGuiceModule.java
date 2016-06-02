@@ -23,12 +23,12 @@ import com.google.inject.multibindings.MapBinder;
  *			<sequence name='default'>
  *				<factoryBindingId>simpleGUIDDispenser</factoryBindingId>
  *				<uniqueId>desa</uniqueId>   <!-- loc=lc,sb_des=sd,sb_pru=sp,des=ds,pru=pr,pro=pd -->
- * 			<length>36</length>
+ * 				<length>36</length>
  *			</sequence>
  * </pre>
- * Because ot the binding is ONLY know at run-time (NOT at compile-time), GUICE cannot be used in the usual way (static bindings)
+ * The concrete guid factory to be binded is ONLY know at run-time (NOT at compile-time) so GUICE cannot be used in the usual way (static bindings)
  * <pre class='brush:java'>
- *		binder.bind(GuidDispenser.class).to(¿¿ que impl hay que cablear ??)
+ *		binder.bind(GuidDispenser.class).to(¿¿ what to bind ??)
  * </pre>
  *	
  * The solution is to use {@link MapBinder}, which allows to bind IDs to instances in a way that:
@@ -36,13 +36,14 @@ import com.google.inject.multibindings.MapBinder;
  *		<li>
  *		The mapping could be something like:
  *			<pre class='brush:java'>
- *				MapBinder<String,GUIDDispenserFactory> guidDispenserFactoryMapBinder = MapBinder.newMapBinder(binder,String.class,GUIDDispenserFactory.class);
+ *				MapBinder<String,GUIDDispenserFactory> guidDispenserFactoryMapBinder = MapBinder.newMapBinder(binder,
+ *																											  String.class,GUIDDispenserFactory.class);
  *				guidDispenserFactoryMapBinder.addBinding("simpleGUIDDispenser").to(SimpleGUIDDispenserFactory.class).in(Singleton.class);
  *				guidDispenserFactoryMapBinder.addBinding("highLowGUIDDispenser").to(HighLowGUIDDispenserFactory.class).in(Singleton.class);
  *			</pre>
  *		</li>
  *		<li>
- *		At run-time, from the GUIDDispenser ID, the instance can be obtained using a GUIDDispenser objects factory 
+ *		At run-time, using the GUIDDispenserID, a concrete instance can be obtained using a GUIDDispenser objects factory 
  *			<pre class='brush:java'>
  *				String guidDispenserImplId = "simpleGUIDDispenser";
  *				Key<Map<String,GUIDDispenserFactory>> guidDispenserFactoriesMap = Key.get(new TypeLiteral<Map<String,GUIDDispenserFactory>>(){});
@@ -50,9 +51,9 @@ import com.google.inject.multibindings.MapBinder;
  *															 			.get(guidDispenserImplId);
  *				outDispenser = factory.createDispenser(...);
  *			</pre>
- *		  ... but this option requires to have access to the GUICE injector from {@link GUIDDispenserManager} using the GuiceInjector.singleton()
- *			  (that's NOT a good design option), also, the code is complex, so is beter let GUICE inject the Map of {@link GUIDDispenser} factories
- *			  in {@link GUIDDispenserManager}:
+ *		    ... but this implementation requires to have access to the GUICE injector from {@link GUIDDispenserManager} using the GuiceInjector.singleton()
+ *			    (that's NOT a good design option), also, the code is complex, so a better option is let GUICE inject the Map of {@link GUIDDispenser} factories
+ *			    in {@link GUIDDispenserManager}:
  *			<pre class='brush:java'>
  *				public class GUIDDispenserManager {
  *					private final Map<String,GUIDDispenserFactory> _guidDispensersFactories;
@@ -70,6 +71,7 @@ import com.google.inject.multibindings.MapBinder;
  */
 public class GUIDDispenserGuiceModule
   implements Module {
+	
 	@Override
 	public void configure(Binder binder) {
 		binder.bind(GUIDDispenserManager.class)

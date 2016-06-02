@@ -21,10 +21,10 @@ import r01f.xmlproperties.XMLPropertyWrapper;
  * 
  * Usage: Let the guice module extend {@link GuiceModuleWithProperties} 
  * <pre class='brush:java'>
- *		public class R01EDBPersistenceGuiceModule 
+ *		public class MyDBPersistenceGuiceModule 
  *		     extends GuiceModuleWithProperties {
  *
- *			public R01EDBPersistenceGuiceModule() {
+ *			public MyDBPersistenceGuiceModule() {
  *				super(R01MInternalAppCode.CATALOG_CORE.code(),
  *					  "bbdd");
  *			}

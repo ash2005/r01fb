@@ -11,9 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import r01f.debug.Debuggable;
 import r01f.exceptions.Throwables;
-import r01f.guids.AppAndComponent;
-import r01f.guids.CommonOIDs.AppCode;
-import r01f.guids.CommonOIDs.AppComponent;
+import r01f.services.ServiceIDs.CoreAppAndModule;
+import r01f.services.ServiceIDs.CoreAppCode;
+import r01f.services.ServiceIDs.CoreModule;
 import r01f.services.ServicesImpl;
 import r01f.services.interfaces.ProxyForEJBImplementedService;
 import r01f.services.interfaces.ProxyForRESTImplementedService;
@@ -35,11 +35,11 @@ public class ServiceToImplAndProxyDef<S extends ServiceInterface>
 	/**
 	 * Core AppCode
 	 */
-	@Getter private final AppCode _coreAppCode;
+	@Getter private final CoreAppCode _coreAppCode;
 	/**
 	 * Module
 	 */
-	@Getter private final AppComponent _module;
+	@Getter private final CoreModule _module;
 	/**
 	 * A client interface definition for the {@link ServiceInterface} 
 	 * (an interface type extending {@link ServiceInterface} )
@@ -69,10 +69,10 @@ public class ServiceToImplAndProxyDef<S extends ServiceInterface>
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FACTORY
 /////////////////////////////////////////////////////////////////////////////////////////
-	public static <S extends ServiceInterface> ServiceToImplAndProxyDef<S> createFor(final AppAndComponent appAndModule,
+	public static <S extends ServiceInterface> ServiceToImplAndProxyDef<S> createFor(final CoreAppAndModule appAndModule,
 																			 		 final Class<S> serviceInterface,
 																			 		 final ServicesImpl configuredDefaultProxyImpl) {
-		ServiceToImplAndProxyDef<S> outImplDef = new ServiceToImplAndProxyDef<S>(appAndModule.getAppCode(),appAndModule.getAppComponent(),
+		ServiceToImplAndProxyDef<S> outImplDef = new ServiceToImplAndProxyDef<S>(appAndModule.getAppCode(),appAndModule.getModule(),
 									   						  	 				 serviceInterface,
 									   						  	 				 configuredDefaultProxyImpl);
 		// By default, the proxy type to be used is the configured one... only if the bean impl is available
@@ -104,8 +104,8 @@ public class ServiceToImplAndProxyDef<S extends ServiceInterface>
 		_proxyImplToUse = ServicesImpl.Bean;
 		_beanServiceImplType = (Class<? extends S>)implType;
 	}
-	public AppAndComponent getCoreAppAndModule() {
-		return AppAndComponent.composedBy(_coreAppCode,_module);
+	public CoreAppAndModule getCoreAppAndModule() {
+		return CoreAppAndModule.of(_coreAppCode,_module);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  DEBUG (called from ServicesClientInterfaceToImplOrProxyBinder)

@@ -82,7 +82,7 @@ public interface LanguageTexts
 	 * @param lang the language
 	 * @return false is NO text is defined for the lang; false otherwise
 	 */
-	public boolean isTextDefinedFor(Language lang);
+	public boolean isTextDefinedFor(Language... lang);
 	/**
 	 * @return the {@link Set} of {@link Language} that have some text associated with
 	 */

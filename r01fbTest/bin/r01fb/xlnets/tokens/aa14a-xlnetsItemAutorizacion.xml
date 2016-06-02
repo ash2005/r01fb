@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<n38>
+	<elementos tipo="n38ItemObtenerAutorizacion">
+		<elemento subtipo="n38itemSeguridad">
+			<parametro id="n38eudescripcion">
+				<valor>Eu_ Agentes de zuzenean y tráfico</valor>
+			</parametro>
+			<parametro id="url">
+				<valor>http://www.zuzenean.euskadi.eus/s68-contcita/es/aa14aTrafikoaUIWar/aa14aInicio.jsp
+				</valor>
+			</parametro>
+			<parametro id="n38perfiles">
+				<valor>AA14A-PF-0001</valor>
+			</parametro>
+			<parametro id="n38estado">
+				<valor>T</valor>
+			</parametro>
+			<parametro id="n38path-datos">
+				<valor />
+			</parametro>
+			<parametro id="n38parametros">
+				<valor />
+			</parametro>
+			<parametro id="n38prenodos">
+				<valor />
+			</parametro>
+			<parametro id="n38uidobjseguridad">
+				<valor>AA14A-FN-0001</valor>
+			</parametro>
+			<parametro id="n38cadescripcion">
+				<valor>Agentes de zuzenean y tráfico</valor>
+			</parametro>
+			<parametro id="n38path-ejecutable">
+				<valor />
+			</parametro>
+			<parametro id="n38tipo">
+				<valor>Funcion</valor>
+			</parametro>
+			<parametro id="n38idcategoria">
+				<valor />
+			</parametro>
+			<parametro id="cn">
+				<valor>AA14A-FN-0001</valor>
+			</parametro>
+			<elemento subtipo="n38autorizacion">
+				<parametro id="n38cadescripcion">
+					<valor>Agentes de Zuzenean y Tráfico</valor>
+				</parametro>
+				<parametro id="n38uidperfil">
+					<valor>AA14A-PF-0001</valor>
+				</parametro>
+				<parametro id="n38acciones">
+					<valor>Acceso</valor>
+				</parametro>
+				<parametro id="cn">
+					<valor>AA14A-AT-0001</valor>
+				</parametro>
+			</elemento>
+		</elemento>
+	</elementos>
+</n38>

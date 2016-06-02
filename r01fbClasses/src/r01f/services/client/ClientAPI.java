@@ -1,5 +1,6 @@
 package r01f.services.client;
 
+import r01f.marshalling.Marshaller;
 import r01f.usercontext.UserContext;
 
 
@@ -7,6 +8,10 @@ import r01f.usercontext.UserContext;
  * Client API 
  */
 public interface ClientAPI {
+	/**
+	 * @return the model objects marshaller
+	 */
+	public Marshaller getModelObjectsMarshaller();
 	/**
 	 * @return the user context
 	 */

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import r01f.guid.GUIDDispenser;
 import r01f.guid.GUIDDispenserDef;
+import r01f.guid.GUIDDispenserDefBuilder;
 import r01f.guid.SimpleGUIDDispenser;
 import r01f.guids.CommonOIDs.AppCode;
 import r01f.locale.Languages;
@@ -86,11 +87,11 @@ public class HtmlLinkRenderer {
 								.asString();
 		return outLink;				
 	}
-	private static GUIDDispenserDef DISPENSER_DEF = GUIDDispenserDef.builder()
-														.forAppSequence(AppCode.forId("r01f"),"html")
-														.withLength(36)
-														.withUniqueId("h")
-														.build();
+	private static GUIDDispenserDef DISPENSER_DEF = GUIDDispenserDefBuilder.builderFor(AppCode.forId("r01f"),"html")
+																			.withUniqueID("rf")
+																			.withLength(36)
+																			.usingDefaultGUIDDispenser()
+																			.build();
 	public static String _generateGuid() {
 		GUIDDispenser dispenser = SimpleGUIDDispenser.create(DISPENSER_DEF);
 		return dispenser.generateGUID();

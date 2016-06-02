@@ -1,5 +1,7 @@
 package r01f.types.contact;
 
+import com.google.common.annotations.GwtIncompatible;
+
 import r01f.guids.OIDTyped;
 
 /**
@@ -10,5 +12,6 @@ public interface PersonID
 	/**
 	 * @return true if the id is valid
 	 */
+	@GwtIncompatible(value = " Not Compatible for GWT")
 	public boolean isValid();
 }

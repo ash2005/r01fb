@@ -11,8 +11,9 @@
 	<!-- SHTML -->
 	<mime-type type="text/html">
 		<glob pattern="*.shtml" />
-		
-		<sub-class-of type="text/html"/>
+		<alias type="text/html"/>
+		<!-- <sub-class-of type="text/html"/> -->
 	</mime-type>
+	
 </mime-info>
  

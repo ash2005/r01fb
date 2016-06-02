@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import r01f.util.types.Dates;
+
 /**
  * Annotation used to express the marshall/unmarshall format for Dates
  * The normal use is:
@@ -15,6 +17,7 @@ import java.lang.annotation.Target;
  * 			@Getter @Setter private Date _myDateField;
  * 		}
  * </pre>
+ * @see Dates for format values (ie milis, iso, etc)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

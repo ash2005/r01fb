@@ -1,2 +1,0 @@
--header "<script src='{@docRoot}/scripts/shCore.js' type='text/javascript'></script><script src='{@docRoot}/scripts/shAutoloader.js' type='text/javascript'></script>"
--footer "<script type='text/javascript'>SyntaxHighlighter.autoloader('js jscript javascript   {@docRoot}/scripts/shBrushJScript.js','java    {@docRoot}/scripts/shBrushJava.js','css {@docRoot}/scripts/shBrushCss.js','xml xhtml xslt html xhtml    {@docRoot}/scripts/shBrushXml.js');SyntaxHighlighter.all();</script>"

@@ -17,6 +17,7 @@ import r01f.model.facets.Versionable.HasVersionableFacet;
 import r01f.patterns.IsBuilder;
 import r01f.persistence.db.DBEntity;
 import r01f.persistence.db.DBEntityToModelObjectTransformerBuilder;
+import r01f.persistence.db.TransformsDBEntityIntoModelObject;
 import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Dates;
@@ -149,7 +150,7 @@ public class CRUDResultBuilder
 		}
 		// --------- SUCCESS
 		public PersistenceOperationResultBuilderForOK<T> executed(final PersistenceRequestedOperation requestedOp,
-																  				final PersistencePerformedOperation performedOp) {
+																  final PersistencePerformedOperation performedOp) {
 			return new PersistenceOperationResultBuilderForOK<T>(_userContext,
 														 		 _entityType,
 														 		 requestedOp,performedOp);
@@ -262,13 +263,18 @@ public class CRUDResultBuilder
 																    _err);
 		}
 		public <O extends OID> CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final O entityOid) {
-			_err.addTargetEntityIdInfo("oid",entityOid.asString());
+			if (entityOid  != null) {
+				_err.addTargetEntityIdInfo("oid",entityOid.asString());
+			}
 			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
 																    _err);
 		}
 		public CRUDResultBuilderForErrorExtErrorCodeStep<T> about(final T entity) {
 			_err.setTargetEntity(entity);
-			if (entity instanceof HasOID) _err.addTargetEntityIdInfo("oid",((HasOID<?>)entity).getOid().asString());
+			if (entity instanceof HasOID) {
+				HasOID<?> hasOid = (HasOID<?>)entity;
+				_err.addTargetEntityIdInfo("oid",(hasOid.getOid() != null ? hasOid.getOid().asString() : "null"));
+			}
 			return new CRUDResultBuilderForErrorExtErrorCodeStep<T>(_userContext,
 																	_err);
 		}
@@ -401,21 +407,32 @@ public class CRUDResultBuilder
 											 				 entity);
 			return outPersistenceOpResult;			
 		}
-		public CRUDOK<T> dbEntity(final DBEntity dbEntity) {			
-			Function<DBEntity,T> defaultDBEntityToModelObjConverter = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
-																														_entityType);
-			T obj = defaultDBEntityToModelObjConverter.apply(dbEntity);
-			CRUDOK<T> outPersistenceOpResult = new CRUDOK<T>(_entityType,
-											 				 _requestedOp,_performedOp,
-											 				 obj);
-			return outPersistenceOpResult;
+		public <DB extends DBEntity> PersistenceOperationResultBuilderForOKTransformerStep<DB,T> dbEntity(final DB dbEntity) {			
+			return new PersistenceOperationResultBuilderForOKTransformerStep<DB,T>(_userContext,
+																				  _entityType,
+																				  _requestedOp,_performedOp,
+																				  dbEntity);	
 		}
-		public CRUDOK<T> dbEntity(final DBEntity dbEntity,
-								  		  final Function<DBEntity,T> transformer) {
-			Function<DBEntity,T> dbEntityToModelObjConverter = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
-																												  transformer);
-			T obj = dbEntityToModelObjConverter.apply(dbEntity);
-			CRUDOK<T> outPersistenceOpResult = new CRUDOK<T>(_entityType,
+	}
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	public class PersistenceOperationResultBuilderForOKTransformerStep<DB extends DBEntity,
+																	   T> {
+		protected final UserContext _userContext;
+		protected final Class<T> _entityType;
+		protected final PersistenceRequestedOperation _requestedOp;
+		protected final PersistencePerformedOperation _performedOp;
+		protected final DB _dbEntity;
+		
+		public <M extends PersistableModelObject<? extends OID>> CRUDOK<M> transformedToModelObjectUsing(final TransformsDBEntityIntoModelObject<DB,M> dbEntityToModelObjectTransformer) {			
+			return this.transformedToModelObjectUsing(DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
+																										dbEntityToModelObjectTransformer));
+		}
+		@SuppressWarnings("unchecked")
+		public <M extends PersistableModelObject<? extends OID>> CRUDOK<M> transformedToModelObjectUsing(final Function<DB,M> transformer) {
+			Function<DB,M> dbEntityToModelObjConverter = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
+																										   transformer);
+			M obj = dbEntityToModelObjConverter.apply(_dbEntity);
+			CRUDOK<M> outPersistenceOpResult = new CRUDOK<M>((Class<M>)_entityType,
 				 						     				 _requestedOp,_performedOp,
 				 						     				 obj);
 			return outPersistenceOpResult;

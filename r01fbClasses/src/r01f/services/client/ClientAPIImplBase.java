@@ -1,6 +1,7 @@
 package r01f.services.client;
 
 import lombok.experimental.Accessors;
+import r01f.marshalling.Marshaller;
 import r01f.usercontext.UserContext;
 
 
@@ -15,6 +16,10 @@ public abstract class ClientAPIImplBase<S extends ServiceProxiesAggregator>
 //  CONSTRUCTOR INJECTED
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * Model objects marshaller
+	 */
+	protected final Marshaller _modelObjectsMarshaller;
+	/**
 	 * UserContext 
 	 */
 	protected final UserContext _userContext;
@@ -26,14 +31,26 @@ public abstract class ClientAPIImplBase<S extends ServiceProxiesAggregator>
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
+//	public ClientAPIImplBase(final UserContext userContext,
+//						 	 final S servicesProxiesAggregator) {
+//		this(userContext,
+//			 null,
+//			 servicesProxiesAggregator);
+//	}	
 	public ClientAPIImplBase(final UserContext userContext,
-						 final S servicesProxiesAggregator) {
+							 final Marshaller modelObjectsMarshaller,
+						 	 final S servicesProxiesAggregator) {
 		_userContext = userContext;
+		_modelObjectsMarshaller = modelObjectsMarshaller;
 		_serviceProxiesAggregator = servicesProxiesAggregator;
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public Marshaller getModelObjectsMarshaller() {
+		return _modelObjectsMarshaller;
+	}
 	@Override @SuppressWarnings("unchecked")
 	public <U extends UserContext> U getUserContext() {
 		return (U)_userContext;

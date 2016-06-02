@@ -6,6 +6,7 @@ import com.google.common.eventbus.EventBus;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import r01f.guids.OID;
+import r01f.guids.OIDIsGenerated;
 import r01f.guids.OIDs;
 import r01f.model.PersistableModelObject;
 import r01f.model.facets.SelfValidates;
@@ -92,91 +93,76 @@ public abstract class CRUDServicesForModelObjectDelegateBase<O extends OID,M ext
 /////////////////////////////////////////////////////////////////////////////////////////
 //  CREATE OR UPDATE
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override @SuppressWarnings("unchecked")
+	@Override
 	public CRUDResult<M> create(final UserContext userContext,
 								final M modelObj) {
+		return _doUpdateOrCreate(userContext,
+						  		 modelObj,
+						  		 PersistenceRequestedOperation.CREATE);
+	}
+	@Override 
+	public CRUDResult<M> update(final UserContext userContext,
+								final M modelObj) {
+		return _doUpdateOrCreate(userContext,
+						  		 modelObj,
+						  		 PersistenceRequestedOperation.UPDATE);
+	}
+	@SuppressWarnings("unchecked")
+	private CRUDResult<M> _doUpdateOrCreate(final UserContext userContext,
+											final M modelObj,
+											final PersistenceRequestedOperation requestedOperation) {
 		// [0] - check the entity
 		if (modelObj == null) {
 			return CRUDResultBuilder.using(userContext)
-										       .on(_modelObjectType)
-										       .badClientRequestData(PersistenceRequestedOperation.CREATE,
-										    		 			     "The {} entity cannot be null in order to be created",_modelObjectType)
-										    		 .about(modelObj).build();
+								       .on(_modelObjectType)
+								       .badClientRequestData(PersistenceRequestedOperation.CREATE,
+								    		 			     "The {} entity cannot be null in order to be {}ed",_modelObjectType,requestedOperation.name().toLowerCase())
+								    		 .about(modelObj).build();
 		}
 		// [1] check that it's NOT in read only status
 		CRUDResult<M> outOpResult = _errorIfReadOnlyOrNull(userContext,
-																	  PersistenceRequestedOperation.CREATE,
-																	  modelObj);
+														   requestedOperation,
+														   modelObj);
 		if (outOpResult != null) return outOpResult;
 		
 		// [2] ensure that the new object has an oid
-		if (modelObj.getOid() == null) {
-			// ensure that the entity has an oid
+		if (requestedOperation == PersistenceRequestedOperation.CREATE 
+		 && modelObj.getOid() == null) {
+			// ensure that the entity has an oid if the OID is NOT generated at DB-level
 			Class<? extends OID> oidType = OIDs.oidTypeFor(_modelObjectType);
-			O oid = (O)OIDs.supplyOid(oidType);
-			modelObj.setOid(oid);
+			if (!ReflectionUtils.isImplementing(oidType,OIDIsGenerated.class)) {
+				O oid = (O)OIDs.supplyOid(oidType);				
+				modelObj.setOid(oid);
+				log.debug("The entity to be created does NOT have the oid set so a new one is generated: {}",oid);
+			}
+		} else if (requestedOperation == PersistenceRequestedOperation.UPDATE
+				&& modelObj.getOid() == null) {
+			throw new IllegalArgumentException("The entity to be updated does NOT have an OID, is it maybe a create operation?");
 		}
-
+		
 		// [3] model object validation and create the object at the persistent store
-		M theModelObjToCreate = modelObj;
+		M theModelObjToPersist = modelObj;
 		if (this instanceof CompletesModelObjectBeforeCreateOrUpdate) {
 			CompletesModelObjectBeforeCreateOrUpdate<M> completes = (CompletesModelObjectBeforeCreateOrUpdate<M>)this;
-			theModelObjToCreate = completes.completeModelObjBeforeCreateOrUpdate(userContext,
-																	  			 PersistenceRequestedOperation.CREATE,
-																	  			 modelObj);
+			theModelObjToPersist = completes.completeModelObjBeforeCreateOrUpdate(userContext,
+																	  			  requestedOperation,
+																	  			  modelObj);
 		}
 		outOpResult = _errorIfNOTValidOrNull(userContext,
-											 PersistenceRequestedOperation.CREATE,
-											 theModelObjToCreate);
+											 requestedOperation,
+											 theModelObjToPersist);
 		if (outOpResult != null) return outOpResult;
 
 		// [4] create
-		outOpResult = this.getServiceImplAs(CRUDServicesForModelObject.class)
-								.create(userContext,
-								   		theModelObjToCreate);
-		// [5] throw CRUD event
-		_fireEvent(userContext,
-				   outOpResult);
-		// [6] return
-		return outOpResult;
-	}
-	@Override @SuppressWarnings("unchecked")
-	public CRUDResult<M> update(final UserContext userContext,
-								final M modelObj) {
-		// [0] - check the entity
-		if (modelObj == null)  {
-			return CRUDResultBuilder.using(userContext)
-										       .on(_modelObjectType)
-										       .badClientRequestData(PersistenceRequestedOperation.UPDATE,
-										    		 			     "The {} entity cannot be null in order to be created",_modelObjectType)
-										    		 .about(modelObj).build();
+		if (requestedOperation == PersistenceRequestedOperation.CREATE) {
+			outOpResult = this.getServiceImplAs(CRUDServicesForModelObject.class)
+									.create(userContext,
+									   		theModelObjToPersist);
+		} else if (requestedOperation == PersistenceRequestedOperation.UPDATE) {
+			outOpResult = this.getServiceImplAs(CRUDServicesForModelObject.class)
+									.update(userContext,
+									   		theModelObjToPersist);
 		}
-		// [1] check that it's NOT in read only status
-		CRUDResult<M> outOpResult = _errorIfReadOnlyOrNull(userContext,
-																	  PersistenceRequestedOperation.UPDATE,
-																	  modelObj);
-		if (outOpResult != null) return outOpResult;
-				
-		// [2] ensure that the new object has an oid
-		if (modelObj.getOid() == null) throw new IllegalArgumentException("The entity to be updated does NOT have an OID, is it maybe a create operation?");
-		
-		// [3] model object validation and create the object at the persistent store
-		M theModelObjToUpdate = modelObj;
-		if (this instanceof CompletesModelObjectBeforeCreateOrUpdate) {
-			CompletesModelObjectBeforeCreateOrUpdate<M> completes = (CompletesModelObjectBeforeCreateOrUpdate<M>)this;
-			theModelObjToUpdate = completes.completeModelObjBeforeCreateOrUpdate(userContext,
-																	  			 PersistenceRequestedOperation.CREATE,
-																	  			 modelObj);
-		}
-		outOpResult = _errorIfNOTValidOrNull(userContext,
-											 PersistenceRequestedOperation.UPDATE,
-											 theModelObjToUpdate);
-		if (outOpResult != null) return outOpResult;
-		
-		// [4] update
-		outOpResult = this.getServiceImplAs(CRUDServicesForModelObject.class)
-								.update(userContext,
-								   		theModelObjToUpdate);
 		// [5] throw CRUD event
 		_fireEvent(userContext,
 				   outOpResult);

@@ -1,5 +1,6 @@
 package r01f.services.client.api.delegates;
 
+import r01f.marshalling.Marshaller;
 import r01f.model.jobs.EnqueuedJob;
 import r01f.services.interfaces.IndexManagementServices;
 import r01f.usercontext.UserContext;
@@ -14,8 +15,10 @@ public final class ClientAPIDelegateForIndexManagementServices<S extends IndexMa
 //  CONSTRUCTORS
 /////////////////////////////////////////////////////////////////////////////////////////
 	public ClientAPIDelegateForIndexManagementServices(final UserContext userContext,
-								   			final S services) {
+													   final Marshaller modelObjectsMarshaller,
+													   final S services) {
 		super(userContext,
+			  modelObjectsMarshaller,
 			  services);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

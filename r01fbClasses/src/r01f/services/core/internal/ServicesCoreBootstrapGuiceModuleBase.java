@@ -4,6 +4,9 @@ import java.util.Collection;
 
 import javax.inject.Singleton;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.inject.Binder;
 import com.google.inject.Inject;
 import com.google.inject.Key;
@@ -13,10 +16,11 @@ import com.google.inject.Provider;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import r01f.guids.CommonOIDs.AppCode;
 import r01f.guids.CommonOIDs.AppComponent;
 import r01f.inject.HasMoreBindings;
 import r01f.reflection.ReflectionUtils;
+import r01f.services.ServiceIDs.CoreAppCode;
+import r01f.services.ServiceIDs.CoreModule;
 import r01f.services.ServicesPackages;
 import r01f.util.types.collections.CollectionUtils;
 import r01f.util.types.collections.Lists;
@@ -28,169 +32,148 @@ import r01f.xmlproperties.XMLPropertiesForAppComponent;
 abstract class ServicesCoreBootstrapGuiceModuleBase
     implements ServicesCoreBootstrapGuiceModule {
 /////////////////////////////////////////////////////////////////////////////////////////
-//  
+// 	FIELDS
 /////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * API appCode
+	 *  MODULES
+	 *		 a collection of the installed module types (ie dbmodule, search module, notification module, etc)
+	 *		 (it's used to detect whether a certain guice module type is present)
 	 */
-	protected final AppCode _apiAppCode;
+	protected final Collection<Module> _installedModules;
 	/**
-	 * CORE appCode
-	 */
-	protected final AppCode _coreAppCode;
-	/**
-	 * CORE appCode component
-	 */
-	protected final AppComponent _coreAppComponent;
-	/**
-	 * Properties for core
+	 * Core services properties (to be used while binding)
 	 */
 	protected final XMLPropertiesForAppComponent _servicesCoreProps;
 /////////////////////////////////////////////////////////////////////////////////////////
-//  MODULES
-//		 a collection of the installed module types (ie dbmodule, search module, notification module, etc)
-//		 (it's used to detect whether a certain guice module type is present)
-/////////////////////////////////////////////////////////////////////////////////////////
-	protected final Collection<Module> _installedModules;
-
-	protected final Collection<Class<? extends Module>> _installedModuleTypes;
-/////////////////////////////////////////////////////////////////////////////////////////
 //  CONSTRUCTOR
 /////////////////////////////////////////////////////////////////////////////////////////
-	public ServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode) {
-		_apiAppCode = apiAppCode;
-		
-		// get tye appCode from the bootstrap module type's package and @ServicesCore annotation
-		_coreAppCode = ServicesPackages.appCodeFromCoreBootstrapModuleType(this.getClass());						// the appCode is extracted from the package
-		_coreAppComponent = ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrThrow(this.getClass());		// the component is extracted from the @ServiceCore annotation
-		_servicesCoreProps = XMLProperties.createForApp(_coreAppCode)
-					  						  .notUsingCache()
-					  						  .forComponent(_coreAppComponent.asString() + ".services");
-		
-		// Crete the list of installed modules
+	public ServicesCoreBootstrapGuiceModuleBase() {
+		// Create the list of installed modules
 		_installedModules = Lists.newArrayList();
-		_installedModuleTypes = Lists.newArrayList();
+		
+		// instance a properties to be used here
+		final CoreAppCode coreAppCode = ServicesPackages.appCodeFromCoreBootstrapModuleType(this.getClass());				// the appCode is extracted from the package
+		final CoreModule coreModule = ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrThrow(this.getClass());		// the component is extracted from the @ServiceCore annotation
+		_servicesCoreProps = XMLProperties.createForAppComponent(coreAppCode.asAppCode(),
+																 AppComponent.forId(_componentPropertiesIdFor(coreModule,"services")))	// beware!!
+							 			  .notUsingCache();
 	}
-	protected ServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   final Collection<? extends Module> modulesToInstall) {
-		this(apiAppCode);
+	protected ServicesCoreBootstrapGuiceModuleBase(final Collection<? extends Module> modulesToInstall) {
+		this();
 		
 		// modules to install
 		if (CollectionUtils.hasData(modulesToInstall)) {
 			for (Module m : modulesToInstall) {
 				_installedModules.add(m);
-				_installedModuleTypes.add(m.getClass());		// store the installed module type for later use
 			}
 		}
 	}
-	protected ServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   final Module m1,
+	protected ServicesCoreBootstrapGuiceModuleBase(final Module m1,
 												   final Collection<? extends Module> otherModules) {
-		this(apiAppCode);
+		this();
 		
 		// modules to install
 		if (m1 != null) {
 			_installedModules.add(m1);
-			_installedModuleTypes.add(m1.getClass());
 		}
 		if (CollectionUtils.hasData(otherModules)) {		 
 		     for (Module m : otherModules) {
 		    	 _installedModules.add(m);
-		    	 _installedModuleTypes.add(m.getClass());
 		     }
 		}
 	}
-	protected ServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   final Module m1,final Module m2,
+	protected ServicesCoreBootstrapGuiceModuleBase(final Module m1,final Module m2,
 												   final Collection<? extends Module> otherModules) {
-		this(apiAppCode);
+		this();
 		
 		// modules to install
 		if (m1 != null) {
 			_installedModules.add(m1);
-			_installedModuleTypes.add(m1.getClass());
 		}
 		if (m2 != null) {
 			_installedModules.add(m2);
-			_installedModuleTypes.add(m2.getClass());
 		}
 		if (CollectionUtils.hasData(otherModules)) {		 
 		     for (Module m : otherModules) {
 		    	 _installedModules.add(m);
-		    	 _installedModuleTypes.add(m.getClass());
 		     }
 		}
 	}
-	protected ServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   final Module m1,final Module m2,final Module m3,
+	protected ServicesCoreBootstrapGuiceModuleBase(final Module m1,final Module m2,final Module m3,
 												   final Collection<? extends Module> otherModules) {
-		this(apiAppCode);
+		this();
 		
 		// modules to install
 		if (m1 != null) {
 			_installedModules.add(m1);
-			_installedModuleTypes.add(m1.getClass());
 		}
 		if (m2 != null) {
 			_installedModules.add(m2);
-			_installedModuleTypes.add(m2.getClass());
 		}
 		if (m3 != null) {
 			_installedModules.add(m3);
-			_installedModuleTypes.add(m3.getClass());
 		}
 		if (CollectionUtils.hasData(otherModules)) {		 
 		     for (Module m : otherModules) {
 		    	 _installedModules.add(m);
-		    	 _installedModuleTypes.add(m.getClass());
 		     }
 		}
 	}
-	protected ServicesCoreBootstrapGuiceModuleBase(final AppCode apiAppCode,
-												   final Module m1,final Module m2,final Module m3,final Module m4,
+	protected ServicesCoreBootstrapGuiceModuleBase(final Module m1,final Module m2,final Module m3,final Module m4,
 												   final Collection<? extends Module> otherModules) {
-		this(apiAppCode);
+		this();
 		
 		// modules to install
 		if (m1 != null) {
 			_installedModules.add(m1);
-			_installedModuleTypes.add(m1.getClass());
 		}
 		if (m2 != null) {
 			_installedModules.add(m2);
-			_installedModuleTypes.add(m2.getClass());
 		}
 		if (m3 != null) {
 			_installedModules.add(m3);
-			_installedModuleTypes.add(m3.getClass());
 		}
 		if (m4 != null) {
 			_installedModules.add(m4);
-			_installedModuleTypes.add(m4.getClass());
 		}
 		if (CollectionUtils.hasData(otherModules)) {		 
 		     for (Module m : otherModules) {
 		    	 _installedModules.add(m);
-		    	 _installedModuleTypes.add(m.getClass());
 		     }
 		}
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  MODULE INTERFACE
 /////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Avoid multiple bindings 
+	 */
 	private boolean XMLPROPERTIES_FOR_SERVICES_SET = false;
 	
 	@Override
 	public void configure(final Binder binder) {
+		final CoreAppCode coreAppCode = ServicesPackages.appCodeFromCoreBootstrapModuleType(this.getClass());				// the appCode is extracted from the package
+		final CoreModule coreModule = ServicesPackages.appComponentFromCoreBootstrapModuleTypeOrThrow(this.getClass());		// the component is extracted from the @ServiceCore annotation
+		
 		log.warn("____________START [{}.{}] CORE Bean Bootstraping with {}",
-				 _coreAppCode,_coreAppComponent,this.getClass());
+				 coreAppCode,coreModule,this.getClass());
 		
 		Binder theBinder = binder; 
 		
-		// [1]: Install Modules 
+		// [1]: Bind services properties
+		if (!XMLPROPERTIES_FOR_SERVICES_SET) {
+			_bindXMLPropertiesComponentProviderFor(coreAppCode,coreModule,
+												  "services",
+												   theBinder);
+			XMLPROPERTIES_FOR_SERVICES_SET = true;
+		}
+		
+		// [2]: Install Modules & bind specific properties
 		if (CollectionUtils.hasData(_installedModules)) {
 			for (Module m : _installedModules) {
-				log.warn("\t\t-{} > install {} guice module",_coreAppCode,m.getClass());
+				log.warn("\t\t-{} > install {} guice module",coreAppCode,m.getClass());
+				
+				// Install the module
 				theBinder.install(m);
 			}
 		}
@@ -201,69 +184,68 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 			((HasMoreBindings)this).configureMoreBindings(theBinder);
 		}
 		
-		// [2]: Bind services properties
-		if (!XMLPROPERTIES_FOR_SERVICES_SET) {
-			_bindXMLPropertiesComponentProviderFor("services",
-												   theBinder);
-			XMLPROPERTIES_FOR_SERVICES_SET = true;
-		}
-		
 		log.warn("______________END [{}.{}] CORE Bean Bootstraping with {}",
-				 _coreAppCode,_coreAppComponent,this.getClass());
+				 coreAppCode,coreModule,this.getClass());
 	}
 	
 /////////////////////////////////////////////////////////////////////////////////////////
 //  XMLProperties PROVIDERS
 /////////////////////////////////////////////////////////////////////////////////////////
-	protected void _bindXMLPropertiesComponentProviderFor(final String subComponent,
-														  final Binder binder) {
-		_doBindXMLPropertiesComponentProviderAs(subComponent,subComponent,
+	protected static void _bindXMLPropertiesComponentProviderFor(final CoreAppCode coreAppCode,final CoreModule coreModule,
+														  		 final String subComponent,
+														  		 final Binder binder) {
+		_doBindXMLPropertiesComponentProviderAs(coreAppCode,coreModule,
+												subComponent,subComponent,
 												binder,false);	// bind BUT do NOT expose
-		_doBindXMLPropertiesComponentProviderAs(_componentPropertiesIdFor(_coreAppComponent,subComponent),subComponent,
+		_doBindXMLPropertiesComponentProviderAs(coreAppCode,coreModule,
+												_componentPropertiesIdFor(coreModule,subComponent),subComponent,
 											    binder,true);	// bind and expose
 	}
-	private void _doBindXMLPropertiesComponentProviderAs(final String bindingName,final String subComponent,
-														 final Binder binder,final boolean expose) {
+	private static void _doBindXMLPropertiesComponentProviderAs(final CoreAppCode coreAppCode,final CoreModule coreAppComponent,
+														 		final String bindingName,final String subComponent,
+														 		final Binder binder,final boolean expose) {
 		log.debug("{}.{}.properties.xml properties are available for injection as a {} object annotated with @XMLPropertiesComponent(\"{}\") INTERNALLY and @XMLPropertiesComponent(\"{}\") EXTERNALLY",
-				  _coreAppCode,_componentPropertiesIdFor(_coreAppComponent,subComponent),
+				  coreAppCode,_componentPropertiesIdFor(coreAppComponent,subComponent),
 				  XMLPropertiesForAppComponent.class.getSimpleName(),
 				  subComponent,
-				  _componentPropertiesIdFor(_coreAppComponent,subComponent));
+				  _componentPropertiesIdFor(coreAppComponent,subComponent));
 		
 		// do the binding
 		binder.bind(XMLPropertiesForAppComponent.class)
 			  .annotatedWith(new XMLPropertiesComponentImpl(bindingName))
-			  .toProvider(new XMLPropertiesForXProvider(_coreAppCode,_coreAppComponent,subComponent))
+			  .toProvider(new XMLPropertiesForXProvider(coreAppCode,coreAppComponent,subComponent))
 			  .in(Singleton.class);
+		
 		// Expose xml properties binding
 		if (expose && (binder instanceof PrivateBinder)) {
 			log.warn("{}.{}.properties.xml properties are available for injection as a {} object annotated with @XMLPropertiesComponent(\"{}\")",
-					 _coreAppCode,_componentPropertiesIdFor(_coreAppComponent,subComponent),
+					 coreAppCode,_componentPropertiesIdFor(coreAppComponent,subComponent),
 					 XMLPropertiesForAppComponent.class.getSimpleName(),
-					 _componentPropertiesIdFor(_coreAppComponent,subComponent));
+					 _componentPropertiesIdFor(coreAppComponent,subComponent));
 			PrivateBinder pb = (PrivateBinder)binder;
 			pb.expose(Key.get(XMLPropertiesForAppComponent.class,new XMLPropertiesComponentImpl(bindingName)));
 		}
 	}
 
-	private static String _componentPropertiesIdFor(final AppComponent appComponent,final String subComponent) {
-		String componentId = appComponent != null ? appComponent.asString() + "." + subComponent
-												  : subComponent;
+	protected static String _componentPropertiesIdFor(final CoreModule coreModule,final String subComponent) {
+		String componentId = coreModule != null ? coreModule.asString() + "." + subComponent
+												: subComponent;
 		return componentId;
 	}
 	@RequiredArgsConstructor
 	protected static class XMLPropertiesForXProvider 
 				implements Provider<XMLPropertiesForAppComponent> {
+		
 		@Inject protected XMLProperties _props;
 		
-				protected final AppCode _coreAppCode;
-				protected final AppComponent _coreAppComponent;
+				protected final CoreAppCode _coreAppCode;
+				protected final CoreModule _coreModule;
 				protected final String _subComponent;
 				
 		@Override
 		public XMLPropertiesForAppComponent get() {
-			String componentId = ServicesCoreBootstrapGuiceModuleBase._componentPropertiesIdFor(_coreAppComponent,_subComponent);
-			XMLPropertiesForAppComponent outPropsForComponent = new XMLPropertiesForAppComponent(_props.forApp(_coreAppCode),
+			String componentId = ServicesCoreBootstrapGuiceModuleBase._componentPropertiesIdFor(_coreModule,_subComponent);
+			XMLPropertiesForAppComponent outPropsForComponent = new XMLPropertiesForAppComponent(_props.forApp(_coreAppCode.asAppCode()),
 																								 AppComponent.forId(componentId));
 			return outPropsForComponent;
 		}
@@ -271,21 +253,27 @@ abstract class ServicesCoreBootstrapGuiceModuleBase
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ServicesCoreBootstrapGuiceModule
 /////////////////////////////////////////////////////////////////////////////////////////
-	@Override
+//	@Override
 	public Collection<Class<? extends Module>> getInstalledModuleTypes() {
-		return _installedModuleTypes;
+		return FluentIterable.from(_installedModules)
+							 .transform(new Function<Module,Class<? extends Module>>() {
+												@Override
+												public Class<? extends Module> apply(final Module mod) {
+													return mod.getClass();
+												}
+							 			})
+							 .toList();
 	}
-	@Override
+//	@Override
 	public boolean isModuleInstalled(final Class<? extends Module> modType) {
-		if (CollectionUtils.isNullOrEmpty(_installedModuleTypes)) return false;
+		if (CollectionUtils.isNullOrEmpty(_installedModules)) return false;
 		
-		boolean outInstalled = false;
-		for (Class<? extends Module> mType : _installedModuleTypes) {
-			if (ReflectionUtils.isSubClassOf(mType,modType)) {
-				outInstalled = true;
-				break;
-			}
-		}
-		return outInstalled;
+		return FluentIterable.from(this.getInstalledModuleTypes())
+							 .anyMatch(new Predicate<Class<? extends Module>>() {
+											@Override
+											public boolean apply(final Class<? extends Module> mT) {
+												return ReflectionUtils.isSubClassOf(mT,modType);
+											}
+							 		   });
 	}
 }

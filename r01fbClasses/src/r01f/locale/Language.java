@@ -29,6 +29,9 @@ public enum Language
 	ROMANIAN	(55),
 	JAPANESE	(56),
 	RUSSIAN		(57),
+	ITALIAN		(58),
+	PORTUGUESE	(59),
+	
 	
 	ANY			(0);
 	

@@ -49,13 +49,14 @@ public class RESTServiceResourceUrlPathBuilders {
 		@Getter private final UrlPath _endPointBasePath;
 		
 		public RESTServiceEndPointUrl(final XMLPropertiesForAppComponent clientProps,
-									  final String selector) {
+									  final String selector) {			
 			this(clientProps.propertyAt("client/restEndPoints/host")
-					   .asUrl(),
+					   		.asUrl(),
 				 clientProps.propertyAt(Strings.customized("client/restEndPoints/{}EndPointBasePath",selector))
-					  .asUrlPath());
-			log.warn("REST service endpoint for {}: host={}, basePath={}",
-					 selector,_host,_endPointBasePath);
+					  		.asUrlPath());
+			if (log.isTraceEnabled()) log.trace("REST service endpoint for {} at {}: host={}, basePath={}",
+					  							selector,Strings.customized("client/restEndPoints/{}EndPointBasePath",selector),
+					  							_host,_endPointBasePath);
 			// warn if the properties could NOT be retrieved
 			if (!clientProps.propertyAt("client/restEndPoints/host").exist()
 						||

@@ -5,6 +5,7 @@ import r01f.aspects.interfaces.dirtytrack.ConvertToDirtyStateTrackable;
 import r01f.aspects.interfaces.dirtytrack.DirtyStateTrackable;
 import r01f.exceptions.Throwables;
 import r01f.guids.OID;
+import r01f.marshalling.Marshaller;
 import r01f.model.PersistableModelObject;
 import r01f.persistence.CRUDResult;
 import r01f.persistence.PersistenceException;
@@ -25,8 +26,10 @@ public abstract class ClientAPIDelegateForModelObjectCRUDServices<O extends OID,
 //  CONSTRUCTOR & BUILDER
 /////////////////////////////////////////////////////////////////////////////////////////
 	public ClientAPIDelegateForModelObjectCRUDServices(final UserContext userContext,
+													   final Marshaller modelObjectsMarshaller,
 												   	   final CRUDServicesForModelObject<O,M> services) {
 		super(userContext,
+			  modelObjectsMarshaller,
 			  services);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////

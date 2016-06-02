@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -16,11 +17,14 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 import r01f.types.Path;
 import r01f.util.types.Strings;
 
 
-
+@Slf4j
 public class Files {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
@@ -171,19 +175,14 @@ public class Files {
     		}
     	}
 	}
-/////////////////////////////////////////////////////////////////////////////////////////
-//  
-/////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Deletes a directory no matter if it's not empty
-	 * @param folder
+	 * Reads all file contents in memory
+	 * @param filePath
 	 * @return
 	 * @throws IOException
 	 */
-	public static boolean deleteFolder(final File folder) throws IOException {
-		if (!folder.exists()) throw new IOException("Folder " + folder.getAbsolutePath() + " does NOT exists");
-		if (!folder.isDirectory()) throw new IllegalArgumentException("File " + folder.getAbsolutePath() + " is NOT a folder!");
-		return FileUtils.deleteQuietly(folder);
+	public static byte[] loadContent(final Path filePath) throws IOException {
+		return com.google.common.io.Files.toByteArray(new File(filePath.asAbsoluteString()));
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ZIP FILE EXTRACT
@@ -191,13 +190,15 @@ public class Files {
 	/**
 	 * Extracts a zip file specified by the zipFilePath to a directory specified
 	 * by destDirectory (will be created if does not exists)
-	 * 
 	 * @param zipFileIS
 	 * @param destFolder
+	 * @return a collection containing the paths of the extracted files
 	 * @throws IOException
 	 */
-	public static void unzip(final InputStream zipFileIS,
-							 final Path destFolder) throws IOException {
+	public static Collection<Path> unzip(final InputStream zipFileIS,
+							 			 final Path destFolder) throws IOException {
+		Collection<Path> outPaths = Lists.newLinkedList();
+		
 		ZipInputStream zipIn = new ZipInputStream(zipFileIS);
 		ZipEntry entry = zipIn.getNextEntry();
 		// iterates over entries in the zip file
@@ -210,11 +211,14 @@ public class Files {
 			// extract the file
 			_extractFile(zipIn,
 						 extractedFilePath);
+			outPaths.add(extractedFilePath);
+			
 			// close the zip entry and go for the next
 			zipIn.closeEntry();
 			entry = zipIn.getNextEntry();
 		}
 		zipIn.close();
+		return outPaths;			
 	}
 	/**
 	 * Extracts a zip entry (file entry)
@@ -231,5 +235,59 @@ public class Files {
 			bos.write(bytesIn, 0, read);
 		}
 		bos.close();
-	}	
+	}
+/////////////////////////////////////////////////////////////////////////////////////////
+//  
+/////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Deletes a file given it's path ensuring that it's really a file (not a folder nor a symlink)
+	 * @param path
+	 * @return
+	 */
+	public static boolean deleteFile(final Path path) {
+		File file = new File(path.asAbsoluteString());
+		if (!file.exists()) {
+			log.warn("Could NOT delete file at {} since it does NOT exists",path.asAbsoluteString());
+			return false;
+		}
+		if (!file.isFile()) {
+			log.warn("Could NOT delete file at {} since it's NOT a file",path.asAbsoluteString());
+			return false;
+		}
+		return FileUtils.deleteQuietly(file);
+	}
+	/**
+	 * Deletes a directory no matter if it's not empty
+	 * @param folder
+	 * @return
+	 */
+	public static boolean deleteFolder(final Path path) {
+		File file = new File(path.asAbsoluteString());
+		if (!file.exists()) {
+			log.warn("Could NOT delete folder at {} since it does NOT exists",path.asAbsoluteString());
+			return false;
+		}
+		if (!file.isDirectory()) {
+			log.warn("Could NOT delete file at {} since it's NOT a folder",path.asAbsoluteString());
+			return false;
+		}
+		return FileUtils.deleteQuietly(file);		// maybe? FileUtils.deleteDirectory(folder)
+	}
+	/**
+	 * Deletes the folder that contains the given file
+	 * @param filePath
+	 */
+	public static void deleteFolderContainingFileAt(final Path filePath) {
+		File containerFolder = null;
+		try {
+			File file = new File(filePath.asAbsoluteString()); 
+			if (file.exists()) {
+				containerFolder = file.getParentFile();
+				log.info("Deleting folder at {}",containerFolder.getAbsolutePath());
+				FileUtils.deleteQuietly(containerFolder);		// maybe? FileUtils.deleteDirectory(folder)
+			}
+		} catch(Throwable th) {
+			log.error("Error trying to delete the folder with path={}",(containerFolder != null ? containerFolder.getAbsolutePath() : filePath.asAbsoluteString()));
+		}
+	}
 }

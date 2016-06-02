@@ -3,6 +3,7 @@ package r01f.persistence;
 import java.util.Collection;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -15,6 +16,7 @@ import r01f.model.PersistableModelObject;
 import r01f.patterns.IsBuilder;
 import r01f.persistence.db.DBEntity;
 import r01f.persistence.db.DBEntityToModelObjectTransformerBuilder;
+import r01f.persistence.db.TransformsDBEntityIntoModelObject;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 import r01f.util.types.collections.CollectionUtils;
@@ -66,76 +68,94 @@ public class FindResultBuilder
 //  Operation
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public class FindResultBuilderOperationStep<M> {
+	public class FindResultBuilderOperationStep<T> {
 		protected final UserContext _userContext;
-		protected final Class<M> _entityType;
+		protected final Class<T> _entityType;
 		
 		
 		//  --------- ERROR
-		public FindResultBuilderForError<M> errorFindingEntities() {
-			return new FindResultBuilderForError<M>(_userContext,
+		public FindResultBuilderForError<T> errorFindingEntities() {
+			return new FindResultBuilderForError<T>(_userContext,
 													_entityType);	
 		}
 		// ---------- SUCCESS FINDING 
-		public FindOK<M> foundEntities(final Collection<M> entities) {
-			FindOK<M> outFoundEntities = new FindOK<M>();
+		public FindOK<T> foundEntities(final Collection<T> entities) {
+			return _buildFoundEntitiesCollection(entities,
+												 _entityType);
+		}
+		public <DB extends DBEntity> FindResultBuilderDBEntityTransformerStep<DB,T> foundDBEntities(final Collection<DB> dbEntities) {
+			return new FindResultBuilderDBEntityTransformerStep<DB,T>(_userContext,
+																	  _entityType,
+																	  dbEntities);
+		}
+		public FindOK<T> noEntityFound() {
+			FindOK<T> outFoundEntities = new FindOK<T>();
 			outFoundEntities.setFoundObjectType(_entityType);
 			outFoundEntities.setRequestedOperation(PersistenceRequestedOperation.FIND);
 			outFoundEntities.setPerformedOperation(PersistencePerformedOperation.FOUND);
-			outFoundEntities.setOperationExecResult(entities);
+			outFoundEntities.setOperationExecResult(Lists.<T>newArrayList());	// no data found
 			return outFoundEntities;
 		}
-		public <DB extends DBEntity> FindOK<M> foundDBEntities(final Collection<DB> dbEntities) {
-			return this.foundDBEntities(dbEntities,
-							  			DBEntityToModelObjectTransformerBuilder.<DB,M>createFor(_userContext,
-									  													  		_entityType));
+	}	
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	public class FindResultBuilderDBEntityTransformerStep<DB extends DBEntity,
+														  T> {
+		protected final UserContext _userContext;
+		protected final Class<T> _entityType;
+		protected final Collection<DB> _dbEntities;
+		
+		public <M extends PersistableModelObject<? extends OID>> FindOK<M> transformedIntoModelObjectsUsing(final TransformsDBEntityIntoModelObject<DB,M> dbEntityToModelObjectTransformer) {
+			return this.transformedIntoModelObjectsUsing(DBEntityToModelObjectTransformerBuilder.<DB,M>createFor(_userContext,
+													  													  		 dbEntityToModelObjectTransformer));
 		}
-		public <DB extends DBEntity> FindOK<M> foundDBEntities(final Collection<DB> dbEntities,
-							   			 					   final Function<DB,M> transformer) {
+		@SuppressWarnings("unchecked")
+		public <M extends PersistableModelObject<? extends OID>> FindOK<M> transformedIntoModelObjectsUsing(final Function<DB,M> transformer) {
 			Collection<M> entities = null;
-			if (CollectionUtils.hasData(dbEntities)) {
+			if (CollectionUtils.hasData(_dbEntities)) {
 				Function<DB,M> dbEntityToModelObjectTransformer = DBEntityToModelObjectTransformerBuilder.createFor(_userContext,
 																								  					transformer);
-				entities = FluentIterable.from(dbEntities)
+				entities = FluentIterable.from(_dbEntities)
 										 .transform(dbEntityToModelObjectTransformer)
-										 .toList();
+										  .filter(Predicates.notNull())
+										  	.toList();
 			} else {
 				entities = Sets.newHashSet();
 			}
-			return this.foundEntities(entities);
+			return _buildFoundEntitiesCollection(entities,
+												 (Class<M>)_entityType);
 		}
-		public FindOK<M> noEntityFound() {
-			FindOK<M> outFoundEntities = new FindOK<M>();
-			outFoundEntities.setFoundObjectType(_entityType);
-			outFoundEntities.setRequestedOperation(PersistenceRequestedOperation.FIND);
-			outFoundEntities.setPerformedOperation(PersistencePerformedOperation.FOUND);
-			outFoundEntities.setOperationExecResult(Lists.<M>newArrayList());	// no data found
-			return outFoundEntities;
-		}
-		
-	}	
+	}
+	private static <T> FindOK<T> _buildFoundEntitiesCollection(final Collection<T> entities,
+															   final Class<T> entityType) {
+		FindOK<T> outFoundEntities = new FindOK<T>();
+		outFoundEntities.setFoundObjectType(entityType);
+		outFoundEntities.setRequestedOperation(PersistenceRequestedOperation.FIND);
+		outFoundEntities.setPerformedOperation(PersistencePerformedOperation.FOUND);
+		outFoundEntities.setOperationExecResult(entities);
+		return outFoundEntities;
+	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  ERROR
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public class FindResultBuilderForError<M> {
+	public class FindResultBuilderForError<T> {
 		protected final UserContext _userContext;
-		protected final Class<M> _entityType;
+		protected final Class<T> _entityType;
 		
-		public FindError<M> causedBy(final Throwable th) {
-			return new FindError<M>(_entityType,
+		public FindError<T> causedBy(final Throwable th) {
+			return new FindError<T>(_entityType,
 									th);
 		}
-		public FindError<M> causedBy(final String cause) {
-			return new FindError<M>(_entityType,
+		public FindError<T> causedBy(final String cause) {
+			return new FindError<T>(_entityType,
 									cause,
 									PersistenceErrorType.SERVER_ERROR);
 		}
-		public FindError<M> causedBy(final String cause,final Object... vars) {
+		public FindError<T> causedBy(final String cause,final Object... vars) {
 			return this.causedBy(Strings.customized(cause,vars));
 		}
-		public FindError<M> causedByClientBadRequest(final String msg,final Object... vars) {
-			FindError<M> outError = new FindError<M>(_entityType,
+		public FindError<T> causedByClientBadRequest(final String msg,final Object... vars) {
+			FindError<T> outError = new FindError<T>(_entityType,
 											     	 Strings.customized(msg,vars),			// the error message
 											     	 PersistenceErrorType.BAD_REQUEST_DATA);	// is a client error?
 			return outError;

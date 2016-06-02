@@ -2,6 +2,8 @@ package r01f.model.metadata;
 
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -14,21 +16,20 @@ import r01f.types.CanBeRepresentedAsString;
 import r01f.types.IsPath;
 import r01f.types.summary.Summary;
 
-import com.google.common.collect.Sets;
-
-public class FieldMetaDataConfigBuilder 
-  implements IsBuilder {
+public abstract class FieldMetaDataConfigBuilder 
+           implements IsBuilder {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	public static MetaDataConfigBuilderNameStep forId(final FieldMetaDataID fieldId) {
-		return new MetaDataConfigBuilderNameStep(fieldId);
+		return new FieldMetaDataConfigBuilder() { /* nothing */ }
+						.new MetaDataConfigBuilderNameStep(fieldId);
 	}
 /////////////////////////////////////////////////////////////////////////////////////////
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderNameStep {
+	public class MetaDataConfigBuilderNameStep {
 		private final FieldMetaDataID _fieldId;
 		
 		public MetaDataConfigBuilderDescriptionStep withName(final LanguageTexts name) {
@@ -40,7 +41,7 @@ public class FieldMetaDataConfigBuilder
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderDescriptionStep {
+	public class MetaDataConfigBuilderDescriptionStep {
 		private final FieldMetaDataID _fieldId;
 		private final LanguageTexts _name;
 		
@@ -57,7 +58,7 @@ public class FieldMetaDataConfigBuilder
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderTypeStep {
+	public class MetaDataConfigBuilderTypeStep {
 		private final FieldMetaDataID _fieldId;
 		private final LanguageTexts _name;
 		private final LanguageTexts _description;
@@ -78,7 +79,7 @@ public class FieldMetaDataConfigBuilder
 			// strings can be indexed tokenized or not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForString,
 													    MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForString>>(fieldMetaData,
-																					 											 MetaDataConfigBuilderIndexingCfgTokenizableStep.create(fieldMetaData));
+																					 											 new MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForString>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForString,
 											    MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForString>> forStringField(final Class<? extends CanBeRepresentedAsString> type) {
@@ -89,7 +90,7 @@ public class FieldMetaDataConfigBuilder
 			// strings can be indexed tokenized or not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForString,
 														MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForString>>(fieldMetaData,
-																					 											 MetaDataConfigBuilderIndexingCfgTokenizableStep.create(fieldMetaData));			
+																					 											 new MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForString>(fieldMetaData));			
 		}
 		public MetaDataConfigBuilderIndexingAlwaysStoredCfg<MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForOID>> forOIDField(final Class<? extends OID> oidType) {
 			FieldMetaDataForOID fieldMetaData = new FieldMetaDataForOID(_fieldId,
@@ -99,7 +100,7 @@ public class FieldMetaDataConfigBuilder
 			// oids are always stored and can be indexed not tokenized
 			fieldMetaData.getSearchEngineIndexingConfig()
 						 .setStored(true);
-			return new MetaDataConfigBuilderIndexingAlwaysStoredCfg<MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForOID>>(MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));
+			return new MetaDataConfigBuilderIndexingAlwaysStoredCfg<MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForOID>>(new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForOID>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForInteger,
 												MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForInteger>> forIntegerField() {
@@ -109,7 +110,7 @@ public class FieldMetaDataConfigBuilder
 			// numbers can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForInteger,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForInteger>>(fieldMetaData,
-																	 														     	 MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));			
+																	 														     	 new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForInteger>(fieldMetaData));			
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForLong,
 												MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForLong>> forLongField() {
@@ -119,7 +120,7 @@ public class FieldMetaDataConfigBuilder
 			// numbers can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForLong,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForLong>>(fieldMetaData,
-																	 														      MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));
+																	 														      new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForLong>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForFloat,
 												MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForFloat>> forFloatField() {
@@ -129,7 +130,7 @@ public class FieldMetaDataConfigBuilder
 			// numbers can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForFloat,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForFloat>>(fieldMetaData,
-																	 														       MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));
+																	 														       new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForFloat>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForDate,
 											    MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForDate>> forDateField() {
@@ -139,7 +140,7 @@ public class FieldMetaDataConfigBuilder
 			// dates can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForDate,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForDate>>(fieldMetaData,
-																	 														       MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));			
+																	 														      new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForDate>(fieldMetaData));			
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForBoolean,
 												MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForBoolean>> forBooleanField() {
@@ -149,7 +150,7 @@ public class FieldMetaDataConfigBuilder
 			// booleans can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForBoolean,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForBoolean>>(fieldMetaData,
-																	 														         MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));
+																	 														         new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForBoolean>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForEnum,
 												MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForEnum>> forEnumField(final Class<? extends Enum<?>> enumType) {
@@ -160,7 +161,7 @@ public class FieldMetaDataConfigBuilder
 			// enums can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForEnum,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForEnum>>(fieldMetaData,
-																	 														      MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));
+																	 														      new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForEnum>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForLanguage,
 												MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForLanguage>> forLanguageField() {
@@ -170,7 +171,7 @@ public class FieldMetaDataConfigBuilder
 			// language can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForLanguage,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForLanguage>>(fieldMetaData,
-																	 														      	  MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));
+																	 														      	  new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForLanguage>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForPath,
 												MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForPath>> forPathField(final Class<? extends IsPath> pathType) {
@@ -181,7 +182,7 @@ public class FieldMetaDataConfigBuilder
 			// paths can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForPath,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForPath>>(fieldMetaData,
-																	 														      MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));
+																	 														      new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForPath>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForUrl,
 												MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForUrl>> forURLField() {
@@ -191,7 +192,7 @@ public class FieldMetaDataConfigBuilder
 			// urls can be indexed not tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForUrl,
 														MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForUrl>>(fieldMetaData,
-																	 														     MetaDataConfigBuilderIndexingCfgNotTokenizableStep.create(fieldMetaData));			
+																	 														     new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<FieldMetaDataForUrl>(fieldMetaData));			
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForJavaType,
 											    MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForJavaType>> forJavaTypeField(final Class<?> type) {
@@ -202,7 +203,7 @@ public class FieldMetaDataConfigBuilder
 			// java types can be indexed always tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForJavaType,
 														MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForJavaType>>(fieldMetaData,
-																	 														      	   MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep.create(fieldMetaData));
+																	 														      	   new MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForJavaType>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForSummary,
 												MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForSummary>> forSummaryField(final Class<? extends Summary> summaryType) {
@@ -213,7 +214,7 @@ public class FieldMetaDataConfigBuilder
 			// summaries can be indexed always tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForSummary,
 														MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForSummary>>(fieldMetaData,
-																	 														      	  MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep.create(fieldMetaData));
+																	 														      	  new MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForSummary>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForLanguageTexts,
 												MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForLanguageTexts>> forLanguageTextsField() {
@@ -223,7 +224,7 @@ public class FieldMetaDataConfigBuilder
 			// language texts can be indexed always tokenized
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForLanguageTexts,
 														MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForLanguageTexts>>(fieldMetaData,
-																	 														      	  		MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep.create(fieldMetaData));			
+																	 														      	  		new MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<FieldMetaDataForLanguageTexts>(fieldMetaData));			
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForCollection,
 												MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForCollection>> forCollectionField(final Class<?> componentType) {
@@ -233,7 +234,7 @@ public class FieldMetaDataConfigBuilder
 																					  componentType);
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForCollection,
 														MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForCollection>>(fieldMetaData,
-																	 														      	 MetaDataConfigBuilderIndexingCfgTokenizableStep.create(fieldMetaData));
+																	 														      	 new MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForCollection>(fieldMetaData));
 		}
 		public MetaDataConfigBuilderIndexingCfg<FieldMetaDataForMap,
 												MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForMap>> forMapField(final Class<?> keyType,final Class<?> valueType) {
@@ -243,7 +244,7 @@ public class FieldMetaDataConfigBuilder
 																	    keyType,valueType);
 			return new MetaDataConfigBuilderIndexingCfg<FieldMetaDataForMap,
 														MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForMap>>(fieldMetaData,
-																	 														  MetaDataConfigBuilderIndexingCfgTokenizableStep.create(fieldMetaData));
+																	 														  new MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForMap>(fieldMetaData));
 			
 		}
 		public FieldMetaDataForDependentObject forDependantObject(final Class<?> objType,
@@ -279,7 +280,7 @@ public class FieldMetaDataConfigBuilder
 														 MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForPolymorphicType>> searchEngine() {
 			return new MetaDataConfigBuilderIndexingCfgStoreStep<FieldMetaDataForPolymorphicType,
 																 MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForPolymorphicType>>(_fieldMetaData,
-																																  MetaDataConfigBuilderIndexingCfgTokenizableStep.create(_fieldMetaData));
+																																  				   new MetaDataConfigBuilderIndexingCfgTokenizableStep<FieldMetaDataForPolymorphicType>(_fieldMetaData));
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
@@ -297,8 +298,8 @@ public class FieldMetaDataConfigBuilder
 //  
 /////////////////////////////////////////////////////////////////////////////////////////
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderIndexingCfg<F extends FieldMetaData,
-														 BUILDER_NEXT_STEP> {
+	public class MetaDataConfigBuilderIndexingCfg<F extends FieldMetaData,
+											      BUILDER_NEXT_STEP> {
 		private final F _fieldMetaDataCfg;
 		private final BUILDER_NEXT_STEP _builderNextStep;
 		
@@ -308,7 +309,7 @@ public class FieldMetaDataConfigBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderIndexingAlwaysStoredCfg<BUILDER_NEXT_STEP> {
+	public class MetaDataConfigBuilderIndexingAlwaysStoredCfg<BUILDER_NEXT_STEP> {
 		private final BUILDER_NEXT_STEP _builderNextStep;
 		
 		public BUILDER_NEXT_STEP searchEngine() {
@@ -316,8 +317,8 @@ public class FieldMetaDataConfigBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderIndexingCfgStoreStep<F extends FieldMetaData,
-																  BUILDER_NEXT_STEP> {
+	public class MetaDataConfigBuilderIndexingCfgStoreStep<F extends FieldMetaData,
+														   BUILDER_NEXT_STEP> {
 		private final F _fieldMetaDataCfg;
 		private final BUILDER_NEXT_STEP _builderNextStep;
 	
@@ -333,12 +334,8 @@ public class FieldMetaDataConfigBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<F extends FieldMetaData> {
+	public class MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<F extends FieldMetaData> {
 		private final F _fieldMetaDataCfg;
-		
-		public static <F extends FieldMetaData> MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<F> create(final F fieldMetaDataCfg) {
-			return new MetaDataConfigBuilderIndexingCfgAlwaysTokenizedStep<F>(fieldMetaDataCfg);
-		}
 		
 		public F notIndexed() {
 			_fieldMetaDataCfg.getSearchEngineIndexingConfig()
@@ -354,12 +351,8 @@ public class FieldMetaDataConfigBuilder
 		}
 	}																  
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderIndexingCfgNotTokenizableStep<F extends FieldMetaData> {
+	public class MetaDataConfigBuilderIndexingCfgNotTokenizableStep<F extends FieldMetaData> {
 		private final F _fieldMetaDataCfg;
-		
-		public static <F extends FieldMetaData> MetaDataConfigBuilderIndexingCfgNotTokenizableStep<F> create(final F fieldMetaDataCfg) {
-			return new MetaDataConfigBuilderIndexingCfgNotTokenizableStep<F>(fieldMetaDataCfg);
-		}
 		
 		public F notIndexed() {
 			_fieldMetaDataCfg.getSearchEngineIndexingConfig()
@@ -375,12 +368,8 @@ public class FieldMetaDataConfigBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderIndexingCfgTokenizableStep<F extends FieldMetaData> {
+	public class MetaDataConfigBuilderIndexingCfgTokenizableStep<F extends FieldMetaData> {
 		private final F _fieldMetaDataCfg;	
-		
-		public static <F extends FieldMetaData> MetaDataConfigBuilderIndexingCfgTokenizableStep<F> create(final F fieldMetaDataCfg) {
-			return new MetaDataConfigBuilderIndexingCfgTokenizableStep<F>(fieldMetaDataCfg);
-		}
 		
 		public F notIndexed() {
 			_fieldMetaDataCfg.getSearchEngineIndexingConfig()
@@ -394,7 +383,7 @@ public class FieldMetaDataConfigBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderIndexingCfgTokenizeStep<F extends FieldMetaData> {
+	public class MetaDataConfigBuilderIndexingCfgTokenizeStep<F extends FieldMetaData> {
 		private final F _fieldMetaDataCfg;
 		
 		public F notTokenized() {
@@ -409,7 +398,7 @@ public class FieldMetaDataConfigBuilder
 		}
 	}
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
-	public static class MetaDataConfigBuilderIndexingCfgBoostingStep<F extends FieldMetaData> {
+	public class MetaDataConfigBuilderIndexingCfgBoostingStep<F extends FieldMetaData> {
 		private final F _fieldMetaDataCfg;
 		
 		public F withDefaultBoosting() {

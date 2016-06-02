@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xlnets token='httpProvided' login='app' loginAppCode='X42T'>	
+	<!--
+	Token types:
+		n38api			: use the http request cookies and N38 API
+		mockFile 		: use a classpath-stored file with the xlnets session / user / auth / etc data 
+									> the [sessionToken] element contains the session token's path (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate a token)
+									> the [userDataToken] element contains the user info token's path (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate a token)
+									> the [authToken] element contains the auth token's path (use https://xlnets.servicios.jakina.ejiedes.net/xlnets/servicios.htm to generate a token)
+		httpProvided	: Using a service that provides xlnets session tokens
+									> the [loginAppCode] attribute is mandatory
+									> the [sessionToken] element contains the url of the service that provides tokens (ie: http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet?login_app=appId)
+	-->
+	<!--
+	Login types:
+		user			: user login
+		app				: app login
+								the [loginAppCode] attribute is mandatory
+	-->
+	
+	<sessionToken>http://svc.intra.integracion.jakina.ejiedes.net/ctxapp/Y31JanoServiceXlnetsTokenCreatorServlet</sessionToken>
+	
+	<loginUrl>https://xlnets.servicios.jakina.ejiedes.net/n38a/N38LoginInicioServlet</loginUrl>
+</xlnets>

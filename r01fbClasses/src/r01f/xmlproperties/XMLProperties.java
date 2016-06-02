@@ -13,6 +13,8 @@ import r01f.guids.CommonOIDs.AppCode;
 import r01f.guids.CommonOIDs.AppComponent;
 import r01f.guids.CommonOIDs.Environment;
 import r01f.patterns.Memoized;
+import r01f.services.ServiceIDs.ClientApiAppCode;
+import r01f.services.ServiceIDs.CoreAppCode;
 import r01f.xmlproperties.XMLPropertiesForAppCache.XMLPropertiesForAppCacheFactory;
 
 /**
@@ -245,6 +247,12 @@ public class XMLProperties {
 	public static XMLPropertiesForAppCacheUsageStep createForApp(final AppCode appCode) {
 		return new XMLProperties().new XMLPropertiesForAppCacheUsageStep(appCode);
 	}
+	public static XMLPropertiesForAppCacheUsageStep createForApp(final ClientApiAppCode appCode) {
+		return XMLProperties.createForApp(appCode.asAppCode());
+	}
+	public static XMLPropertiesForAppCacheUsageStep createForApp(final CoreAppCode appCode) {
+		return XMLProperties.createForApp(appCode.asAppCode());
+	}
 	public static XMLPropertiesForAppCacheUsageStep createForApp(final String appCode) {
 		return XMLProperties.createForApp(AppCode.forId(appCode));
 	}
@@ -296,6 +304,12 @@ public class XMLProperties {
 /////////////////////////////////////////////////////////////////////////////////////////
 //	METHODS
 /////////////////////////////////////////////////////////////////////////////////////////
+	public XMLPropertiesForApp forApp(final ClientApiAppCode appCode,final int componentsNumberEstimation) {
+		return this.forApp(appCode.asAppCode(),componentsNumberEstimation);
+	}
+	public XMLPropertiesForApp forApp(final CoreAppCode appCode,final int componentsNumberEstimation) {
+		return this.forApp(appCode.asAppCode(),componentsNumberEstimation);
+	}
 	public XMLPropertiesForApp forApp(final AppCode appCode,final int componentsNumberEstimation) {
 		XMLPropertiesForApp propsForApp = _propsForAppCache != null ? _propsForAppCache.get(appCode)
 																	: null;
@@ -313,6 +327,12 @@ public class XMLProperties {
 	}
 	public XMLPropertiesForApp forApp(final AppCode appCode) {
 		return this.forApp(appCode,10); 	// Component number estimation for the app
+	}
+	public XMLPropertiesForApp forApp(final ClientApiAppCode appCode) {
+		return this.forApp(appCode.asAppCode());
+	}
+	public XMLPropertiesForApp forApp(final CoreAppCode appCode) {
+		return this.forApp(appCode.asAppCode());
 	}
 	/**
 	 * Gets an app properties manager {@link XMLPropertiesForApp} 

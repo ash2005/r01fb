@@ -7,7 +7,6 @@ import r01f.exceptions.Throwables;
 import r01f.guids.OID;
 import r01f.httpclient.HttpResponse;
 import r01f.marshalling.Marshaller;
-import r01f.marshalling.MarshallerException;
 import r01f.model.PersistableModelObject;
 import r01f.model.SummarizedModelObject;
 import r01f.persistence.FindSummariesError;
@@ -19,7 +18,6 @@ import r01f.types.url.Url;
 import r01f.usercontext.UserContext;
 import r01f.util.types.Strings;
 
-@Slf4j
 public class RESTResponseToFindSummariesResultMapper<O extends OID,M extends PersistableModelObject<O>> {
 /////////////////////////////////////////////////////////////////////////////////////////
 //  FIELDS
@@ -83,12 +81,10 @@ public class RESTResponseToFindSummariesResultMapper<O extends OID,M extends Per
 		}
 		// [2] - Error while request processing: the PersistenceCRUDError comes INSIDE the response
 		else {
-			try {
-				outOpError = _marshaller.beanFromXml(responseStr);	// the rest endpoint response is a PersistenceCRUDError XML
-			} catch(MarshallerException mEx) {
-				log.error("Error parsing the {} response: {}",restResourceUrl,responseStr);
-				throw mEx;
-			}
+			outOpError = FindSummariesResultBuilder.using(userContext)
+												   .on(_modelObjectType)
+												   .errorFindingSummaries()
+												  	  		.causedBy(responseStr);
 		}
 		// [4] - Return the CRUDOperationResult
 		return outOpError;
